@@ -30,9 +30,9 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Fletes Pendientes de Pago</span>
-                    <i class="fa-solid fa-clock-rotate-left kpi-icon" class="badge badge-warning-soft"></i>
+                    <i class="fa-solid fa-clock-rotate-left kpi-icon badge badge-warning-soft"></i>
                 </div>
-                <div class="kpi-value" th:text="${totalPendiente}" class="text-warning-dark">0</div>
+                <div class="kpi-value text-warning-dark" th:text="${totalPendiente}">0</div>
                 <div class="kpi-subtext">Viajes por liquidar al conductor</div>
             </div>
         </div>
@@ -94,7 +94,7 @@
                             </td>
                             <td class="text-center">
                                 <form th:if="${v.estadoPago != 'Pagado'}" th:action="@{'/transporte/' + ${v.idViaje} + '/pagar'}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline" class="btn btn-outline-success">
+                                    <button type="submit"class="btn btn-sm btn-outline btn-outline-success">
                                         <i class="fa-solid fa-check"></i> Marcar Pagado
                                     </button>
                                 </form>

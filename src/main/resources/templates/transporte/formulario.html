@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <div class="form-card" class="form-container-card">
+        <div class="form-card form-container-card">
             <form th:action="@{/transporte/guardar}" th:object="${viaje}" method="post">
 
                 <div class="grid-two-cols mb-lg">
@@ -26,8 +26,7 @@
                         <label class="form-label-primary">
                             <i class="fa-solid fa-location-dot"></i> Ubicación de Origen:
                         </label>
-                        <select name="idOrigen" class="form-control" required
-                                class="form-input-control">
+                        <select name="idOrigen"class="form-control form-input-control" required>
                             <option value="" disabled selected>-- Seleccione punto de partida --</option>
                             <option th:each="u : ${ubicaciones}" 
                                     th:value="${u.idUbicacion}" 
@@ -39,8 +38,7 @@
                         <label class="form-label-primary">
                             <i class="fa-solid fa-map-pin"></i> Ubicación de Destino:
                         </label>
-                        <select name="idDestino" class="form-control" required
-                                class="form-input-control">
+                        <select name="idDestino"class="form-control form-input-control" required>
                             <option value="" disabled selected>-- Seleccione destino final --</option>
                             <option th:each="u : ${ubicaciones}" 
                                     th:value="${u.idUbicacion}" 
@@ -54,8 +52,7 @@
                         <label class="form-label-primary">
                             <i class="fa-solid fa-id-card"></i> Conductor Asignado:
                         </label>
-                        <select name="cedulaConductor" class="form-control" required
-                                class="form-input-control">
+                        <select name="cedulaConductor"class="form-control form-input-control" required>
                             <option value="" disabled selected>-- Seleccione chofer --</option>
                             <option th:each="c : ${conductores}" 
                                     th:value="${c.cedula}" 
@@ -67,8 +64,7 @@
                         <label class="form-label-primary">
                             <i class="fa-solid fa-truck"></i> Camión / Placa:
                         </label>
-                        <select name="numPlaca" class="form-control" required
-                                class="form-input-control">
+                        <select name="numPlaca"class="form-control form-input-control" required>
                             <option value="" disabled selected>-- Seleccione camión --</option>
                             <option th:each="cam : ${camiones}" 
                                     th:value="${cam.numPlaca}" 
@@ -77,12 +73,11 @@
                     </div>
                 </div>
 
-                <div class="form-group" class="mb-xl">
+                <div class="form-group mb-xl">
                     <label class="form-label-primary">
                         <i class="fa-solid fa-clock"></i> Estado de Pago del Flete:
                     </label>
-                    <select th:field="*{estadoPago}" class="form-control"
-                            class="form-input-control">
+                    <select th:field="*{estadoPago}"class="form-control form-input-control">
                         <option value="Pendiente">Pendiente de Pago</option>
                         <option value="Pagado">Pagado</option>
                     </select>

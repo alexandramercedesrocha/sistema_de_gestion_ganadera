@@ -51,9 +51,9 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Rechazos en Canal</span>
-                    <i class="fa-solid fa-triangle-exclamation kpi-icon" class="badge badge-danger"></i>
+                    <i class="fa-solid fa-triangle-exclamation kpi-icon badge badge-danger"></i>
                 </div>
-                <div class="kpi-value" th:text="${totalRechazos}" class="text-danger-bold">0</div>
+                <div class="kpi-value text-danger-bold" th:text="${totalRechazos}">0</div>
                 <div class="kpi-subtext">Por dictamen veterinario</div>
             </div>
         </div>
@@ -80,7 +80,7 @@
                     <tbody>
                         <tr th:if="${#lists.isEmpty(entregas)}">
                             <td colspan="8" class="empty-table-cell">
-                                <i class="fa-solid fa-folder-open" class="icon-empty-lg"></i>
+                                <i class="fa-solid fa-folder-open icon-empty-lg"></i>
                                 No hay entregas a matadero registradas en la base de datos.
                             </td>
                         </tr>

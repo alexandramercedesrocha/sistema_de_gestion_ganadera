@@ -20,15 +20,15 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Total Gastos Operativos</span>
-                    <i class="fa-solid fa-money-bill-transfer kpi-icon" class="badge badge-danger"></i>
+                    <i class="fa-solid fa-money-bill-transfer kpi-icon badge badge-danger"></i>
                 </div>
-                <div class="kpi-value" class="text-danger-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalGastos, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="kpi-value text-danger-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalGastos, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
                 <div class="kpi-subtext">Costos deducibles de la utilidad neta en Córdobas</div>
             </div>
         </div>
 
         <!-- FORMULARIO DE GASTO -->
-        <div class="form-card" class="mb-xl">
+        <div class="form-card mb-xl">
             <h2 class="section-subtitle"><i class="fa-solid fa-plus-circle"></i> Registrar Nuevo Gasto</h2>
             <form th:action="@{/finanzas/gastos/guardar}" th:object="${nuevoGasto}" method="post">
                 <div class="form-grid">

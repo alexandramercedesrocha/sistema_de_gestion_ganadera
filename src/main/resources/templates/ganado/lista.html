@@ -14,7 +14,7 @@
                 <p class="page-subtitle">Trazabilidad por arete, proveedor, dentición (paletas), pesaje y control de rechazos</p>
             </div>
             <div class="flex-center gap-sm">
-                <a th:href="@{/ganado/rechazos}" class="btn btn-outline" class="btn btn-outline-danger"><i class="fa-solid fa-triangle-exclamation"></i> Ver Dictámenes de Rechazo</a>
+                <a th:href="@{/ganado/rechazos}"class="btn btn-outline btn-outline-danger"><i class="fa-solid fa-triangle-exclamation"></i> Ver Dictámenes de Rechazo</a>
                 <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
             </div>
         </div>
@@ -29,9 +29,7 @@
                th:classappend="${vistaSeleccionada == 'en-finca' ? 'btn-primary' : 'btn-outline'}" 
                class="btn btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca (Sin despachar)</a>
 
-            <a th:href="@{/ganado(vista='rechazos')}" 
-               th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-primary' : 'btn-outline'}" 
-               class="btn btn-sm" class="text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
+            <a th:href="@{/ganado(vista='rechazos')}" th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-primary' : 'btn-outline'}"class="btn btn-sm text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
 
             <a th:href="@{/ganado(vista='vendidos')}" 
                th:classappend="${vistaSeleccionada == 'vendidos' ? 'btn-primary' : 'btn-outline'}" 
@@ -100,15 +98,15 @@
                             </td>
                             <td>
                                 <span th:if="${g.estado == 'En Finca'}" class="badge badge-success"><i class="fa-solid fa-cow"></i> En Finca</span>
-                                <span th:if="${g.estado == 'Rechazo en Matadero'}" class="badge badge-warning" class="badge badge-warning-soft"><i class="fa-solid fa-triangle-exclamation"></i> Rechazo Matadero</span>
-                                <span th:if="${g.estado == 'Entregado a Matadero'}" class="badge badge-primary" class="badge badge-indigo-soft"><i class="fa-solid fa-check-double"></i> Vendido en Planta</span>
+                                <span th:if="${g.estado == 'Rechazo en Matadero'}"class="badge badge-warning badge-warning-soft"><i class="fa-solid fa-triangle-exclamation"></i> Rechazo Matadero</span>
+                                <span th:if="${g.estado == 'Entregado a Matadero'}"class="badge badge-primary badge-indigo-soft"><i class="fa-solid fa-check-double"></i> Vendido en Planta</span>
                             </td>
                             <td>
                                 <div class="action-buttons-group">
                                     <form th:action="@{/ganado/eliminar/{arete}(arete=${g.arete})}" method="post" 
                                           onsubmit="return confirm('¿Está seguro de retirar del inventario el arete ' + this.getAttribute('data-arete') + '?');" 
                                           th:data-arete="${g.arete}">
-                                        <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar del inventario">
+                                        <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar del inventario">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>

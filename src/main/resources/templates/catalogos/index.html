@@ -46,24 +46,22 @@
         <!-- PESTAÑA 1: PROVEEDORES -->
         <div th:if="${tabActiva == 'proveedores'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-user-plus"></i> Registrar Proveedor Completo</h2>
                     <form th:action="@{/catalogos/proveedores/guardar}" method="post">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Nombre Completo / Hacienda *:</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Don Chepe Miranda (Hda. La Gloria)" required
-                                   class="catalog-control">
+                            <input type="text" name="nombre"class="form-control catalog-control" placeholder="Ej. Don Chepe Miranda (Hda. La Gloria)" required>
                         </div>
 
                         <div class="catalog-form-row-phone">
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Inicial:</label>
-                                <input type="text" name="telefono" class="form-control" placeholder="Ej. 8888-9999"
-                                       class="catalog-control">
+                                <input type="text" name="telefono"class="form-control catalog-control" placeholder="Ej. 8888-9999">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
-                                <select name="compania" class="form-control" class="catalog-control">
+                                <select name="compania"class="form-control catalog-control">
                                     <option value="Claro">Claro</option>
                                     <option value="Tigo">Tigo</option>
                                     <option value="Convencional">Fijo</option>
@@ -71,21 +69,19 @@
                             </div>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Nombre de la Finca / Acopio:</label>
-                            <input type="text" name="nombreLugar" class="form-control" placeholder="Ej. Finca El Madroño (Boaco)"
-                                   class="catalog-control">
+                            <input type="text" name="nombreLugar"class="form-control catalog-control" placeholder="Ej. Finca El Madroño (Boaco)">
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label">
                                 <i class="fa-brands fa-google"></i> Enlace Google Maps de la Finca:
                             </label>
-                            <input type="url" name="urlGoogleMaps" class="form-control" placeholder="https://maps.app.goo.gl/..."
-                                   class="catalog-control">
+                            <input type="url" name="urlGoogleMaps"class="form-control catalog-control" placeholder="https://maps.app.goo.gl/...">
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Proveedor en MySQL
                         </button>
                     </form>
@@ -116,8 +112,7 @@
                                         <strong th:text="${p.nombre}">Don Chepe Miranda</strong>
                                     </td>
                                     <td>
-                                        <span th:each="t : ${p.telefonos}" class="badge badge-info" class="tag-badge"
-                                              th:text="${t.telefono} + ' (' + ${t.compania} + ')'">8888-8888</span>
+                                        <span th:each="t : ${p.telefonos}"class="badge badge-info tag-badge" th:text="${t.telefono} + ' (' + ${t.compania} + ')'">8888-8888</span>
                                         <span th:if="${#lists.isEmpty(p.telefonos)}" class="text-muted-sm">Sin teléfono</span>
                                     </td>
                                     <td>
@@ -132,7 +127,7 @@
                                     <td>
                                         <form th:action="@{'/catalogos/proveedores/' + ${p.idProveedor} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de eliminar este proveedor?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Proveedor">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Proveedor">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -148,24 +143,22 @@
         <!-- PESTAÑA 2: MATADEROS -->
         <div th:if="${tabActiva == 'mataderos'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-plus-circle"></i> Registrar Planta Matadero</h2>
                     <form th:action="@{/catalogos/mataderos/guardar}" method="post">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Nombre de la Planta Industrial *:</label>
-                            <input type="text" name="nombreMatadero" class="form-control" placeholder="Ej. MACESA - Matadero Central S.A." required
-                                   class="catalog-control">
+                            <input type="text" name="nombreMatadero"class="form-control catalog-control" placeholder="Ej. MACESA - Matadero Central S.A." required>
                         </div>
 
                         <div class="catalog-form-row-phone">
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Planta:</label>
-                                <input type="text" name="telefono" class="form-control" placeholder="Ej. 2512-2240"
-                                       class="catalog-control">
+                                <input type="text" name="telefono"class="form-control catalog-control" placeholder="Ej. 2512-2240">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
-                                <select name="compania" class="form-control" class="catalog-control">
+                                <select name="compania"class="form-control catalog-control">
                                     <option value="Claro">Claro</option>
                                     <option value="Convencional">Convencional</option>
                                     <option value="Tigo">Tigo</option>
@@ -173,21 +166,19 @@
                             </div>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Ubicación / Dirección Planta:</label>
-                            <input type="text" name="nombreLugar" class="form-control" placeholder="Ej. Planta Juigalpa, Km 142 Carr. Rama"
-                                   class="catalog-control">
+                            <input type="text" name="nombreLugar"class="form-control catalog-control" placeholder="Ej. Planta Juigalpa, Km 142 Carr. Rama">
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label">
                                 <i class="fa-brands fa-google"></i> Enlace Google Maps:
                             </label>
-                            <input type="url" name="urlGoogleMaps" class="form-control" placeholder="https://maps.app.goo.gl/..."
-                                   class="catalog-control">
+                            <input type="url" name="urlGoogleMaps"class="form-control catalog-control" placeholder="https://maps.app.goo.gl/...">
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Matadero en MySQL
                         </button>
                     </form>
@@ -218,8 +209,7 @@
                                         <strong th:text="${m.nombreMatadero}">MACESA</strong>
                                     </td>
                                     <td>
-                                        <span th:each="t : ${m.telefonos}" class="badge badge-info" class="mr-xs"
-                                              th:text="${t.telefono} + ' (' + ${t.compania} + ')'">2512-2240</span>
+                                        <span th:each="t : ${m.telefonos}"class="badge badge-info mr-xs" th:text="${t.telefono} + ' (' + ${t.compania} + ')'">2512-2240</span>
                                         <span th:if="${#lists.isEmpty(m.telefonos)}" class="text-muted-sm">Sin teléfono</span>
                                     </td>
                                     <td>
@@ -234,7 +224,7 @@
                                     <td>
                                         <form th:action="@{'/catalogos/mataderos/' + ${m.idMatadero} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de eliminar este matadero?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Matadero">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Matadero">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -250,33 +240,30 @@
         <!-- PESTAÑA 3: CAMIONES -->
         <div th:if="${tabActiva == 'camiones'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-truck"></i> Registrar Camión y Circulación</h2>
                     <form th:action="@{/catalogos/camiones/guardar}" method="post" enctype="multipart/form-data">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Número de Placa *:</label>
-                            <input type="text" name="numPlaca" class="form-control" placeholder="Ej. CH-18290" required
-                                   class="catalog-control input-uppercase">
+                            <input type="text" name="numPlaca"class="form-control catalog-control input-uppercase" placeholder="Ej. CH-18290" required>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">
                                 <i class="fa-solid fa-camera"></i> Subir Foto de Circulación (Galería / Cámara):
                             </label>
-                            <input type="file" name="archivoCirculacion" accept="image/*" class="form-control"
-                                   class="catalog-control-sm">
+                            <input type="file" name="archivoCirculacion" accept="image/*"class="form-control catalog-control-sm">
                             <small class="text-muted-xs">Sube la foto directo desde tu dispositivo (JPG, PNG).</small>
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label-muted">
                                 O ingresar URL web de la imagen (opcional):
                             </label>
-                            <input type="url" name="urlFotoCirculacion" class="form-control" placeholder="https://..."
-                                   class="catalog-control-sm">
+                            <input type="url" name="urlFotoCirculacion"class="form-control catalog-control-sm" placeholder="https://...">
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Camión
                         </button>
                     </form>
@@ -315,7 +302,7 @@
                                     <td>
                                         <form th:action="@{'/catalogos/camiones/' + ${c.numPlaca} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de eliminar este camión?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Camión">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Camión">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -331,53 +318,48 @@
         <!-- PESTAÑA 4: CONDUCTORES -->
         <div th:if="${tabActiva == 'conductores'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-id-card"></i> Registrar Conductor y Licencia</h2>
                     <form th:action="@{/catalogos/conductores/guardar}" method="post" enctype="multipart/form-data">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Número de Cédula *:</label>
-                            <input type="text" name="cedula" class="form-control" placeholder="Ej. 121-140285-0001B" required
-                                   class="catalog-control">
+                            <input type="text" name="cedula"class="form-control catalog-control" placeholder="Ej. 121-140285-0001B" required>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Nombre Completo *:</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Marvin Centeno" required
-                                   class="catalog-control">
+                            <input type="text" name="nombre"class="form-control catalog-control" placeholder="Ej. Marvin Centeno" required>
                         </div>
 
                         <div class="catalog-form-row-phone">
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Celular:</label>
-                                <input type="text" name="telefono" class="form-control" placeholder="Ej. 8899-7766"
-                                       class="catalog-control">
+                                <input type="text" name="telefono"class="form-control catalog-control" placeholder="Ej. 8899-7766">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
-                                <select name="compania" class="form-control" class="catalog-control">
+                                <select name="compania"class="form-control catalog-control">
                                     <option value="Claro">Claro</option>
                                     <option value="Tigo">Tigo</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">
                                 <i class="fa-solid fa-camera"></i> Subir Foto de Licencia (Galería / Cámara):
                             </label>
-                            <input type="file" name="archivoLicencia" accept="image/*" class="form-control"
-                                   class="catalog-control-sm">
+                            <input type="file" name="archivoLicencia" accept="image/*"class="form-control catalog-control-sm">
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label-muted">
                                 O ingresar URL de foto (opcional):
                             </label>
-                            <input type="url" name="urlFotoLicencia" class="form-control" placeholder="https://..."
-                                   class="catalog-control-sm">
+                            <input type="url" name="urlFotoLicencia"class="form-control catalog-control-sm" placeholder="https://...">
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Conductor
                         </button>
                     </form>
@@ -417,14 +399,13 @@
                                         <span th:if="${cond.urlFotoLicencia == null or cond.urlFotoLicencia.isBlank()}" class="text-muted">Sin foto</span>
                                     </td>
                                     <td>
-                                        <span th:each="t : ${cond.telefonos}" class="badge badge-info" class="mr-xs"
-                                              th:text="${t.telefono} + ' (' + ${t.compania} + ')'">8888-8888</span>
+                                        <span th:each="t : ${cond.telefonos}"class="badge badge-info mr-xs" th:text="${t.telefono} + ' (' + ${t.compania} + ')'">8888-8888</span>
                                         <span th:if="${#lists.isEmpty(cond.telefonos)}" class="text-muted-sm">Sin teléfono</span>
                                     </td>
                                     <td>
                                         <form th:action="@{'/catalogos/conductores/' + ${cond.cedula} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de eliminar este conductor?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Conductor">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Conductor">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -440,18 +421,17 @@
         <!-- PESTAÑA 5: UBICACIONES -->
         <div th:if="${tabActiva == 'ubicaciones'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-map-pin"></i> Nueva Ubicación / Finca</h2>
                     <form th:action="@{/catalogos/ubicaciones/guardar}" method="post">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Nombre del Lugar / Finca *:</label>
-                            <input type="text" name="nombreLugar" class="form-control" placeholder="Ej. Finca Santa Elena (Teustepe)" required
-                                   class="catalog-control">
+                            <input type="text" name="nombreLugar"class="form-control catalog-control" placeholder="Ej. Finca Santa Elena (Teustepe)" required>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Tipo de Lugar:</label>
-                            <select name="tipoLugar" class="form-control" class="catalog-control">
+                            <select name="tipoLugar"class="form-control catalog-control">
                                 <option value="Finca Ganadera">Finca Ganadera</option>
                                 <option value="Planta Matadero">Planta / Matadero</option>
                                 <option value="Báscula Municipal">Báscula Municipal</option>
@@ -460,31 +440,30 @@
                             </select>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">
                                 <i class="fa-brands fa-google"></i> Enlace Google Maps (URL):
                             </label>
-                            <input type="url" name="url" class="form-control" placeholder="https://maps.app.goo.gl/..."
-                                   class="catalog-control">
+                            <input type="url" name="url"class="form-control catalog-control" placeholder="https://maps.app.goo.gl/...">
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Asignar a Proveedor (Opcional):</label>
-                            <select name="idProveedor" class="form-control" class="catalog-control">
+                            <select name="idProveedor"class="form-control catalog-control">
                                 <option value="">-- No vincular a proveedor --</option>
                                 <option th:each="p : ${proveedores}" th:value="${p.idProveedor}" th:text="${p.nombre}">Don Chepe</option>
                             </select>
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label">Asignar a Matadero (Opcional):</label>
-                            <select name="idMatadero" class="form-control" class="catalog-control">
+                            <select name="idMatadero"class="form-control catalog-control">
                                 <option value="">-- No vincular a matadero --</option>
                                 <option th:each="m : ${mataderos}" th:value="${m.idMatadero}" th:text="${m.nombreMatadero}">MACESA</option>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Ubicación
                         </button>
                     </form>
@@ -531,7 +510,7 @@
                                     <td>
                                         <form th:action="@{'/catalogos/ubicaciones/' + ${u.idUbicacion} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de eliminar esta ubicación?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Ubicación">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Ubicación">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -547,49 +526,48 @@
         <!-- PESTAÑA 6: TELÉFONOS -->
         <div th:if="${tabActiva == 'telefonos'}">
             <div class="grid-split">
-                <div class="form-card" class="form-card catalog-card">
+                <div class="form-card catalog-card">
                     <h2 class="section-subtitle"><i class="fa-solid fa-phone-plus"></i> Registrar Contacto Telefónico</h2>
                     <form th:action="@{/catalogos/telefonos/guardar}" method="post">
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Número de Teléfono *:</label>
-                            <input type="text" name="telefono" class="form-control" placeholder="Ej. 8899-1122" required
-                                   class="catalog-control">
+                            <input type="text" name="telefono"class="form-control catalog-control" placeholder="Ej. 8899-1122" required>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Compañía Telefónica:</label>
-                            <select name="compania" class="form-control" class="catalog-control">
+                            <select name="compania"class="form-control catalog-control">
                                 <option value="Claro">Claro</option>
                                 <option value="Tigo">Tigo</option>
                                 <option value="Convencional">Convencional / Fijo</option>
                             </select>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Asignar a Proveedor:</label>
-                            <select name="idProveedor" class="form-control" class="catalog-control">
+                            <select name="idProveedor"class="form-control catalog-control">
                                 <option value="">-- No es proveedor --</option>
                                 <option th:each="p : ${proveedores}" th:value="${p.idProveedor}" th:text="${p.nombre}">Don Chepe</option>
                             </select>
                         </div>
 
-                        <div class="form-group" class="form-group mb-md">
+                        <div class="form-group mb-md">
                             <label class="catalog-form-label">Asignar a Conductor:</label>
-                            <select name="cedulaConductor" class="form-control" class="catalog-control">
+                            <select name="cedulaConductor"class="form-control catalog-control">
                                 <option value="">-- No es conductor --</option>
                                 <option th:each="c : ${conductores}" th:value="${c.cedula}" th:text="${c.nombre} + ' (' + ${c.cedula} + ')'">Marvin</option>
                             </select>
                         </div>
 
-                        <div class="form-group" class="mb-lg">
+                        <div class="form-group mb-lg">
                             <label class="catalog-form-label">Asignar a Matadero:</label>
-                            <select name="idMatadero" class="form-control" class="catalog-control">
+                            <select name="idMatadero"class="form-control catalog-control">
                                 <option value="">-- No es matadero --</option>
                                 <option th:each="m : ${mataderos}" th:value="${m.idMatadero}" th:text="${m.nombreMatadero}">MACESA</option>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <button type="submit"class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-floppy-disk"></i> Guardar Teléfono
                         </button>
                     </form>
@@ -632,7 +610,7 @@
                                     <td>
                                         <form th:action="@{'/catalogos/telefonos/' + ${t.idTelefono} + '/eliminar'}" method="post"
                                               onsubmit="return confirm('¿Está seguro de retirar este teléfono?');">
-                                            <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar Teléfono">
+                                            <button type="submit"class="btn btn-outline btn-sm btn-delete-icon" title="Eliminar Teléfono">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>

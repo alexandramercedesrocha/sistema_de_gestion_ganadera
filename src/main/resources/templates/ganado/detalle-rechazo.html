@@ -10,7 +10,7 @@
 
         <div class="header-actions">
             <div>
-                <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation" class="text-danger-bold"></i> Control de Ganado de Rechazo</h1>
+                <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation text-danger-bold"></i> Control de Ganado de Rechazo</h1>
                 <p class="page-subtitle">Entidad especializada (Hereda de Ganado): Motivos de dictamen, fecha de rechazo y pesaje en matadero</p>
             </div>
             <div class="flex-center gap-sm">
@@ -28,7 +28,7 @@
                     Total Cabezas Rechazadas: <strong th:text="${totalRechazos}">0</strong>
                 </div>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive table-container">
                 <table>
                     <thead>
                         <tr>
@@ -48,20 +48,20 @@
                             <td>
                                 <strong class="text-code-danger" th:text="${r.arete}">NI-10008</strong>
                             </td>
-                            <td th:text="${r.color}">Bermejo</td>
-                            <td th:text="${r.paletas} + ' Paletas'">4 Paletas</td>
-                            <td th:text="${r.fechaRechazo}">2026-10-15</td>
-                            <td class="text-danger" th:text="${r.motivoRechazo}">Hematoma severo</td>
-                            <td th:text="${#numbers.formatDecimal(r.pesoEntradaKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">430.00 kg</td>
+                            <td th:text="${r.color != null ? r.color : 'No esp.'}">Bermejo</td>
+                            <td th:text="${r.paletas != null ? r.paletas + ' Paletas' : 'S/D'}">4 Paletas</td>
+                            <td th:text="${r.fechaRechazo != null ? #temporals.format(r.fechaRechazo, 'dd/MM/yyyy') : '&mdash;'}">2026-10-15</td>
+                            <td class="text-danger" th:text="${r.motivoRechazo != null ? r.motivoRechazo : 'Sin dictamen'}">Hematoma severo</td>
+                            <td th:text="${r.pesoEntradaKg != null ? #numbers.formatDecimal(r.pesoEntradaKg, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">430.00 kg</td>
                             <td>
-                                <strong th:text="${#numbers.formatDecimal(r.pesoMatadero, 1, 'COMMA', 2, 'POINT')} + ' kg'">410.50 kg</strong>
+                                <strong th:text="${r.pesoMatadero != null ? #numbers.formatDecimal(r.pesoMatadero, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">410.50 kg</strong>
                             </td>
                             <td>
-                                <span class="badge badge-pendiente" th:text="${#numbers.formatDecimal(r.mermaKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">-19.50 kg</span>
+                                <span class="badge badge-pendiente" th:text="${r.mermaKg != null ? #numbers.formatDecimal(r.mermaKg, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">-19.50 kg</span>
                             </td>
                             <td>
                                 <span th:class="'badge ' + (${r.estado == 'En Finca'} ? 'badge-finca' : 'badge-matadero')"
-                                      th:text="${r.estado}">En Finca</span>
+                                      th:text="${r.estado != null ? r.estado : 'En Finca'}">En Finca</span>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(rechazos)}">

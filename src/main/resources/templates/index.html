@@ -17,7 +17,7 @@
             <div class="header-buttons-wrap">
                 <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
                 <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nuevo Lote</a>
-                <a th:href="@{/entregas/nueva}" class="btn btn-outline" class="btn btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
+                <a th:href="@{/entregas/nueva}"class="btn btn-outline btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
             </div>
         </div>
 
@@ -71,16 +71,16 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Ganado de Rechazo</span>
-                    <i class="fa-solid fa-triangle-exclamation kpi-icon" class="badge badge-danger"></i>
+                    <i class="fa-solid fa-triangle-exclamation kpi-icon badge badge-danger"></i>
                 </div>
-                <div class="kpi-value" th:text="${ganadoRechazo} + ' Cabezas'" class="text-danger-bold">0 Cabezas</div>
+                <div class="kpi-value text-danger-bold" th:text="${ganadoRechazo} + ' Cabezas'">0 Cabezas</div>
                 <div class="kpi-subtext">Dictamen veterinario</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Utilidad Neta Total</span>
-                    <i class="fa-solid fa-sack-dollar kpi-icon" class="badge badge-success"></i>
+                    <i class="fa-solid fa-sack-dollar kpi-icon badge badge-success"></i>
                 </div>
                 <div class="kpi-value" 
                      th:classappend="${balance.utilidadNeta >= 0} ? 'amount-positive' : 'amount-negative'"

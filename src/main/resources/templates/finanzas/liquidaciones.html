@@ -20,15 +20,15 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Total Liquidado Histórico</span>
-                    <i class="fa-solid fa-sack-dollar kpi-icon" class="badge badge-success-soft"></i>
+                    <i class="fa-solid fa-sack-dollar kpi-icon badge badge-success-soft"></i>
                 </div>
-                <div class="kpi-value" class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalLiquidado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="kpi-value text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalLiquidado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
                 <div class="kpi-subtext">Ingresos netos transferidos por los mataderos a la sociedad</div>
             </div>
         </div>
 
         <!-- FORMULARIO DE REGISTRO RÁPIDO -->
-        <div class="form-card" class="mb-xl">
+        <div class="form-card mb-xl">
             <h2 class="section-subtitle"><i class="fa-solid fa-plus-circle"></i> Registrar Nueva Liquidación</h2>
             <form th:action="@{/finanzas/liquidaciones/guardar}" th:object="${nuevaLiquidacion}" method="post">
                 <div class="form-grid">
