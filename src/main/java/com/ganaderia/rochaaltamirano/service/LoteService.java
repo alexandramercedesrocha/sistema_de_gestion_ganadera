@@ -41,6 +41,12 @@ public class LoteService {
         return loteRepository.findAll();
     }
 
+    
+    public boolean existeAreteEnSistema(String arete) {
+        if (arete == null || arete.isBlank()) return false;
+        return ganadoRepository.existsById(arete.trim().toUpperCase());
+    }
+
     public Optional<Lote> buscarPorId(Integer idLote) {
         return loteRepository.findById(idLote);
     }

@@ -52,6 +52,14 @@ public class ArqueoMensual {
         this.fecha = fecha;
     }
 
+    public LocalDate getFechaCierre() {
+        return fecha;
+    }
+
+    public void setFechaCierre(LocalDate fechaCierre) {
+        this.fecha = fechaCierre;
+    }
+
     public List<Liquidacion> getLiquidaciones() {
         return liquidaciones;
     }

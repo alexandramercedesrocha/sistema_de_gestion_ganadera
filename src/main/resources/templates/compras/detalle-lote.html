@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Detalle de Lote #' + ${lote.idLote})}"></head>
+<head th:replace="~{fragments/layout :: head('Detalle del Lote de Compra')}"></head>
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -15,17 +15,22 @@
                     <i class="fa-solid fa-boxes-stacked"></i> Lote de Compra #<span th:text="${lote.idLote}">1</span>
                 </h1>
                 <p class="page-subtitle">
-                    Proveedor: <strong th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</strong> &mdash; 
-                    Fecha de Compra: <span th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">01/01/2026</span> &mdash;
-                    Precio Estándar: <strong>C$ <span th:text="${lote.precioEstandar}">0.00</span>/kg</strong> &mdash;
-                    Precio Rechazo: <strong>C$ <span th:text="${lote.precioDeRechazo}">0.00</span>/kg</strong>
+                    Proveedor: <strong class="text-brand" th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</strong> |
+                    Fecha: <strong th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">01/01/2026</strong> |
+                    Precio Base: <strong th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioEstandar != null ? lote.precioEstandar : 0, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$ 75.00</strong>
+                    <span th:if="${lote.precioDeRechazo != null}">
+                        | Precio Rechazo: <strong th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioDeRechazo, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$ 65.00</strong>
+                    </span>
                 </p>
             </div>
             <div>
-                <a th:href="@{/compras}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Compras</a>
+                <a th:href="@{/compras}" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a Lotes
+                </a>
             </div>
         </div>
 
+        <!-- CONTENIDO PRINCIPAL: DOS COLUMNAS -->
         <div class="grid-split">
             
             <!-- COLUMNA IZQUIERDA: FORMULARIOS PARA AGREGAR ARETE Y PAGO -->
@@ -36,26 +41,22 @@
                         <i class="fa-solid fa-plus-circle"></i> Registrar Arete en este Lote
                     </h2>
 
-                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-animal'}" th:object="${nuevoAnimal}" method="post">
+                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-animal'}" th:object="${nuevoAnimal}" method="post" id="formAgregarAnimal">
                         
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">
-                                Arete Oficial Asignado:
+                                Arete Oficial Asignado * (9 dígitos: 5 + espacio + 4):
                             </label>
-                            <input type="text" th:field="*{arete}"class="form-control catalog-control" placeholder="Ej. NI-10030" required>
-                        </div>
-
-                        <div class="form-group mb-md">
-                            <label class="catalog-form-label">
-                                Arete Anterior (Vendedor / Trazabilidad):
-                            </label>
-                            <input type="text" name="areteAnteriorCodigo"class="form-control catalog-control" placeholder="Opcional: Arete previo">
+                            <input type="text" th:field="*{arete}" id="areteInput" class="form-control catalog-control input-uppercase" 
+                                   placeholder="Ej. 21455 6685" pattern="^[0-9]{5}\s[0-9]{4}$" maxlength="10" 
+                                   title="Debe ingresar exactamente 9 números con formato: 5 dígitos, espacio y 4 dígitos (Ej. 21455 6685)" required>
+                            <small class="text-muted-xs">Formato obligatorio: 5 números, espacio y 4 números (ejemplo: 21455 6685)</small>
                         </div>
 
                         <div class="grid-two-cols mb-md">
                             <div class="form-group">
                                 <label class="catalog-form-label">Color / Pelaje:</label>
-                                <select th:field="*{color}"class="form-control catalog-control">
+                                <select th:field="*{color}" class="form-control catalog-control">
                                     <option value="Hosco">Hosco</option>
                                     <option value="Bermejo">Bermejo</option>
                                     <option value="Bramil">Bramil</option>
@@ -67,7 +68,7 @@
 
                             <div class="form-group">
                                 <label class="catalog-form-label">Dentición / Paletas:</label>
-                                <select th:field="*{paletas}"class="form-control catalog-control">
+                                <select th:field="*{paletas}" class="form-control catalog-control">
                                     <option value="0 Paletas">0 Paletas (Ternero)</option>
                                     <option value="2 Paletas" selected>2 Paletas</option>
                                     <option value="4 Paletas">4 Paletas</option>
@@ -80,21 +81,19 @@
                         <div class="grid-two-cols mb-lg">
                             <div class="form-group">
                                 <label class="catalog-form-label">Peso Báscula (kg):</label>
-                                <input type="number" step="0.01" th:field="*{pesoKg}"class="form-control catalog-control" placeholder="Ej. 395.00" required>
+                                <input type="number" step="0.01" th:field="*{pesoKg}" class="form-control catalog-control" placeholder="Ej. 395.00" required>
                             </div>
 
                             <div class="form-group">
                                 <label class="catalog-form-label">Condición:</label>
-                                <select th:field="*{condicionCompra}"class="form-control catalog-control">
+                                <select th:field="*{condicionCompra}" class="form-control catalog-control">
                                     <option value="Bueno" selected>Bueno</option>
-                                    <option value="Excelente">Excelente</option>
-                                    <option value="Regular">Regular</option>
                                     <option value="Rechazo">Rechazo</option>
                                 </select>
                             </div>
                         </div>
 
-                        <button type="submit"class="btn btn-primary w-full justify-center">
+                        <button type="submit" class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-plus"></i> Añadir Arete al Lote
                         </button>
                     </form>
@@ -111,7 +110,7 @@
                             <label class="catalog-form-label">
                                 Estado del Pago del Lote:
                             </label>
-                            <select name="estadoPago" id="estadoPagoSelect"class="form-control catalog-control" onchange="actualizarFormatoVoucher(this.value)">
+                            <select name="estadoPago" id="estadoPagoSelect" class="form-control catalog-control" onchange="actualizarFormatoVoucher(this.value)">
                                 <option value="Pagado" selected>Pagado Total</option>
                                 <option value="Parcial">Pago Parcial (Abono)</option>
                                 <option value="Pendiente">Pendiente de Pago</option>
@@ -120,15 +119,18 @@
 
                         <div class="form-group mb-md" id="grupoVoucher">
                             <label id="lblVoucher" class="catalog-form-label">
-                                Nº Comprobante Bancario * (9 a 11 dígitos):
+                                Nº Comprobante Bancario * (9 a 16 dígitos):
                             </label>
-                            <input type="text" name="comprobanteVoucher" id="comprobanteVoucherInput"class="form-control catalog-control" placeholder="Ej. 109283746 (9 a 11 dígitos banco BAC/Lafise)" pattern="[0-9]{9,11}" title="Debe contener entre 9 y 11 dígitos numéricos" required>
+                            <input type="text" name="comprobanteVoucher" id="comprobanteVoucherInput" class="form-control catalog-control" 
+                                   placeholder="Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)" 
+                                   pattern="[0-9]{9,16}" minlength="9" maxlength="16" 
+                                   title="Debe contener entre 9 y 16 dígitos numéricos" required>
                             <small id="ayudaVoucher" class="text-muted-xs">
-                                Formato: Generalmente de 9 a 11 dígitos, dependiendo del banco (por ejemplo, BAC suele usar 9 dígitos).
+                                Formato: Generalmente de 9 a 16 dígitos, dependiendo del banco (BAC, Lafise, Banpro).
                             </small>
                         </div>
 
-                        <button type="submit"class="btn btn-accent btn-primary w-full justify-center">
+                        <button type="submit" class="btn btn-accent btn-primary w-full justify-center">
                             <i class="fa-solid fa-money-check-dollar"></i> Guardar Comprobante
                         </button>
                     </form>
@@ -148,7 +150,6 @@
                             <thead>
                                 <tr>
                                     <th>Arete Actual</th>
-                                    <th>Arete Anterior</th>
                                     <th>Color</th>
                                     <th>Paletas</th>
                                     <th>Peso (kg)</th>
@@ -157,21 +158,18 @@
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(lote.animales)}">
-                                    <td colspan="6" class="empty-table-cell">
+                                    <td colspan="5" class="empty-table-cell">
                                         No has añadido animales a este lote todavía. Usa el formulario de la izquierda.
                                     </td>
                                 </tr>
                                 <tr th:each="a : ${lote.animales}">
-                                    <td class="text-brand-bold" th:text="${a.arete}">NI-10030</td>
-                                    <td>
-                                        <span th:if="${a.areteAnterior != null}" th:text="${a.areteAnterior.arete}">PREV-1</span>
-                                        <span th:if="${a.areteAnterior == null}" class="text-muted">&mdash;</span>
-                                    </td>
+                                    <td class="text-brand-bold arete-en-tabla" th:text="${a.arete}">21455 6685</td>
                                     <td th:text="${a.color}">Hosco</td>
                                     <td th:text="${a.paletas}">2 Paletas</td>
                                     <td class="font-semibold" th:text="${a.pesoKg} + ' kg'">395 kg</td>
                                     <td>
-                                        <span class="badge badge-info" th:text="${a.condicionCompra}">Bueno</span>
+                                        <span th:class="'badge ' + (${a.condicionCompra == 'Bueno'} ? 'badge-success' : 'badge-danger')" 
+                                              th:text="${a.condicionCompra}">Bueno</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -220,6 +218,34 @@
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
     <script>
+        // Auto-formateo del arete: 5 dígitos + espacio + 4 dígitos (Ej. 21455 6685)
+        const areteInput = document.getElementById('areteInput');
+        if (areteInput) {
+            areteInput.addEventListener('input', function(e) {
+                let digits = this.value.replace(/\D/g, '').slice(0, 9);
+                if (digits.length > 5) {
+                    this.value = digits.slice(0, 5) + ' ' + digits.slice(5);
+                } else {
+                    this.value = digits;
+                }
+            });
+
+            // Verificación previa en frontend para arete duplicado en el lote actual
+            const formAnimal = document.getElementById('formAgregarAnimal');
+            if (formAnimal) {
+                formAnimal.addEventListener('submit', function(e) {
+                    const areteVal = areteInput.value.trim();
+                    const aretesExistentes = Array.from(document.querySelectorAll('.arete-en-tabla')).map(el => el.textContent.trim());
+                    if (aretesExistentes.includes(areteVal)) {
+                        e.preventDefault();
+                        alert('El arete [' + areteVal + '] ya está registrado en este mismo lote. Ingrese un arete único.');
+                        areteInput.focus();
+                    }
+                });
+            }
+        }
+
+        // Manejo dinámico del campo de voucher bancario (9 a 16 dígitos)
         function actualizarFormatoVoucher(estado) {
             const input = document.getElementById('comprobanteVoucherInput');
             const lbl = document.getElementById('lblVoucher');
@@ -230,19 +256,25 @@
                 input.placeholder = 'No requerido aún (Pendiente de pago)';
                 input.removeAttribute('required');
                 input.removeAttribute('pattern');
+                input.removeAttribute('minlength');
+                input.removeAttribute('maxlength');
                 ayuda.innerText = 'El estado quedará asentado como Pendiente. Podrá registrar el voucher una vez realizada la transferencia.';
             } else if (estado === 'Parcial') {
-                lbl.innerHTML = 'Nº Comprobante del Abono Parcial * (9 a 11 dígitos):';
-                input.placeholder = 'Ej. 109283746 (9 a 11 dígitos banco BAC/Lafise)';
+                lbl.innerHTML = 'Nº Comprobante del Abono Parcial * (9 a 16 dígitos):';
+                input.placeholder = 'Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)';
                 input.setAttribute('required', 'required');
-                input.setAttribute('pattern', '[0-9]{9,11}');
-                ayuda.innerText = 'Formato: Generalmente de 9 a 11 dígitos, dependiendo del banco (por ejemplo, BAC suele usar 9 dígitos).';
+                input.setAttribute('pattern', '[0-9]{9,16}');
+                input.setAttribute('minlength', '9');
+                input.setAttribute('maxlength', '16');
+                ayuda.innerText = 'Formato: Generalmente de 9 a 16 dígitos numéricos según el comprobante bancario.';
             } else {
-                lbl.innerHTML = 'Nº Comprobante Bancario Total * (9 a 11 dígitos):';
-                input.placeholder = 'Ej. 109283746 (9 a 11 dígitos banco BAC/Lafise)';
+                lbl.innerHTML = 'Nº Comprobante Bancario Total * (9 a 16 dígitos):';
+                input.placeholder = 'Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)';
                 input.setAttribute('required', 'required');
-                input.setAttribute('pattern', '[0-9]{9,11}');
-                ayuda.innerText = 'Formato: Generalmente de 9 a 11 dígitos, dependiendo del banco (por ejemplo, BAC suele usar 9 dígitos).';
+                input.setAttribute('pattern', '[0-9]{9,16}');
+                input.setAttribute('minlength', '9');
+                input.setAttribute('maxlength', '16');
+                ayuda.innerText = 'Formato: Generalmente de 9 a 16 dígitos numéricos según el comprobante bancario.';
             }
         }
     </script>

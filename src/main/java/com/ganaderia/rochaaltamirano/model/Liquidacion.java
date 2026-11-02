@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class Liquidacion {
 
     @Id
-    @Column(name = "id_num_comprobante", length = 20)
+    @Column(name = "id_num_comprobante", length = 50)
     private String idNumComprobante;
 
     @Column(name = "fecha_liquidacion", nullable = false)
@@ -25,6 +25,10 @@ public class Liquidacion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_matadero")
     private Matadero matadero;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_entrega", nullable = true)
+    private Entrega entrega;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_arqueo")
@@ -72,6 +76,14 @@ public class Liquidacion {
         this.matadero = matadero;
     }
 
+    public Entrega getEntrega() {
+        return entrega;
+    }
+
+    public void setEntrega(Entrega entrega) {
+        this.entrega = entrega;
+    }
+
     public ArqueoMensual getArqueo() {
         return arqueo;
     }
@@ -80,11 +92,8 @@ public class Liquidacion {
         this.arqueo = arqueo;
     }
 
-    // Compatibilidad con vistas previas
+    // Compatibilidad para vistas que accedían a getEmpresa()
     public String getEmpresa() {
-        return matadero != null ? matadero.getNombreMatadero() : "Matadero";
-    }
-
-    public void setEmpresa(String empresa) {
+        return matadero != null ? matadero.getNombreMatadero() : "Matadero No Especificado";
     }
 }

@@ -17,10 +17,17 @@
                 <p class="page-subtitle">
                     Planta: <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'N/D'}">MACESA</strong> &mdash; 
                     Fecha: <span th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</span> &mdash;
-                    Precio Acordado: <strong>C$ <span th:text="${entrega.precioAcordado}">0.00</span>/kg</strong>
+                    Precio Apto: <strong>C$ <span th:text="${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
+                    <span th:if="${entrega.precioRechazo != null}">
+                        &mdash; Precio Rechazo: <strong>C$ <span th:text="${#numbers.formatDecimal(entrega.precioRechazo, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
+                    </span>
+                    <span th:if="${entrega.viaje != null}">
+                        &mdash; <span class="badge badge-info"><i class="fa-solid fa-truck"></i> Chofer: <strong th:text="${entrega.viaje.conductor != null ? entrega.viaje.conductor.nombre : 'S/C'}">Marvin</strong> | Camión: <strong th:text="${entrega.viaje.camion != null ? entrega.viaje.camion.numPlaca : 'S/P'}">M-12345</strong></span>
+                    </span>
                 </p>
             </div>
-            <div>
+            <div class="flex-center gap-sm">
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
                 <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Entregas</a>
             </div>
         </div>
@@ -39,9 +46,9 @@
                         <label class="catalog-form-label">
                             <i class="fa-solid fa-tag"></i> Seleccionar Arete:
                         </label>
-                        <select name="arete"class="form-control catalog-control" required>
+                        <select name="arete" class="form-control catalog-control" required>
                             <option value="" disabled selected>-- Elija un animal del inventario --</option>
-                            <option th:each="g : ${ganadoDisponible}" 
+                            <option th:each="g : ${ganadosDisponibles}" 
                                     th:value="${g.arete}" 
                                     th:text="${g.arete} + ' (' + ${g.color} + ', ' + ${g.pesoKg} + ' kg entrada)'">NI-10021</option>
                         </select>
@@ -52,37 +59,38 @@
                         <label class="catalog-form-label">
                             <i class="fa-solid fa-weight-scale"></i> Peso en Matadero (kg canal):
                         </label>
-                        <input type="number" step="0.01" name="pesoMataderoKg"class="form-control catalog-control" required placeholder="Ej. 410.50">
+                        <input type="number" step="0.01" name="pesoMataderoKg" class="form-control catalog-control" required placeholder="Ej. 410.50">
                     </div>
 
                     <div class="form-group mb-lg">
                         <label class="catalog-form-label">
                             <i class="fa-solid fa-stethoscope"></i> Dictamen Veterinario:
                         </label>
-                        <select name="estadoDictamen" id="selectDictamen"class="form-control catalog-control" required onchange="toggleMotivoRechazo(this.value)">
-                            <option value="Apto" selected>Apto (Canal Aprobada)</option>
-                            <option value="Rechazado">Rechazado / Decomiso</option>
+                        <select name="estadoDictamen" id="selectDictamen" class="form-control catalog-control" onchange="toggleMotivoRechazo(this.value)">
+                            <option value="Apto" selected>Apto para Consumo / Canal Aceptada</option>
+                            <option value="Rechazado">Rechazado / Decomiso Sanitario o Físico</option>
                         </select>
                     </div>
 
                     <div class="form-group mb-lg d-none" id="divMotivoRechazo">
                         <label class="form-input-error">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Motivo del Rechazo:
+                            <i class="fa-solid fa-triangle-exclamation"></i> Motivo Específico del Rechazo:
                         </label>
-                        <textarea name="motivoRechazo" rows="2"class="form-control catalog-control input-alert" placeholder="Ej. Hematoma severo en paleta, fiebre leve en retén..."></textarea>
+                        <input type="text" name="motivoRechazo" class="form-control catalog-control input-alert" placeholder="Ej. Hematoma severo en paleta, fiebre leve en retén, etc.">
+                        <small class="text-muted-xs">Este dictamen se registrará en el expediente de rechazos</small>
                     </div>
 
-                    <button type="submit"class="btn btn-primary w-full justify-center">
-                        <i class="fa-solid fa-floppy-disk"></i> Registrar Pesaje
+                    <button type="submit" class="btn btn-primary w-full justify-center">
+                        <i class="fa-solid fa-check"></i> Registrar Pesaje y Dictamen
                     </button>
                 </form>
             </div>
 
-            <!-- TABLA DE ANIMALES YA PESADOS -->
-            <div class="table-card" >
+            <!-- TABLA DE DETALLES DE ANIMALES ENTREGADOS -->
+            <div class="table-card">
                 <div class="card-header">
-                    <h2><i class="fa-solid fa-list-ol"></i> Cabezas Registradas en esta Entrega (<span th:text="${detalles.size()}">0</span>)</h2>
-                    <span class="badge badge-success" th:text="'Peso Total: ' + ${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</span>
+                    <h2><i class="fa-solid fa-cow"></i> Reses Entregadas (<span th:text="${#lists.size(detalles)}">0</span>)</h2>
+                    <span class="badge badge-success" th:text="'Total Estimado: C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</span>
                 </div>
                 <div class="table-responsive">
                     <table>
@@ -138,9 +146,9 @@
         function toggleMotivoRechazo(val) {
             const div = document.getElementById('divMotivoRechazo');
             if (val === 'Rechazado') {
-                div.style.display = 'block';
+                div.classList.remove('d-none');
             } else {
-                div.style.display = 'none';
+                div.classList.add('d-none');
             }
         }
     </script>

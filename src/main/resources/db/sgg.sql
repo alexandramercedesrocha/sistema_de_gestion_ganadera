@@ -91,7 +91,8 @@ CREATE TABLE `entrega` (
   `fecha_entrega` date NOT NULL,
   `precio_acordado` decimal(10,2) DEFAULT NULL,
   `precio_rechazo` decimal(10,2) DEFAULT NULL,
-  `id_matadero` int(11) DEFAULT NULL
+  `id_matadero` int(11) DEFAULT NULL,
+  `id_viaje` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -146,10 +147,11 @@ CREATE TABLE `gastos` (
 --
 
 CREATE TABLE `liquidacion` (
-  `id_num_comprobante` varchar(20) NOT NULL,
+  `id_num_comprobante` varchar(50) NOT NULL,
   `fecha_liquidacion` date NOT NULL,
   `monto` decimal(10,2) DEFAULT NULL,
   `id_matadero` int(11) DEFAULT NULL,
+  `id_entrega` int(11) DEFAULT NULL,
   `id_arqueo` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

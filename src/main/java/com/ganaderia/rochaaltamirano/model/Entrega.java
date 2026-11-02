@@ -32,6 +32,10 @@ public class Entrega {
     @JoinColumn(name = "id_matadero")
     private Matadero matadero;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_viaje", nullable = true)
+    private Viaje viaje;
+
     @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleEntrega> detalles = new ArrayList<>();
 
@@ -86,6 +90,14 @@ public class Entrega {
         this.matadero = matadero;
     }
 
+    public Viaje getViaje() {
+        return viaje;
+    }
+
+    public void setViaje(Viaje viaje) {
+        this.viaje = viaje;
+    }
+
     public List<DetalleEntrega> getDetalles() {
         return detalles;
     }
@@ -111,6 +123,28 @@ public class Entrega {
                     .map(DetalleEntrega::getPesoMataderoKg)
                     .filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    public BigDecimal getMontoTotalEstimado() {
+        try {
+            if (detalles == null || detalles.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            BigDecimal total = BigDecimal.ZERO;
+            for (DetalleEntrega d : detalles) {
+                BigDecimal peso = d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : BigDecimal.ZERO;
+                if ("Rechazado".equalsIgnoreCase(d.getEstadoDictamen())) {
+                    BigDecimal pRech = precioRechazo != null ? precioRechazo : BigDecimal.ZERO;
+                    total = total.add(peso.multiply(pRech));
+                } else {
+                    BigDecimal pApto = precioAcordado != null ? precioAcordado : BigDecimal.ZERO;
+                    total = total.add(peso.multiply(pApto));
+                }
+            }
+            return total;
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }

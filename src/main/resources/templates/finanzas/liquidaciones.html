@@ -11,9 +11,12 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones de Mataderos</h1>
-                <p class="page-subtitle">Comprobantes oficiales de pago por entrega de ganado y pesaje en canal (MACESA, SAN MARTÍN)</p>
+                <p class="page-subtitle">Liquidación de entregas de ganado, pesaje oficial en canal y comprobantes de pago emitidos por la planta</p>
             </div>
-            <a th:href="@{/finanzas/balance}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Balance</a>
+            <div class="flex-center gap-sm">
+                <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-truck-ramp-box"></i> Ver Entregas a Planta</a>
+                <a th:href="@{/finanzas/balance}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Balance</a>
+            </div>
         </div>
 
         <div class="kpi-grid">
@@ -23,50 +26,131 @@
                     <i class="fa-solid fa-sack-dollar kpi-icon badge badge-success-soft"></i>
                 </div>
                 <div class="kpi-value text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalLiquidado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
-                <div class="kpi-subtext">Ingresos netos transferidos por los mataderos a la sociedad</div>
+                <div class="kpi-subtext">Ingresos netos transferidos por las plantas procesadoras a la sociedad</div>
             </div>
         </div>
 
-        <!-- FORMULARIO DE REGISTRO RÁPIDO -->
-        <div class="form-card mb-xl">
-            <h2 class="section-subtitle"><i class="fa-solid fa-plus-circle"></i> Registrar Nueva Liquidación</h2>
+        <!-- 1. TABLA DE ENTREGAS EN MATADERO PENDIENTES / DISPONIBLES PARA LIQUIDAR -->
+        <div class="table-card mb-xl">
+            <div class="card-header">
+                <div>
+                    <h2 class="section-subtitle mb-xs"><i class="fa-solid fa-industry"></i> Entregas Realizadas a Plantas Mataderos</h2>
+                    <p class="text-muted-xs">Selecciona una entrega con pesaje para cargar su monto total y registrar su liquidación</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código Entrega</th>
+                            <th>Planta Matadero</th>
+                            <th>Fecha Entrega</th>
+                            <th>Cabezas</th>
+                            <th>Peso Total Báscula</th>
+                            <th>Precio Apto / Rechazo</th>
+                            <th>Total a Liquidar (C$)</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(entregas)}">
+                            <td colspan="8" class="empty-table-cell">
+                                No hay entregas a matadero registradas en el sistema. Puedes registrarlas en el módulo de <a th:href="@{/entregas/nueva}">Entregas</a>.
+                            </td>
+                        </tr>
+                        <tr th:each="e : ${entregas}">
+                            <td>
+                                <a th:href="@{'/entregas/' + ${e.idEntrega}}" class="text-brand-bold">
+                                    <i class="fa-solid fa-file-lines"></i> ENT-#<span th:text="${e.idEntrega}">1</span>
+                                </a>
+                            </td>
+                            <td>
+                                <strong th:text="${e.matadero != null ? e.matadero.nombreMatadero : 'Sin matadero'}">MACESA</strong>
+                            </td>
+                            <td th:text="${#temporals.format(e.fechaEntrega, 'dd/MM/yyyy')}">15/10/2026</td>
+                            <td>
+                                <span class="badge badge-info" th:text="${e.totalCabezas} + ' reses'">10 reses</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(e.pesoTotal, 1, 'COMMA', 2, 'POINT')} + ' kg'">4,200.00 kg</td>
+                            <td class="text-muted-xs">
+                                Apto: <span class="text-brand-bold" th:text="'C$ ' + ${#numbers.formatDecimal(e.precioAcordado != null ? e.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">C$ 75.00</span><br>
+                                Rech: <span class="text-danger" th:text="'C$ ' + ${#numbers.formatDecimal(e.precioRechazo != null ? e.precioRechazo : 0, 1, 'COMMA', 2, 'POINT')}">C$ 65.00</span>
+                            </td>
+                            <td>
+                                <strong class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(e.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 315,000.00</strong>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline btn-outline-success" 
+                                        th:onclick="'seleccionarEntregaParaLiquidar(' + ${e.idEntrega} + ', ' + (${e.matadero != null ? e.matadero.idMatadero : 0}) + ', ' + ${e.montoTotalEstimado} + ')'">
+                                    <i class="fa-solid fa-check"></i> Liquidar Esta
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. FORMULARIO DE REGISTRO DE LIQUIDACIÓN -->
+        <div class="form-card catalog-card mb-xl" id="seccionFormularioLiquidacion">
+            <h2 class="section-subtitle-bordered"><i class="fa-solid fa-plus-circle"></i> Registrar Comprobante de Liquidación</h2>
             <form th:action="@{/finanzas/liquidaciones/guardar}" th:object="${nuevaLiquidacion}" method="post">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="idNumComprobante">N° Comprobante / Factura *</label>
-                        <input type="text" id="idNumComprobante" th:field="*{idNumComprobante}" placeholder="Ej. LIQ-MACESA-2026-990" required>
+                        <label for="selectEntrega" class="catalog-form-label"><i class="fa-solid fa-clipboard-check"></i> Entrega a Matadero Asociada:</label>
+                        <select name="idEntrega" id="selectEntrega" class="form-control catalog-control" onchange="alCambiarEntrega(this)">
+                            <option value="">-- Seleccionar entrega a matadero (Opcional) --</option>
+                            <option th:each="e : ${entregas}" 
+                                    th:value="${e.idEntrega}" 
+                                    th:data-matadero="${e.matadero != null ? e.matadero.idMatadero : 0}"
+                                    th:data-monto="${e.montoTotalEstimado}"
+                                    th:text="'ENT-#' + ${e.idEntrega} + ' | ' + (${e.matadero != null ? e.matadero.nombreMatadero : 'Matadero'}) + ' | ' + ${#temporals.format(e.fechaEntrega, 'dd/MM/yyyy')} + ' | Total: C$ ' + ${#numbers.formatDecimal(e.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">
+                                ENT-#1
+                            </option>
+                        </select>
+                        <small class="text-muted-xs">Al elegir la entrega, se autocompletará el matadero y el total liquidable</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="empresa">Empresa / Matadero Emisor *</label>
-                        <select id="empresa" th:field="*{empresa}" required>
-                            <option value="MACESA - Matadero Central S.A.">MACESA - Matadero Central S.A.</option>
-                            <option value="Industrial Comercial San Martín">Industrial Comercial San Martín</option>
-                            <option value="SUKARNE Nicaragua">SUKARNE Nicaragua</option>
-                            <option value="NOVALICSA">NOVALICSA</option>
+                        <label for="selectMatadero" class="catalog-form-label"><i class="fa-solid fa-building"></i> Planta Matadero Emisora *:</label>
+                        <select name="idMatadero" id="selectMatadero" class="form-control catalog-control" required>
+                            <option value="" disabled selected>-- Seleccione planta matadero --</option>
+                            <option th:each="m : ${mataderos}" 
+                                    th:value="${m.idMatadero}" 
+                                    th:text="${m.nombreMatadero}">MACESA</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="fechaLiquidacion">Fecha de Liquidación *</label>
-                        <input type="date" id="fechaLiquidacion" th:field="*{fechaLiquidacion}" required>
+                        <label for="idNumComprobante" class="catalog-form-label"><i class="fa-solid fa-receipt"></i> Nº Comprobante / Voucher de Liquidación *:</label>
+                        <input type="text" id="idNumComprobante" th:field="*{idNumComprobante}" class="form-control catalog-control input-uppercase" 
+                               placeholder="Ej. LIQ-MACESA-98124 (o Nº comprobante bancario)" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="monto">Monto Liquidado (C$) *</label>
-                        <input type="number" step="0.01" id="monto" th:field="*{monto}" placeholder="Ej. 19500.00" required>
+                        <label for="fechaLiquidacion" class="catalog-form-label"><i class="fa-solid fa-calendar-day"></i> Fecha de Liquidación *:</label>
+                        <input type="date" id="fechaLiquidacion" th:field="*{fechaLiquidacion}" class="form-control catalog-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monto" class="catalog-form-label"><i class="fa-solid fa-money-bill-wave"></i> Monto Liquidado Efectivo (C$) *:</label>
+                        <input type="number" step="0.01" id="monto" th:field="*{monto}" class="form-control catalog-control" placeholder="Ej. 195000.00" required>
+                        <small class="text-muted-xs">Monto transferido por el matadero a la cuenta de la sociedad</small>
                     </div>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Comprobante</button>
+
+                <div class="form-footer-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Comprobante de Liquidación
+                    </button>
                 </div>
             </form>
         </div>
 
-        <!-- TABLA DE HISTORIAL DE LIQUIDACIONES -->
+        <!-- 3. TABLA DE HISTORIAL DE LIQUIDACIONES -->
         <div class="table-card">
             <div class="card-header">
-                <strong class="text-brand">Historial de Liquidaciones Registradas en MySQL</strong>
+                <strong class="text-brand"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Liquidaciones Registradas en el Sistema</strong>
             </div>
             <div class="table-responsive">
                 <table>
@@ -74,19 +158,30 @@
                         <tr>
                             <th>N° Comprobante</th>
                             <th>Empresa Matadero</th>
-                            <th>Fecha</th>
+                            <th>Entrega Vinculada</th>
+                            <th>Fecha Liquidación</th>
                             <th>Monto Liquidado (C$)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="l : ${liquidaciones}">
                             <td><strong class="text-code-brand" th:text="${l.idNumComprobante}">LIQ-001</strong></td>
-                            <td th:text="${l.empresa}">MACESA</td>
+                            <td>
+                                <strong th:text="${l.matadero != null ? l.matadero.nombreMatadero : (l.empresa != null ? l.empresa : 'No especificado')}">MACESA</strong>
+                            </td>
+                            <td>
+                                <span th:if="${l.entrega != null}">
+                                    <a th:href="@{'/entregas/' + ${l.entrega.idEntrega}}" class="badge badge-info">
+                                        <i class="fa-solid fa-file-invoice"></i> ENT-#<span th:text="${l.entrega.idEntrega}">1</span>
+                                    </a>
+                                </span>
+                                <span th:if="${l.entrega == null}" class="text-muted">&mdash;</span>
+                            </td>
                             <td th:text="${#temporals.format(l.fechaLiquidacion, 'dd/MM/yyyy')}">2026-10-10</td>
                             <td class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(l.monto, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(liquidaciones)}">
-                            <td colspan="4" class="empty-table-cell">
+                            <td colspan="5" class="empty-table-cell">
                                 No hay liquidaciones registradas en el sistema.
                             </td>
                         </tr>
@@ -98,5 +193,56 @@
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script>
+        function alCambiarEntrega(selectEl) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            if (!selectedOpt || !selectedOpt.value) return;
+
+            const mataderoId = selectedOpt.getAttribute('data-matadero');
+            const monto = selectedOpt.getAttribute('data-monto');
+
+            if (mataderoId && mataderoId !== '0') {
+                const selectMat = document.getElementById('selectMatadero');
+                if (selectMat) {
+                    selectMat.value = mataderoId;
+                }
+            }
+
+            if (monto && parseFloat(monto) > 0) {
+                const inputMonto = document.getElementById('monto');
+                if (inputMonto) {
+                    inputMonto.value = parseFloat(monto).toFixed(2);
+                }
+            }
+        }
+
+        function seleccionarEntregaParaLiquidar(idEntrega, idMatadero, totalMonto) {
+            const selectEnt = document.getElementById('selectEntrega');
+            if (selectEnt) {
+                selectEnt.value = idEntrega;
+            }
+
+            const selectMat = document.getElementById('selectMatadero');
+            if (selectMat && idMatadero && idMatadero !== 0) {
+                selectMat.value = idMatadero;
+            }
+
+            const inputMonto = document.getElementById('monto');
+            if (inputMonto && totalMonto && totalMonto > 0) {
+                inputMonto.value = parseFloat(totalMonto).toFixed(2);
+            }
+
+            const seccion = document.getElementById('seccionFormularioLiquidacion');
+            if (seccion) {
+                seccion.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            const inputComp = document.getElementById('idNumComprobante');
+            if (inputComp) {
+                inputComp.focus();
+            }
+        }
+    </script>
 </body>
 </html>

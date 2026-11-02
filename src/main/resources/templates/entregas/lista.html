@@ -8,44 +8,35 @@
     <main class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <!-- ENCABEZADO -->
         <div class="header-actions">
             <div>
-                <h1 class="page-title"><i class="fa-solid fa-industry"></i> Entregas y Despachos a Matadero</h1>
-                <p class="page-subtitle">Control de envíos a plantas industriales en Córdobas (C$) y pesaje oficial en canal</p>
+                <h1 class="page-title"><i class="fa-solid fa-industry"></i> Control de Entregas y Despacho a Matadero</h1>
+                <p class="page-subtitle">Trazabilidad de pesaje en báscula de matadero, dictámenes sanitarios de canal y liquidación</p>
             </div>
-            <div>
-                <a th:href="@{/entregas/nueva}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nueva Entrega</a>
+            <div class="flex-center gap-sm">
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
+                <a th:href="@{/entregas/nueva}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nueva Entrega a Matadero</a>
             </div>
         </div>
 
-        <!-- KPIS ENTREGAS -->
+        <!-- TARJETAS DE INDICADORES -->
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-header">
-                    <span class="kpi-label">Total Entregas Realizadas</span>
-                    <i class="fa-solid fa-clipboard-check kpi-icon"></i>
-                </div>
-                <div class="kpi-value" th:text="${entregas.size()}">0</div>
-                <div class="kpi-subtext">Despachos registrados (MySQL)</div>
-            </div>
-
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <span class="kpi-label">Cabezas Faenadas</span>
-                    <i class="fa-solid fa-cow kpi-icon"></i>
+                    <span class="kpi-label">Total Cabezas Despachadas</span>
+                    <i class="fa-solid fa-cow kpi-icon badge badge-info"></i>
                 </div>
                 <div class="kpi-value" th:text="${totalCabezas}">0</div>
-                <div class="kpi-subtext">Aretes registrados con pesaje</div>
+                <div class="kpi-subtext">Histórico entregado en planta</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-header">
-                    <span class="kpi-label">Kilos Totales Matadero</span>
-                    <i class="fa-solid fa-weight-scale kpi-icon"></i>
+                    <span class="kpi-label">Kilos Totales en Báscula</span>
+                    <i class="fa-solid fa-weight-hanging kpi-icon badge badge-success"></i>
                 </div>
                 <div class="kpi-value" th:text="${#numbers.formatDecimal(totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0.0 kg</div>
-                <div class="kpi-subtext">Peso registrado en báscula</div>
+                <div class="kpi-subtext">Peso oficial registrado en mataderos</div>
             </div>
 
             <div class="kpi-card">
@@ -70,10 +61,10 @@
                             <th>Nº Entrega</th>
                             <th>Fecha Entrega</th>
                             <th>Planta / Matadero</th>
-                            <th>Precio Acordado (C$/kg)</th>
-                            <th>Precio Rechazo (C$/kg)</th>
+                            <th>Transporte / Flete</th>
                             <th>Cabezas</th>
                             <th>Peso Total (kg)</th>
+                            <th>Total Calculado (C$)</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -90,15 +81,23 @@
                             <td>
                                 <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'No especificado'}">MACESA</strong>
                             </td>
-                            <td th:text="'C$ ' + ${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
-                            <td th:text="'C$ ' + ${#numbers.formatDecimal(entrega.precioRechazo != null ? entrega.precioRechazo : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                            <td>
+                                <span th:if="${entrega.viaje != null}">
+                                    <span class="badge badge-info"><i class="fa-solid fa-truck"></i> VIAJE-#<span th:text="${entrega.viaje.idViaje}">1</span></span>
+                                    <small class="text-muted-xs" th:if="${entrega.viaje.conductor != null}" th:text="' | ' + ${entrega.viaje.conductor.nombre}"></small>
+                                </span>
+                                <span th:if="${entrega.viaje == null}" class="text-muted">&mdash;</span>
+                            </td>
                             <td>
                                 <span class="badge badge-info" th:text="${entrega.totalCabezas} + ' cabezas'">0 cabezas</span>
                             </td>
                             <td th:text="${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
+                            <td>
+                                <strong class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</strong>
+                            </td>
                             <td class="text-center">
                                 <a th:href="@{'/entregas/' + ${entrega.idEntrega}}" class="btn btn-outline btn-sm">
-                                    <i class="fa-solid fa-scale-balanced"></i> Registrar Pesajes
+                                    <i class="fa-solid fa-scale-balanced"></i> Pesajes
                                 </a>
                             </td>
                         </tr>

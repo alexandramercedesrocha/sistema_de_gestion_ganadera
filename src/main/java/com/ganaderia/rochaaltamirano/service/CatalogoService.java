@@ -85,6 +85,10 @@ public class CatalogoService {
         return mataderoRepository.findAll();
     }
 
+    public java.util.Optional<Matadero> buscarMataderoPorId(Integer id) {
+        return mataderoRepository.findById(id);
+    }
+
     @Transactional
     public Matadero guardarMatadero(Matadero matadero) {
         return mataderoRepository.save(matadero);

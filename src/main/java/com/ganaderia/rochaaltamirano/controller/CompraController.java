@@ -69,10 +69,21 @@ public class CompraController {
     @PostMapping("/lote/{id}/agregar-animal")
     public String agregarAnimalALote(@PathVariable("id") Integer id,
                                      @ModelAttribute("nuevoAnimal") Ganado animal,
-                                     @RequestParam(name = "areteAnteriorCodigo", required = false) String areteAnteriorCodigo,
                                      RedirectAttributes redirectAttributes) {
-        loteService.registrarAnimalEnLote(id, animal, areteAnteriorCodigo);
-        redirectAttributes.addFlashAttribute("mensajeExito", "Animal con arete " + animal.getArete() + " añadido exitosamente al lote #" + id);
+        String arete = animal.getArete() != null ? animal.getArete().trim() : "";
+        if (arete.isBlank()) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El número de arete es obligatorio.");
+            return "redirect:/compras/lote/" + id;
+        }
+
+        if (loteService.existeAreteEnSistema(arete)) {
+            redirectAttributes.addFlashAttribute("mensajeError", 
+                "El arete [" + arete + "] ya se encuentra registrado en el sistema o en el inventario actual. Ingrese un arete único.");
+            return "redirect:/compras/lote/" + id;
+        }
+
+        loteService.registrarAnimalEnLote(id, animal, null);
+        redirectAttributes.addFlashAttribute("mensajeExito", "Animal con arete " + arete + " añadido exitosamente al lote #" + id);
         return "redirect:/compras/lote/" + id;
     }
 

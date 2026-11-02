@@ -11,7 +11,7 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-industry"></i> Registrar Entrega a Matadero</h1>
-                <p class="page-subtitle">Paso 1: Configurar el despacho hacia la planta faenadora y precios pactados en Córdobas (C$)</p>
+                <p class="page-subtitle">Paso 1: Configurar el despacho hacia la planta faenadora, transporte asignado y precios pactados en Córdobas (C$)</p>
             </div>
             <div>
                 <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Listado</a>
@@ -25,14 +25,14 @@
                     <label class="form-label-primary">
                         <i class="fa-solid fa-calendar"></i> Fecha de Entrega:
                     </label>
-                    <input type="date" th:field="*{fechaEntrega}"class="form-control form-input-control" required>
+                    <input type="date" th:field="*{fechaEntrega}" class="form-control form-input-control" required>
                 </div>
 
                 <div class="form-group mb-lg">
                     <label class="form-label-primary">
                         <i class="fa-solid fa-building"></i> Planta / Matadero Receptor:
                     </label>
-                    <select name="idMatadero"class="form-control form-input-control" required>
+                    <select name="idMatadero" class="form-control form-input-control" required>
                         <option value="" disabled selected>-- Seleccione el matadero destino --</option>
                         <option th:each="mat : ${mataderos}" 
                                 th:value="${mat.idMatadero}" 
@@ -40,12 +40,27 @@
                     </select>
                 </div>
 
+                <div class="form-group mb-lg">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-truck"></i> Viaje de Transporte / Flete Asignado (Opcional):
+                    </label>
+                    <select name="idViaje" class="form-control form-input-control">
+                        <option value="">-- Sin viaje de flete asignado --</option>
+                        <option th:each="v : ${viajes}" 
+                                th:value="${v.idViaje}" 
+                                th:text="'VIAJE-#' + ${v.idViaje} + ' | Chofer: ' + (${v.conductor != null ? v.conductor.nombre : 'Sin chofer'}) + ' | Camión: ' + (${v.camion != null ? v.camion.numPlaca : 'S/P'}) + ' | ' + ${v.estadoPago}">
+                            VIAJE-#1
+                        </option>
+                    </select>
+                    <small class="text-muted-xs">Asocia el camión y transportista que acarreó este ganado a la planta matadero</small>
+                </div>
+
                 <div class="grid-two-cols mb-xl">
                     <div class="form-group">
                         <label class="form-label-primary">
                             <i class="fa-solid fa-coins"></i> Precio Acordado (C$ por kg canal):
                         </label>
-                        <input type="number" step="0.01" th:field="*{precioAcordado}"class="form-control form-input-control" placeholder="Ej. 125.00" required>
+                        <input type="number" step="0.01" th:field="*{precioAcordado}" class="form-control form-input-control" placeholder="Ej. 125.00" required>
                         <small class="text-muted-xs">Precio pactado para ganado de calidad Apta</small>
                     </div>
 
@@ -53,7 +68,7 @@
                         <label class="form-label-primary">
                             <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg):
                         </label>
-                        <input type="number" step="0.01" th:field="*{precioRechazo}"class="form-control form-input-control" placeholder="Ej. 95.00">
+                        <input type="number" step="0.01" th:field="*{precioRechazo}" class="form-control form-input-control" placeholder="Ej. 95.00">
                         <small class="text-muted-xs">Precio liquidado en caso de dictamen de decomiso o daño</small>
                     </div>
                 </div>

@@ -21,17 +21,20 @@ public class EntregaService {
     private final GanadoRechazadoRepository ganadoRechazadoRepository;
     private final GanadoRepository ganadoRepository;
     private final MataderoRepository mataderoRepository;
+    private final ViajeRepository viajeRepository;
 
     public EntregaService(EntregaRepository entregaRepository,
                           DetalleEntregaRepository detalleEntregaRepository,
                           GanadoRechazadoRepository ganadoRechazadoRepository,
                           GanadoRepository ganadoRepository,
-                          MataderoRepository mataderoRepository) {
+                          MataderoRepository mataderoRepository,
+                          ViajeRepository viajeRepository) {
         this.entregaRepository = entregaRepository;
         this.detalleEntregaRepository = detalleEntregaRepository;
         this.ganadoRechazadoRepository = ganadoRechazadoRepository;
         this.ganadoRepository = ganadoRepository;
         this.mataderoRepository = mataderoRepository;
+        this.viajeRepository = viajeRepository;
     }
 
     public List<Entrega> listarTodas() {
@@ -44,8 +47,16 @@ public class EntregaService {
 
     @Transactional
     public Entrega registrarEntrega(Entrega entrega, Integer idMatadero) {
+        return registrarEntrega(entrega, idMatadero, null);
+    }
+
+    @Transactional
+    public Entrega registrarEntrega(Entrega entrega, Integer idMatadero, Integer idViaje) {
         if (idMatadero != null) {
             mataderoRepository.findById(idMatadero).ifPresent(entrega::setMatadero);
+        }
+        if (idViaje != null) {
+            viajeRepository.findById(idViaje).ifPresent(entrega::setViaje);
         }
         return entregaRepository.save(entrega);
     }
@@ -58,9 +69,17 @@ public class EntregaService {
 
         Ganado ganado = null;
         if (arete != null && !arete.isBlank()) {
-            ganado = ganadoRepository.findById(arete.trim().toUpperCase()).orElse(null);
-            if (ganado != null) {
-                ganado.setEstado("Entregado a Matadero");
+            Optional<Ganado> optGanado = ganadoRepository.findById(arete.trim().toUpperCase());
+            if (optGanado.isPresent()) {
+                ganado = optGanado.get();
+                // Actualizar estado del animal
+                if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+                    ganado.setCategoria("Rechazo");
+                    ganado.setEstado("En Finca"); // Retorna a finca como rechazo
+                } else {
+                    ganado.setCategoria("Apto");
+                    ganado.setEstado("Entregado a Matadero");
+                }
                 ganadoRepository.save(ganado);
             }
         }
@@ -93,15 +112,14 @@ public class EntregaService {
         return detalleEntregaRepository.count();
     }
 
-    public long contarTotalRechazosMatadero() {
-        return ganadoRechazadoRepository.count();
-    }
-
     public BigDecimal calcularKilosTotalesEntregados() {
         return detalleEntregaRepository.findAll().stream()
                 .map(DetalleEntrega::getPesoMataderoKg)
-                .filter(p -> p != null)
+                .filter(java.util.Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-}
 
+    public long contarTotalRechazosMatadero() {
+        return ganadoRechazadoRepository.count();
+    }
+}
