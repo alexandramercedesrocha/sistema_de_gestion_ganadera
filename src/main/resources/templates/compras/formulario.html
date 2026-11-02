@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Registrar Compra')}"></head>
+<head th:replace="~{fragments/layout :: head('Nuevo Lote de Compra')}"></head>
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -10,68 +10,72 @@
 
         <div class="header-actions">
             <div>
-                <h1 class="page-title"><i class="fa-solid fa-cart-plus"></i> Registrar Compra de Ganado</h1>
-                <p class="page-subtitle">Ingreso de lote adquirido a productor o subasta ganadera</p>
+                <h1 class="page-title"><i class="fa-solid fa-cart-plus"></i> Registrar Nuevo Lote de Compra</h1>
+                <p class="page-subtitle">Paso 1: Configurar fecha, proveedor y precios pactados del lote en Córdobas (C$)</p>
             </div>
-            <a th:href="@{/compras}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Compras</a>
+            <div>
+                <a th:href="@{/compras}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Compras</a>
+            </div>
         </div>
 
-        <div class="form-card">
-            <form th:action="@{/compras/guardar}" th:object="${compra}" method="post">
-                <div class="form-grid">
+        <div class="form-card" class="form-container-card">
+            <form th:action="@{/compras/guardar}" th:object="${lote}" method="post">
 
-                    <div class="form-group">
-                        <label for="fechaCompra">Fecha de la Compra *</label>
-                        <input type="date" id="fechaCompra" th:field="*{fechaCompra}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="proveedor">Proveedor / Ganadero *</label>
-                        <input type="text" id="proveedor" th:field="*{proveedor}" placeholder="Ej. Don Chepe Miranda (Hacienda La Gloria)" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="totalCabezas">Total de Cabezas *</label>
-                        <input type="number" id="totalCabezas" th:field="*{totalCabezas}" placeholder="Ej. 20" min="1" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="totalKilos">Total de Kilos en Báscula *</label>
-                        <input type="number" step="0.01" id="totalKilos" th:field="*{totalKilos}" placeholder="Ej. 8450.00" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="precioKg">Precio por Kilo ($) *</label>
-                        <input type="number" step="0.01" id="precioKg" th:field="*{precioKg}" placeholder="Ej. 2.15" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="precioEstandar">Precio Estándar de Referencia ($)</label>
-                        <input type="number" step="0.01" id="precioEstandar" th:field="*{precioEstandar}" placeholder="Ej. 2.10">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="montoTotal">Monto Total de la Compra ($) *</label>
-                        <input type="number" step="0.01" id="montoTotal" th:field="*{montoTotal}" placeholder="Auto-calculado o manual" required>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="direccion">Dirección / Lugar de la Compra *</label>
-                        <input type="text" id="direccion" th:field="*{direccion}" placeholder="Ej. Finca San Jerónimo, Teustepe, Boaco" required>
-                    </div>
-
+                <div class="form-group" class="mb-lg">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-calendar"></i> Fecha de Compra:
+                    </label>
+                    <input type="date" th:field="*{fechaCompra}" class="form-control" required
+                           class="form-input-control">
                 </div>
 
-                <div class="form-actions">
+                <div class="form-group" class="mb-lg">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-user-tag"></i> Proveedor / Hacienda Vendedora:
+                    </label>
+                    <select name="idProveedor" class="form-control" required
+                            class="form-input-control">
+                        <option value="" disabled selected>-- Seleccione el proveedor registrado --</option>
+                        <option th:each="p : ${proveedores}" 
+                                th:value="${p.idProveedor}" 
+                                th:text="${p.nombre}">Don Chepe Miranda</option>
+                    </select>
+                    <small class="text-muted-xs">
+                        ¿No encuentras el proveedor? Puedes registrarlo en la sección de <a th:href="@{/catalogos(tab='proveedores')}" target="_blank">Catálogos &rarr;</a>
+                    </small>
+                </div>
+
+                <div class="grid-two-cols mb-xl">
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-coins"></i> Precio Estándar (C$ por kg):
+                        </label>
+                        <input type="number" step="0.01" th:field="*{precioEstandar}" class="form-control" placeholder="Ej. 75.00" required
+                               class="form-input-control">
+                        <small class="text-muted-xs">Precio base pactado por kilo en pie</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg):
+                        </label>
+                        <input type="number" step="0.01" th:field="*{precioDeRechazo}" class="form-control" placeholder="Ej. 65.00"
+                               class="form-input-control">
+                        <small class="text-muted-xs">Precio castigado en caso de animal con defecto</small>
+                    </div>
+                </div>
+
+                <div class="form-footer-actions">
                     <a th:href="@{/compras}" class="btn btn-outline">Cancelar</a>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Compra</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Guardar Lote y Registrar Aretes &rarr;
+                    </button>
                 </div>
             </form>
         </div>
-
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
-    <script th:src="@{/js/main.js}"></script>
+
 </body>
 </html>

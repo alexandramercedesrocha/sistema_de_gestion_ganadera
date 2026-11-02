@@ -11,33 +11,48 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-tags"></i> Inventario General de Ganado Bovino</h1>
-                <p class="page-subtitle">Control individual por arete, dentición (paletas), pesaje y clasificación comercial</p>
+                <p class="page-subtitle">Trazabilidad por arete, proveedor, dentición (paletas), pesaje y control de rechazos</p>
             </div>
-            <div style="display: flex; gap: 0.6rem;">
-                <a th:href="@{/ganado/rechazos}" class="btn btn-outline"><i class="fa-solid fa-triangle-exclamation"></i> Ver Ganado Rechazo</a>
+            <div class="flex-center gap-sm">
+                <a th:href="@{/ganado/rechazos}" class="btn btn-outline" class="btn btn-outline-danger"><i class="fa-solid fa-triangle-exclamation"></i> Ver Dictámenes de Rechazo</a>
                 <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
             </div>
         </div>
 
         <!-- BARRA DE FILTROS RÁPIDOS -->
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
-            <a th:href="@{/ganado}" class="btn btn-outline btn-sm"><i class="fa-solid fa-list"></i> Todos los Animales</a>
-            <a th:href="@{/ganado(estado='En Finca')}" class="btn btn-outline btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca</a>
-            <a th:href="@{/ganado(estado='Entregado a Matadero')}" class="btn btn-outline btn-sm"><i class="fa-solid fa-industry"></i> Entregados a Matadero</a>
-            <a th:href="@{/ganado(categoria='Apto')}" class="btn btn-outline btn-sm"><i class="fa-solid fa-check"></i> Solo Aptos</a>
-            <a th:href="@{/ganado(categoria='Rechazo')}" class="btn btn-outline btn-sm" style="color: #b91c1c;"><i class="fa-solid fa-ban"></i> Solo Rechazo</a>
+        <div class="flex-wrap-gap mb-lg">
+            <a th:href="@{/ganado(vista='activos')}" 
+               th:classappend="${vistaSeleccionada == 'activos' ? 'btn-primary' : 'btn-outline'}" 
+               class="btn btn-sm"><i class="fa-solid fa-cow"></i> En Inventario Activo (Disponibles)</a>
+
+            <a th:href="@{/ganado(vista='en-finca')}" 
+               th:classappend="${vistaSeleccionada == 'en-finca' ? 'btn-primary' : 'btn-outline'}" 
+               class="btn btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca (Sin despachar)</a>
+
+            <a th:href="@{/ganado(vista='rechazos')}" 
+               th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-primary' : 'btn-outline'}" 
+               class="btn btn-sm" class="text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
+
+            <a th:href="@{/ganado(vista='vendidos')}" 
+               th:classappend="${vistaSeleccionada == 'vendidos' ? 'btn-primary' : 'btn-outline'}" 
+               class="btn btn-sm"><i class="fa-solid fa-industry"></i> Vendidos / Aceptados en Canal</a>
+
+            <a th:href="@{/ganado(vista='todos')}" 
+               th:classappend="${vistaSeleccionada == 'todos' ? 'btn-primary' : 'btn-outline'}" 
+               class="btn btn-sm"><i class="fa-solid fa-list"></i> Historial Completo</a>
         </div>
 
         <!-- TABLA DE INVENTARIO -->
         <div class="table-card">
             <div class="card-header">
                 <div>
-                    <strong style="color: #1b4332;">Listado de Cabezas</strong> &mdash; 
-                    <span style="color: #6b7280; font-size: 0.88rem;" th:text="${filtroActivo}">Todos los registros</span>
+                    <strong class="text-brand">Listado de Cabezas</strong> &mdash; 
+                    <span class="text-muted-sm" th:text="${filtroActivo}">Todos los registros</span>
                 </div>
-                <div style="font-size: 0.88rem; color: #4b5563;">
-                    Total Cabezas: <strong th:text="${totalCabezas}">0</strong> | 
-                    En Finca: <strong th:text="${totalEnFinca}">0</strong>
+                <div class="text-muted-sm">
+                    Cabezas en vista: <strong th:text="${totalCabezas}">0</strong> | 
+                    Activas en Finca: <strong th:text="${totalEnFinca}">0</strong> |
+                    Rechazos: <strong th:text="${totalRechazos}" class="text-danger-bold">0</strong>
                 </div>
             </div>
             <div class="table-responsive">
@@ -45,40 +60,55 @@
                     <thead>
                         <tr>
                             <th>Arete (ID)</th>
+                            <th>Proveedor / Hacienda</th>
+                            <th>Lote</th>
                             <th>Paletas (Edad)</th>
-                            <th>Color / Pelaje</th>
+                            <th>Color</th>
+                            <th>Peso Báscula</th>
+                            <th>Condición</th>
                             <th>Estado Actual</th>
-                            <th>Peso Entrada (kg)</th>
-                            <th>Categoría</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="g : ${ganados}">
                             <td>
-                                <strong style="color: #1b4332; font-family: monospace; font-size: 1rem;" th:text="${g.arete}">NI-10021</strong>
+                                <strong class="text-code-brand" th:text="${g.arete}">NI-10021</strong>
+                                <small th:if="${g.areteAnterior != null}" class="text-muted-xs">
+                                    Previo: <span th:text="${g.areteAnterior.arete}">NI-PREV</span>
+                                </small>
                             </td>
                             <td>
-                                <span th:text="${g.descripcionPaletas}">2 Paletas</span>
+                                <strong th:if="${g.lote != null and g.lote.proveedor != null}" th:text="${g.lote.proveedor.nombre}">Don Chepe Miranda</strong>
+                                <span th:if="${g.lote == null or g.lote.proveedor == null}" class="text-muted">Sin proveedor</span>
+                            </td>
+                            <td>
+                                <span th:if="${g.lote != null}" class="badge badge-info" th:text="'LOTE-' + ${g.lote.idLote}">LOTE-1</span>
+                                <span th:if="${g.lote == null}" class="text-muted">&mdash;</span>
+                            </td>
+                            <td>
+                                <span th:text="${g.paletas != null ? g.paletas : '2 Paletas'}">2 Paletas</span>
                             </td>
                             <td th:text="${g.color}">Hosco</td>
                             <td>
-                                <span th:class="'badge ' + (${g.estado == 'En Finca'} ? 'badge-finca' : 'badge-matadero')"
-                                      th:text="${g.estado}">En Finca</span>
+                                <strong th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
                             </td>
                             <td>
-                                <strong th:text="${#numbers.formatDecimal(g.pesoEntradaKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
+                                <span class="badge" 
+                                      th:classappend="${g.condicionCompra == 'Excelente' ? 'badge-success' : (g.condicionCompra == 'Rechazo' ? 'badge-danger' : 'badge-info')}"
+                                      th:text="${g.condicionCompra != null ? g.condicionCompra : 'Bueno'}">Bueno</span>
                             </td>
                             <td>
-                                <span th:class="'badge ' + (${g.categoria == 'Apto'} ? 'badge-apto' : 'badge-rechazo')"
-                                      th:text="${g.categoria}">Apto</span>
+                                <span th:if="${g.estado == 'En Finca'}" class="badge badge-success"><i class="fa-solid fa-cow"></i> En Finca</span>
+                                <span th:if="${g.estado == 'Rechazo en Matadero'}" class="badge badge-warning" class="badge badge-warning-soft"><i class="fa-solid fa-triangle-exclamation"></i> Rechazo Matadero</span>
+                                <span th:if="${g.estado == 'Entregado a Matadero'}" class="badge badge-primary" class="badge badge-indigo-soft"><i class="fa-solid fa-check-double"></i> Vendido en Planta</span>
                             </td>
                             <td>
-                                <div style="display: flex; gap: 0.4rem;">
+                                <div class="action-buttons-group">
                                     <form th:action="@{/ganado/eliminar/{arete}(arete=${g.arete})}" method="post" 
-                                          onsubmit="return confirm('¿Está seguro de eliminar el arete ' + this.getAttribute('data-arete') + '?');" 
+                                          onsubmit="return confirm('¿Está seguro de retirar del inventario el arete ' + this.getAttribute('data-arete') + '?');" 
                                           th:data-arete="${g.arete}">
-                                        <button type="submit" class="btn btn-outline btn-sm" style="color: #d32f2f; padding: 0.2rem 0.5rem;" title="Eliminar del inventario">
+                                        <button type="submit" class="btn btn-outline btn-sm" class="btn-delete-icon" title="Eliminar del inventario">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -86,8 +116,8 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(ganados)}">
-                            <td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">
-                                No se encontraron cabezas de ganado con el filtro seleccionado.
+                            <td colspan="9" class="empty-table-cell">
+                                <i class="fa-solid fa-circle-info"></i> No se encontraron cabezas de ganado con el filtro seleccionado.
                             </td>
                         </tr>
                     </tbody>
@@ -98,5 +128,6 @@
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
 </body>
 </html>

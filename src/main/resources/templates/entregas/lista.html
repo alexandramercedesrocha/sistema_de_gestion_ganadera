@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Entregas a Matadero')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- ENCABEZADO -->
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-industry"></i> Entregas y Despachos a Matadero</h1>
+                <p class="page-subtitle">Control de envíos a plantas industriales en Córdobas (C$) y pesaje oficial en canal</p>
+            </div>
+            <div>
+                <a th:href="@{/entregas/nueva}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nueva Entrega</a>
+            </div>
+        </div>
+
+        <!-- KPIS ENTREGAS -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Entregas Realizadas</span>
+                    <i class="fa-solid fa-clipboard-check kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${entregas.size()}">0</div>
+                <div class="kpi-subtext">Despachos registrados (MySQL)</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Cabezas Faenadas</span>
+                    <i class="fa-solid fa-cow kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${totalCabezas}">0</div>
+                <div class="kpi-subtext">Aretes registrados con pesaje</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Kilos Totales Matadero</span>
+                    <i class="fa-solid fa-weight-scale kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0.0 kg</div>
+                <div class="kpi-subtext">Peso registrado en báscula</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Rechazos en Canal</span>
+                    <i class="fa-solid fa-triangle-exclamation kpi-icon" class="badge badge-danger"></i>
+                </div>
+                <div class="kpi-value" th:text="${totalRechazos}" class="text-danger-bold">0</div>
+                <div class="kpi-subtext">Por dictamen veterinario</div>
+            </div>
+        </div>
+
+        <!-- TABLA DE ENTREGAS -->
+        <div class="table-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-list-check"></i> Historial de Entregas a Planta (MySQL)</h2>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº Entrega</th>
+                            <th>Fecha Entrega</th>
+                            <th>Planta / Matadero</th>
+                            <th>Precio Acordado (C$/kg)</th>
+                            <th>Precio Rechazo (C$/kg)</th>
+                            <th>Cabezas</th>
+                            <th>Peso Total (kg)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(entregas)}">
+                            <td colspan="8" class="empty-table-cell">
+                                <i class="fa-solid fa-folder-open" class="icon-empty-lg"></i>
+                                No hay entregas a matadero registradas en la base de datos.
+                            </td>
+                        </tr>
+                        <tr th:each="entrega : ${entregas}">
+                            <td class="text-brand-bold" th:text="'ENT-' + ${entrega.idEntrega}">ENT-1</td>
+                            <td th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td>
+                                <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'No especificado'}">MACESA</strong>
+                            </td>
+                            <td th:text="'C$ ' + ${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                            <td th:text="'C$ ' + ${#numbers.formatDecimal(entrega.precioRechazo != null ? entrega.precioRechazo : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                            <td>
+                                <span class="badge badge-info" th:text="${entrega.totalCabezas} + ' cabezas'">0 cabezas</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
+                            <td class="text-center">
+                                <a th:href="@{'/entregas/' + ${entrega.idEntrega}}" class="btn btn-outline btn-sm">
+                                    <i class="fa-solid fa-scale-balanced"></i> Registrar Pesajes
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

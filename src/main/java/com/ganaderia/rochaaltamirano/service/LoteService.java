@@ -1,0 +1,118 @@
+package com.ganaderia.rochaaltamirano.service;
+
+import com.ganaderia.rochaaltamirano.model.Ganado;
+import com.ganaderia.rochaaltamirano.model.Lote;
+import com.ganaderia.rochaaltamirano.model.PagoLote;
+import com.ganaderia.rochaaltamirano.model.Proveedor;
+import com.ganaderia.rochaaltamirano.repository.GanadoRepository;
+import com.ganaderia.rochaaltamirano.repository.LoteRepository;
+import com.ganaderia.rochaaltamirano.repository.PagoLoteRepository;
+import com.ganaderia.rochaaltamirano.repository.ProveedorRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Servicio de Lógica de Negocio para la Gestión de Lotes de Compra de Ganado
+ */
+@Service
+@Transactional(readOnly = true)
+public class LoteService {
+
+    private final LoteRepository loteRepository;
+    private final GanadoRepository ganadoRepository;
+    private final PagoLoteRepository pagoLoteRepository;
+    private final ProveedorRepository proveedorRepository;
+
+    public LoteService(LoteRepository loteRepository,
+                       GanadoRepository ganadoRepository,
+                       PagoLoteRepository pagoLoteRepository,
+                       ProveedorRepository proveedorRepository) {
+        this.loteRepository = loteRepository;
+        this.ganadoRepository = ganadoRepository;
+        this.pagoLoteRepository = pagoLoteRepository;
+        this.proveedorRepository = proveedorRepository;
+    }
+
+    public List<Lote> listarLotes() {
+        return loteRepository.findAll();
+    }
+
+    public Optional<Lote> buscarPorId(Integer idLote) {
+        return loteRepository.findById(idLote);
+    }
+
+    @Transactional
+    public Lote registrarLote(Lote lote, Integer idProveedor) {
+        if (idProveedor != null) {
+            proveedorRepository.findById(idProveedor).ifPresent(lote::setProveedor);
+        }
+        return loteRepository.save(lote);
+    }
+
+    @Transactional
+    public Ganado registrarAnimalEnLote(Integer idLote, Ganado animal, String areteAnteriorCodigo) {
+        Lote lote = loteRepository.findById(idLote)
+                .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + idLote));
+        animal.setLote(lote);
+
+        if (areteAnteriorCodigo != null && !areteAnteriorCodigo.isBlank()) {
+            ganadoRepository.findById(areteAnteriorCodigo.trim().toUpperCase())
+                    .ifPresent(animal::setAreteAnterior);
+        }
+
+        return ganadoRepository.save(animal);
+    }
+
+    @Transactional
+    public PagoLote registrarPagoLote(Integer idLote, String comprobanteVoucher, String estadoPago) {
+        Lote lote = loteRepository.findById(idLote)
+                .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + idLote));
+
+        PagoLote pago = new PagoLote();
+        pago.setLote(lote);
+        pago.setComprobanteVoucher(comprobanteVoucher);
+        pago.setEstadoPago(estadoPago != null ? estadoPago : "Pagado");
+
+        return pagoLoteRepository.save(pago);
+    }
+
+    public long contarTotalLotes() {
+        return loteRepository.count();
+    }
+
+    public long contarTotalCabezasCompradas() {
+        return ganadoRepository.count();
+    }
+
+    public BigDecimal calcularTotalInvertidoEstimado() {
+        List<Lote> lotes = loteRepository.findAll();
+        BigDecimal total = BigDecimal.ZERO;
+        for (Lote lote : lotes) {
+            BigDecimal precio = lote.getPrecioEstandar() != null ? lote.getPrecioEstandar() : BigDecimal.ZERO;
+            BigDecimal kilos = BigDecimal.ZERO;
+            try {
+                if (lote.getAnimales() != null && !lote.getAnimales().isEmpty()) {
+                    kilos = lote.getAnimales().stream()
+                            .map(Ganado::getPesoKg)
+                            .filter(java.util.Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                }
+            } catch (Exception e) {
+                // Fallback seguro si la sesión lazy estuviera cerrada
+                if (lote.getIdLote() != null) {
+                    kilos = ganadoRepository.findByLoteIdLote(lote.getIdLote()).stream()
+                            .map(Ganado::getPesoKg)
+                            .filter(java.util.Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                }
+            }
+            total = total.add(precio.multiply(kilos));
+        }
+        return total;
+    }
+}
+

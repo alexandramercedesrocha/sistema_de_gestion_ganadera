@@ -1,37 +1,56 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Entidad Entrega
- * 
- * Modela los despachos de ganado bovino hacia los mataderos autorizados.
+ * Entidad Entrega (Tabla: entrega)
+ * Modela los despachos y entregas de ganado al matadero.
  */
+@Entity
+@Table(name = "entrega")
 public class Entrega {
 
-    private Long idEntrega;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_entrega")
+    private Integer idEntrega;
+
+    @Column(name = "fecha_entrega", nullable = false)
     private LocalDate fechaEntrega;
-    private Integer totalCabezas;
-    private BigDecimal pesoTotal;
-    private String matadero; // Nombre del matadero receptor
+
+    @Column(name = "precio_acordado", precision = 10, scale = 2)
+    private BigDecimal precioAcordado;
+
+    @Column(name = "precio_rechazo", precision = 10, scale = 2)
+    private BigDecimal precioRechazo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_matadero")
+    private Matadero matadero;
+
+    @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetalleEntrega> detalles = new ArrayList<>();
 
     public Entrega() {
     }
 
-    public Entrega(Long idEntrega, LocalDate fechaEntrega, Integer totalCabezas, BigDecimal pesoTotal, String matadero) {
+    public Entrega(Integer idEntrega, LocalDate fechaEntrega, BigDecimal precioAcordado, BigDecimal precioRechazo, Matadero matadero) {
         this.idEntrega = idEntrega;
         this.fechaEntrega = fechaEntrega;
-        this.totalCabezas = totalCabezas;
-        this.pesoTotal = pesoTotal;
+        this.precioAcordado = precioAcordado;
+        this.precioRechazo = precioRechazo;
         this.matadero = matadero;
     }
 
-    public Long getIdEntrega() {
+    public Integer getIdEntrega() {
         return idEntrega;
     }
 
-    public void setIdEntrega(Long idEntrega) {
+    public void setIdEntrega(Integer idEntrega) {
         this.idEntrega = idEntrega;
     }
 
@@ -43,34 +62,57 @@ public class Entrega {
         this.fechaEntrega = fechaEntrega;
     }
 
-    public Integer getTotalCabezas() {
-        return totalCabezas;
+    public BigDecimal getPrecioAcordado() {
+        return precioAcordado;
     }
 
-    public void setTotalCabezas(Integer totalCabezas) {
-        this.totalCabezas = totalCabezas;
+    public void setPrecioAcordado(BigDecimal precioAcordado) {
+        this.precioAcordado = precioAcordado;
     }
 
-    public BigDecimal getPesoTotal() {
-        return pesoTotal;
+    public BigDecimal getPrecioRechazo() {
+        return precioRechazo;
     }
 
-    public void setPesoTotal(BigDecimal pesoTotal) {
-        this.pesoTotal = pesoTotal;
+    public void setPrecioRechazo(BigDecimal precioRechazo) {
+        this.precioRechazo = precioRechazo;
     }
 
-    public String getMatadero() {
+    public Matadero getMatadero() {
         return matadero;
     }
 
-    public void setMatadero(String matadero) {
+    public void setMatadero(Matadero matadero) {
         this.matadero = matadero;
     }
 
-    public BigDecimal getPesoPromedioPorCabeza() {
-        if (totalCabezas != null && totalCabezas > 0 && pesoTotal != null) {
-            return pesoTotal.divide(BigDecimal.valueOf(totalCabezas), 2, java.math.RoundingMode.HALF_UP);
+    public List<DetalleEntrega> getDetalles() {
+        return detalles;
+    }
+
+    public void setDetalles(List<DetalleEntrega> detalles) {
+        this.detalles = detalles;
+    }
+
+    public int getTotalCabezas() {
+        try {
+            return detalles != null ? detalles.size() : 0;
+        } catch (Exception e) {
+            return 0;
         }
-        return BigDecimal.ZERO;
+    }
+
+    public BigDecimal getPesoTotal() {
+        try {
+            if (detalles == null || detalles.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            return detalles.stream()
+                    .map(DetalleEntrega::getPesoMataderoKg)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 }

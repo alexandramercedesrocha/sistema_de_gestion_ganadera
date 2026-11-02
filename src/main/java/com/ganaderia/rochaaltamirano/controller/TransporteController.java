@@ -1,54 +1,65 @@
 package com.ganaderia.rochaaltamirano.controller;
 
-import com.ganaderia.rochaaltamirano.model.Transporte;
-import com.ganaderia.rochaaltamirano.service.TransporteService;
+import com.ganaderia.rochaaltamirano.model.Viaje;
+import com.ganaderia.rochaaltamirano.service.CatalogoService;
+import com.ganaderia.rochaaltamirano.service.ViajeService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
+import java.util.List;
 
 /**
- * Controlador Web para el Módulo de Transporte y Fletes Ganaderos
+ * Controlador Web para el Módulo de Transporte, Viajes y Fletes Ganaderos
  */
 @Controller
 @RequestMapping("/transporte")
 public class TransporteController {
 
-    private final TransporteService transporteService;
+    private final ViajeService viajeService;
+    private final CatalogoService catalogoService;
 
-    public TransporteController(TransporteService transporteService) {
-        this.transporteService = transporteService;
+    public TransporteController(ViajeService viajeService, CatalogoService catalogoService) {
+        this.viajeService = viajeService;
+        this.catalogoService = catalogoService;
     }
 
     @GetMapping
     public String listarTransportes(Model model) {
-        model.addAttribute("viajes", transporteService.listarTodos());
-        model.addAttribute("totalCostos", transporteService.calcularTotalCostosTransporte());
-        model.addAttribute("totalPendiente", transporteService.calcularTotalPendientePago());
+        List<Viaje> viajes = viajeService.listarTodos();
+        model.addAttribute("viajes", viajes);
+        model.addAttribute("totalViajes", viajes.size());
+        model.addAttribute("totalPendiente", viajeService.contarViajesPendientes());
         return "transporte/lista";
     }
 
     @GetMapping("/nuevo")
     public String formularioNuevoViaje(Model model) {
-        Transporte nuevoViaje = new Transporte();
-        nuevoViaje.setFechaViaje(LocalDate.now());
+        Viaje nuevoViaje = new Viaje();
         nuevoViaje.setEstadoPago("Pendiente");
-        model.addAttribute("transporte", nuevoViaje);
+        model.addAttribute("viaje", nuevoViaje);
+        model.addAttribute("camiones", catalogoService.listarCamiones());
+        model.addAttribute("conductores", catalogoService.listarConductores());
+        model.addAttribute("ubicaciones", catalogoService.listarUbicaciones());
         return "transporte/formulario";
     }
 
     @PostMapping("/guardar")
-    public String guardarTransporte(@ModelAttribute("transporte") Transporte transporte, RedirectAttributes redirectAttributes) {
-        transporteService.registrarTransporte(transporte);
+    public String guardarTransporte(@ModelAttribute("viaje") Viaje viaje,
+                                    @RequestParam(name = "idOrigen", required = false) Integer idOrigen,
+                                    @RequestParam(name = "idDestino", required = false) Integer idDestino,
+                                    @RequestParam(name = "cedulaConductor", required = false) String cedulaConductor,
+                                    @RequestParam(name = "numPlaca", required = false) String numPlaca,
+                                    RedirectAttributes redirectAttributes) {
+        viajeService.registrarViaje(viaje, idOrigen, idDestino, cedulaConductor, numPlaca);
         redirectAttributes.addFlashAttribute("mensajeExito", "Viaje de transporte registrado correctamente.");
         return "redirect:/transporte";
     }
 
     @PostMapping("/{id}/pagar")
-    public String marcarComoPagado(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
-        boolean actualizado = transporteService.marcarComoPagado(id);
+    public String marcarComoPagado(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+        boolean actualizado = viajeService.marcarComoPagado(id);
         if (actualizado) {
             redirectAttributes.addFlashAttribute("mensajeExito", "Flete #" + id + " marcado como PAGADO.");
         } else {

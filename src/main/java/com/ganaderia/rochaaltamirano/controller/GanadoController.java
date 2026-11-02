@@ -3,6 +3,7 @@ package com.ganaderia.rochaaltamirano.controller;
 import com.ganaderia.rochaaltamirano.model.Ganado;
 import com.ganaderia.rochaaltamirano.model.GanadoRechazo;
 import com.ganaderia.rochaaltamirano.service.GanadoService;
+import com.ganaderia.rochaaltamirano.service.LoteService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,28 +19,54 @@ import java.util.List;
 public class GanadoController {
 
     private final GanadoService ganadoService;
+    private final LoteService loteService;
 
-    public GanadoController(GanadoService ganadoService) {
+    public GanadoController(GanadoService ganadoService, LoteService loteService) {
         this.ganadoService = ganadoService;
+        this.loteService = loteService;
     }
 
     @GetMapping
-    public String listarGanado(@RequestParam(name = "estado", required = false) String estado,
-                               @RequestParam(name = "categoria", required = false) String categoria,
+    public String listarGanado(@RequestParam(name = "vista", required = false, defaultValue = "activos") String vista,
                                Model model) {
         List<Ganado> inventario;
 
-        if (estado != null && !estado.isBlank()) {
-            inventario = ganadoService.listarPorEstado(estado);
-            model.addAttribute("filtroActivo", "Estado: " + estado);
-        } else if (categoria != null && !categoria.isBlank()) {
-            inventario = ganadoService.listarPorCategoria(categoria);
-            model.addAttribute("filtroActivo", "Categoría: " + categoria);
-        } else {
+        if ("en-finca".equalsIgnoreCase(vista)) {
+            inventario = ganadoService.listarGanadoEnFincaSinDespacho();
+            model.addAttribute("filtroActivo", "Solo en Finca (Sin despachar a planta)");
+        } else if ("rechazos".equalsIgnoreCase(vista)) {
+            inventario = ganadoService.listarGanadoRechazosMatadero();
+            model.addAttribute("filtroActivo", "Rechazos de Matadero (Disponibles en Finca)");
+        } else if ("vendidos".equalsIgnoreCase(vista)) {
+            inventario = ganadoService.listarGanadoVendidosAceptados();
+            model.addAttribute("filtroActivo", "Entregados y Aceptados en Canal (Ventas cerradas)");
+        } else if ("todos".equalsIgnoreCase(vista)) {
             inventario = ganadoService.listarInventarioCompleto();
-            model.addAttribute("filtroActivo", "Todos los registros");
+            model.addAttribute("filtroActivo", "Historial Completo de Aretes");
+        } else {
+            // Regla principal: Todo el ganado comprado que NO tenga entrega aceptada (incluye rechazos)
+            inventario = ganadoService.listarGanadoActivoInventario();
+            model.addAttribute("filtroActivo", "Ganado Activo en Inventario (En Finca y Rechazos disponibles)");
         }
 
+        // Asignar etiquetas visuales según el historial de cada animal
+        List<Ganado> vendidos = ganadoService.listarGanadoVendidosAceptados();
+        List<Ganado> rechazos = ganadoService.listarGanadoRechazosMatadero();
+
+        for (Ganado g : inventario) {
+            if (vendidos.contains(g)) {
+                g.setEstado("Entregado a Matadero");
+                g.setCategoria("Apto / Canal Aceptada");
+            } else if (rechazos.contains(g)) {
+                g.setEstado("Rechazo en Matadero");
+                g.setCategoria("Rechazo");
+            } else {
+                g.setEstado("En Finca");
+                g.setCategoria("Apto");
+            }
+        }
+
+        model.addAttribute("vistaSeleccionada", vista);
         model.addAttribute("ganados", inventario);
         model.addAttribute("totalCabezas", inventario.size());
         model.addAttribute("totalEnFinca", ganadoService.contarCabezasEnFinca());
@@ -52,11 +79,17 @@ public class GanadoController {
     @GetMapping("/nuevo")
     public String formularioNuevoGanado(Model model) {
         model.addAttribute("ganado", new Ganado());
+        model.addAttribute("lotes", loteService.listarLotes());
         return "ganado/formulario";
     }
 
     @PostMapping("/guardar")
-    public String guardarGanado(@ModelAttribute("ganado") Ganado ganado, RedirectAttributes redirectAttributes) {
+    public String guardarGanado(@ModelAttribute("ganado") Ganado ganado,
+                                @RequestParam(name = "idLote", required = false) Integer idLote,
+                                RedirectAttributes redirectAttributes) {
+        if (idLote != null) {
+            loteService.buscarPorId(idLote).ifPresent(ganado::setLote);
+        }
         ganadoService.registrarGanado(ganado);
         redirectAttributes.addFlashAttribute("mensajeExito", "Animal con arete " + ganado.getArete() + " registrado exitosamente en el inventario.");
         return "redirect:/ganado";

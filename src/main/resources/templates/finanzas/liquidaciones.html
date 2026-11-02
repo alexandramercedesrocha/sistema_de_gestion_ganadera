@@ -20,16 +20,16 @@
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Total Liquidado Histórico</span>
-                    <i class="fa-solid fa-sack-dollar kpi-icon" style="color: #15803d; background: #dcfce7;"></i>
+                    <i class="fa-solid fa-sack-dollar kpi-icon" class="badge badge-success-soft"></i>
                 </div>
-                <div class="kpi-value" style="color: #15803d;" th:text="'$' + ${#numbers.formatDecimal(totalLiquidado, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
-                <div class="kpi-subtext">Ingresos netos transferidos por los mataderos</div>
+                <div class="kpi-value" class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(totalLiquidado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="kpi-subtext">Ingresos netos transferidos por los mataderos a la sociedad</div>
             </div>
         </div>
 
         <!-- FORMULARIO DE REGISTRO RÁPIDO -->
-        <div class="form-card" style="margin-bottom: 2rem;">
-            <h2 style="font-size: 1.1rem; color: #1b4332; margin-bottom: 1.2rem;"><i class="fa-solid fa-plus-circle"></i> Registrar Nueva Liquidación</h2>
+        <div class="form-card" class="mb-xl">
+            <h2 class="section-subtitle"><i class="fa-solid fa-plus-circle"></i> Registrar Nueva Liquidación</h2>
             <form th:action="@{/finanzas/liquidaciones/guardar}" th:object="${nuevaLiquidacion}" method="post">
                 <div class="form-grid">
                     <div class="form-group">
@@ -53,7 +53,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="monto">Monto Liquidado ($) *</label>
+                        <label for="monto">Monto Liquidado (C$) *</label>
                         <input type="number" step="0.01" id="monto" th:field="*{monto}" placeholder="Ej. 19500.00" required>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
         <!-- TABLA DE HISTORIAL DE LIQUIDACIONES -->
         <div class="table-card">
             <div class="card-header">
-                <strong style="color: #1b4332;">Historial de Liquidaciones</strong>
+                <strong class="text-brand">Historial de Liquidaciones Registradas en MySQL</strong>
             </div>
             <div class="table-responsive">
                 <table>
@@ -75,18 +75,18 @@
                             <th>N° Comprobante</th>
                             <th>Empresa Matadero</th>
                             <th>Fecha</th>
-                            <th>Monto Liquidado ($)</th>
+                            <th>Monto Liquidado (C$)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="l : ${liquidaciones}">
-                            <td><strong style="color: #1b4332; font-family: monospace;" th:text="${l.idNumComprobante}">LIQ-001</strong></td>
+                            <td><strong class="text-code-brand" th:text="${l.idNumComprobante}">LIQ-001</strong></td>
                             <td th:text="${l.empresa}">MACESA</td>
-                            <td th:text="${l.fechaLiquidacion}">2026-10-10</td>
-                            <td style="font-weight: 700; color: #15803d; font-size: 1rem;" th:text="'$' + ${#numbers.formatDecimal(l.monto, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                            <td th:text="${#temporals.format(l.fechaLiquidacion, 'dd/MM/yyyy')}">2026-10-10</td>
+                            <td class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(l.monto, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(liquidaciones)}">
-                            <td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">
+                            <td colspan="4" class="empty-table-cell">
                                 No hay liquidaciones registradas en el sistema.
                             </td>
                         </tr>

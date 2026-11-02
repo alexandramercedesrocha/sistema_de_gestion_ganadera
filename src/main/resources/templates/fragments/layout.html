@@ -5,37 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title} + ' | Ganadería Rocha & Altamirano'">Ganadería Rocha & Altamirano</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
-    <!-- NAVBAR COMÚN -->
+    <!-- NAVBAR RESPONSIVO -->
     <nav class="navbar" th:fragment="navbar">
-        <a th:href="@{/}" class="brand">
-            <div class="brand-icon">
-                <i class="fa-solid fa-cow"></i>
-            </div>
-            <div class="brand-text">
-                <h1>ROCHA & ALTAMIRANO</h1>
-                <span>Gestión y Comercialización Bovina</span>
-            </div>
-        </a>
+        <div class="nav-header">
+            <a th:href="@{/}" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-cow"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>ROCHA & ALTAMIRANO</h1>
+                    <span>Gestión y Comercialización Bovina</span>
+                </div>
+            </a>
+            <button class="nav-toggle-btn" onclick="document.getElementById('navMenu').classList.toggle('active')" aria-label="Abrir Menú">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
 
-        <ul class="nav-links">
+        <ul class="nav-links" id="navMenu">
             <li>
                 <a th:href="@{/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             </li>
             <li>
-                <a th:href="@{/ganado}"><i class="fa-solid fa-tags"></i> Inventario Ganado</a>
+                <a th:href="@{/ganado}"><i class="fa-solid fa-tags"></i> Inventario</a>
+            </li>
+            <li>
+                <a th:href="@{/compras}"><i class="fa-solid fa-cart-shopping"></i> Lotes</a>
+            </li>
+            <li>
+                <a th:href="@{/entregas}"><i class="fa-solid fa-industry"></i> Entregas</a>
             </li>
             <li>
                 <a th:href="@{/ganado/rechazos}"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos</a>
             </li>
             <li>
-                <a th:href="@{/compras}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
+                <a th:href="@{/transporte}"><i class="fa-solid fa-truck"></i> Transporte</a>
             </li>
             <li>
-                <a th:href="@{/transporte}"><i class="fa-solid fa-truck"></i> Transporte</a>
+                <a th:href="@{/catalogos}"><i class="fa-solid fa-address-book"></i> Catálogos</a>
             </li>
             <li>
                 <a th:href="@{/finanzas/balance}"><i class="fa-solid fa-scale-balanced"></i> Balance 50-50</a>
@@ -64,7 +75,7 @@
     <!-- FOOTER COMÚN -->
     <footer class="footer" th:fragment="footer">
         <p><strong>Sociedad Comercial Ganadera Wilber Rocha & Yader Altamirano</strong> &copy; 2026. Todos los derechos reservados.</p>
-        <p style="margin-top: 4px; color: #9ca3af; font-size: 0.78rem;">Sistema de Información Ganadero desarrollado con Spring Boot 3 & Thymeleaf</p>
+        <p class="footer-copy">Sistema de Información Ganadero desarrollado con Spring Boot 3 & Thymeleaf</p>
     </footer>
 
 </body>

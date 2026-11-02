@@ -4,11 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Entidad Ganado_Rechazo (Subclase de Ganado)
+ * Entidad Ganado de Rechazo (DTO / Modelo de Vista)
  * 
- * Modela la especialización de aquellos animales que fueron devueltos o
- * clasificados como no aptos por el matadero o por inspección sanitaria.
- * Hereda todos los atributos de {@link Ganado}.
+ * Especialización de la entidad Ganado para aquellos animales que no fueron aceptados
+ * en la báscula de matadero o requirieron liquidación con castigo de precio.
  */
 public class GanadoRechazo extends Ganado {
 
@@ -26,9 +25,11 @@ public class GanadoRechazo extends Ganado {
         this.setCategoria("Rechazo");
     }
 
-    public GanadoRechazo(String arete, Integer paletas, String color, String estado, BigDecimal pesoEntradaKg,
+    public GanadoRechazo(String arete, Object paletas, String color, String estado, BigDecimal pesoEntradaKg,
                          String motivoRechazo, LocalDate fechaRechazo, BigDecimal pesoMatadero) {
-        super(arete, paletas, color, estado, pesoEntradaKg, "Rechazo");
+        super(arete, paletas != null ? paletas.toString() : null, color, pesoEntradaKg, "Rechazo", null);
+        this.setEstado(estado);
+        this.setCategoria("Rechazo");
         this.motivoRechazo = motivoRechazo;
         this.fechaRechazo = fechaRechazo;
         this.pesoMatadero = pesoMatadero;
@@ -58,9 +59,7 @@ public class GanadoRechazo extends Ganado {
         this.pesoMatadero = pesoMatadero;
     }
 
-    /**
-     * Diferencia en kilos entre la entrada en finca y el pesaje en matadero
-     */
+    // Calcula la diferencia o merma entre el peso inicial de entrada y el peso en báscula de matadero
     public BigDecimal getMermaKg() {
         if (getPesoEntradaKg() != null && pesoMatadero != null) {
             return getPesoEntradaKg().subtract(pesoMatadero);

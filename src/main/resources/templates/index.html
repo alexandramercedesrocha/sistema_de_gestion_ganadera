@@ -12,28 +12,39 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-gauge-high"></i> Panel Ejecutivo Ganadero</h1>
-                <p class="page-subtitle">Sociedad Wilber Rocha & Yader Altamirano &mdash; Control Operativo y Financiero 50-50</p>
+                <p class="page-subtitle">Sociedad Wilber Rocha & Yader Altamirano &mdash; Control Operativo y Financiero 50-50 (C$)</p>
             </div>
-            <div style="display: flex; gap: 0.6rem;">
+            <div class="header-buttons-wrap">
                 <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
-                <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nueva Compra</a>
+                <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nuevo Lote</a>
+                <a th:href="@{/entregas/nueva}" class="btn btn-outline" class="btn btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
             </div>
         </div>
 
-        <!-- TARJETAS SOCIEDAD 50-50 (DISTRIBUCIÓN DE UTILIDADES) -->
+        <!-- TARJETAS SOCIEDAD 50-50 (DISTRIBUCIÓN DE UTILIDADES EN CÓRDOBAS) -->
         <div class="partner-grid">
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Wilber Rocha</span>
                 <span class="partner-share">Socio Accionista (50%)</span>
-                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
-                <p style="font-size: 0.8rem; color: #6b7280; margin-top: 0.4rem;">Cuota de ganancia neta acumulada en período activo</p>
+                <div class="partner-amount" 
+                     th:classappend="${balance.cuotaWilberRocha >= 0} ? 'amount-positive' : 'amount-negative'"
+                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <p class="text-muted-xs">
+                    <span th:if="${balance.cuotaWilberRocha >= 0}">Cuota de ganancia neta acumulada</span>
+                    <span th:if="${balance.cuotaWilberRocha < 0}" class="text-danger-bold">Inversión en curso pendiente de liquidación</span>
+                </p>
             </div>
 
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Yader Altamirano</span>
                 <span class="partner-share">Socio Accionista (50%)</span>
-                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
-                <p style="font-size: 0.8rem; color: #6b7280; margin-top: 0.4rem;">Cuota de ganancia neta acumulada en período activo</p>
+                <div class="partner-amount" 
+                     th:classappend="${balance.cuotaYaderAltamirano >= 0} ? 'amount-positive' : 'amount-negative'"
+                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <p class="text-muted-xs">
+                    <span th:if="${balance.cuotaYaderAltamirano >= 0}">Cuota de ganancia neta acumulada</span>
+                    <span th:if="${balance.cuotaYaderAltamirano < 0}" class="text-danger-bold">Inversión en curso pendiente de liquidación</span>
+                </p>
             </div>
         </div>
 
@@ -44,7 +55,7 @@
                     <span class="kpi-label">Ganado en Finca</span>
                     <i class="fa-solid fa-cow kpi-icon"></i>
                 </div>
-                <div class="kpi-value" th:text="${ganadoEnFinca} + ' Cabezas'">0</div>
+                <div class="kpi-value" th:text="${ganadoEnFinca} + ' Cabezas'">0 Cabezas</div>
                 <div class="kpi-subtext" th:text="'Peso est.: ' + ${#numbers.formatDecimal(balance.totalKilosEnFinca, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</div>
             </div>
 
@@ -53,88 +64,144 @@
                     <span class="kpi-label">Entregado a Matadero</span>
                     <i class="fa-solid fa-industry kpi-icon"></i>
                 </div>
-                <div class="kpi-value" th:text="${ganadoEntregado} + ' Cabezas'">0</div>
-                <div class="kpi-subtext">MACESA / SAN MARTIN</div>
+                <div class="kpi-value" th:text="${ganadoEntregado} + ' Cabezas'">0 Cabezas</div>
+                <div class="kpi-subtext">Plantas autorizadas</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Ganado de Rechazo</span>
-                    <i class="fa-solid fa-triangle-exclamation kpi-icon" style="color: #d32f2f; background: #fee2e2;"></i>
+                    <i class="fa-solid fa-triangle-exclamation kpi-icon" class="badge badge-danger"></i>
                 </div>
-                <div class="kpi-value" th:text="${ganadoRechazo} + ' Cabezas'" style="color: #b91c1c;">0</div>
-                <div class="kpi-subtext">Seguimiento por dictamen</div>
+                <div class="kpi-value" th:text="${ganadoRechazo} + ' Cabezas'" class="text-danger-bold">0 Cabezas</div>
+                <div class="kpi-subtext">Dictamen veterinario</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Utilidad Neta Total</span>
-                    <i class="fa-solid fa-sack-dollar kpi-icon" style="color: #2e7d32; background: #dcfce7;"></i>
+                    <i class="fa-solid fa-sack-dollar kpi-icon" class="badge badge-success"></i>
                 </div>
-                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}" style="color: #15803d;">$0.00</div>
-                <div class="kpi-subtext">Ingresos menos Egresos totales</div>
+                <div class="kpi-value" 
+                     th:classappend="${balance.utilidadNeta >= 0} ? 'amount-positive' : 'amount-negative'"
+                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="kpi-subtext">Liquidaciones menos Egresos (MySQL)</div>
             </div>
         </div>
 
         <!-- RESÚMENES OPERATIVOS -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 1.5rem;">
+        <div class="dashboard-grid-two">
             
-            <!-- Compras Recientes -->
+            <!-- Lotes de Compra Recientes -->
             <div class="table-card">
                 <div class="card-header">
-                    <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-cart-shopping"></i> Compras Recientes de Ganado</h2>
-                    <a th:href="@{/compras}" class="btn btn-outline btn-sm">Ver todas</a>
+                    <h2 class="card-title-brand"><i class="fa-solid fa-boxes-stacked"></i> Lotes de Compra Recientes</h2>
+                    <a th:href="@{/compras}" class="btn btn-outline btn-sm">Ver todos</a>
                 </div>
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
+                                <th>Lote</th>
                                 <th>Fecha</th>
                                 <th>Proveedor</th>
                                 <th>Cabezas</th>
                                 <th>Total Kilos</th>
-                                <th>Inversión</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="compra : ${ultimasCompras}">
-                                <td th:text="${compra.fechaCompra}">2026-10-01</td>
-                                <td th:text="${compra.proveedor}">Proveedor</td>
-                                <td><span class="badge badge-finca" th:text="${compra.totalCabezas}">0</span></td>
-                                <td th:text="${#numbers.formatDecimal(compra.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
-                                <td style="font-weight: 700;" th:text="'$' + ${#numbers.formatDecimal(compra.montoTotal, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                            <tr th:if="${#lists.isEmpty(ultimosLotes)}">
+                                <td colspan="5" class="empty-table-cell">
+                                    <i class="fa-solid fa-circle-info"></i> No hay lotes registrados en la base de datos.
+                                </td>
+                            </tr>
+                            <tr th:each="lote : ${ultimosLotes}">
+                                <td class="text-brand-bold" th:text="'LOTE-' + ${lote.idLote}">LOTE-1</td>
+                                <td th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">2026-10-01</td>
+                                <td th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Proveedor</td>
+                                <td><span class="badge badge-info" th:text="${lote.totalCabezas}">0</span></td>
+                                <td th:text="${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Entregas Recientes a Matadero -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2 class="card-title-brand"><i class="fa-solid fa-industry"></i> Entregas Recientes a Planta</h2>
+                    <a th:href="@{/entregas}" class="btn btn-outline btn-sm">Ver todas</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Entrega</th>
+                                <th>Fecha</th>
+                                <th>Planta</th>
+                                <th>Cabezas</th>
+                                <th>Precio (C$/kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(ultimasEntregas)}">
+                                <td colspan="5" class="empty-table-cell">
+                                    <i class="fa-solid fa-circle-info"></i> No hay entregas registradas en la base de datos.
+                                </td>
+                            </tr>
+                            <tr th:each="ent : ${ultimasEntregas}">
+                                <td class="text-brand-bold" th:text="'ENT-' + ${ent.idEntrega}">ENT-1</td>
+                                <td th:text="${#temporals.format(ent.fechaEntrega, 'dd/MM/yyyy')}">2026-10-01</td>
+                                <td th:text="${ent.matadero != null ? ent.matadero.nombreMatadero : 'N/D'}">MACESA</td>
+                                <td><span class="badge badge-info" th:text="${ent.totalCabezas}">0</span></td>
+                                <td th:text="'C$ ' + ${#numbers.formatDecimal(ent.precioAcordado != null ? ent.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Traslados y Liquidaciones -->
+        <div class="dashboard-grid-two mt-md">
+            
             <!-- Servicios de Transporte / Fletes -->
             <div class="table-card">
                 <div class="card-header">
-                    <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-truck"></i> Fletes y Traslados Recientes</h2>
+                    <h2 class="card-title-brand"><i class="fa-solid fa-truck"></i> Fletes y Traslados Recientes</h2>
                     <a th:href="@{/transporte}" class="btn btn-outline btn-sm">Ver todos</a>
                 </div>
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Transportista</th>
-                                <th>Destino</th>
-                                <th>Costo</th>
+                                <th>Viaje</th>
+                                <th>Conductor</th>
+                                <th>Placa</th>
+                                <th>Ruta</th>
                                 <th>Estado</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr th:if="${#lists.isEmpty(ultimosViajes)}">
+                                <td colspan="5" class="empty-table-cell">
+                                    <i class="fa-solid fa-circle-info"></i> No hay viajes registrados en la base de datos.
+                                </td>
+                            </tr>
                             <tr th:each="viaje : ${ultimosViajes}">
-                                <td th:text="${viaje.fechaViaje}">2026-10-01</td>
-                                <td th:text="${viaje.nombreTransportista}">Transportista</td>
-                                <td th:text="${viaje.destino}">Destino</td>
-                                <td th:text="'$' + ${#numbers.formatDecimal(viaje.costoViaje, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                                <td class="text-brand-bold" th:text="'VIAJE-' + ${viaje.idViaje}">VIAJE-1</td>
+                                <td th:text="${viaje.conductor != null ? viaje.conductor.nombre : 'Sin chofer'}">Chofer</td>
+                                <td th:text="${viaje.camion != null ? viaje.camion.numPlaca : 'S/P'}">Placa</td>
                                 <td>
-                                    <span th:class="'badge ' + (${viaje.estadoPago == 'Pagado'} ? 'badge-pagado' : 'badge-pendiente')"
-                                          th:text="${viaje.estadoPago}">Pendiente</span>
+                                    <span th:text="${viaje.ubicacionOrigen != null ? viaje.ubicacionOrigen.nombreLugar : 'Origen'}">Origen</span>
+                                    &rarr;
+                                    <span th:text="${viaje.ubicacionDestino != null ? viaje.ubicacionDestino.nombreLugar : 'Destino'}">Destino</span>
+                                </td>
+                                <td>
+                                    <span th:if="${viaje.estadoPago == 'Pagado'}" class="badge badge-success"><i class="fa-solid fa-check"></i> Pagado</span>
+                                    <span th:if="${viaje.estadoPago != 'Pagado'}" class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -142,34 +209,39 @@
                 </div>
             </div>
 
-        </div>
+            <!-- Liquidaciones de Mataderos -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2 class="card-title-brand"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones Recientes Emitidas</h2>
+                    <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline btn-sm">Ver finanzas</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Comprobante</th>
+                                <th>Planta Matadero</th>
+                                <th>Fecha</th>
+                                <th>Monto Liquidado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(ultimasLiquidaciones)}">
+                                <td colspan="4" class="empty-table-cell">
+                                    <i class="fa-solid fa-circle-info"></i> No hay liquidaciones registradas en la base de datos.
+                                </td>
+                            </tr>
+                            <tr th:each="liq : ${ultimasLiquidaciones}">
+                                <td class="font-semibold" th:text="${liq.idNumComprobante}">LIQ-001</td>
+                                <td th:text="${liq.empresa}">MACESA</td>
+                                <td th:text="${#temporals.format(liq.fechaLiquidacion, 'dd/MM/yyyy')}">2026-10-10</td>
+                                <td class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(liq.monto, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-        <!-- Liquidaciones de Mataderos -->
-        <div class="table-card" style="margin-top: 1.5rem;">
-            <div class="card-header">
-                <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones Recientes Emitidas por Matadero</h2>
-                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline btn-sm">Ver módulo liquidaciones</a>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>N° Comprobante</th>
-                            <th>Empresa Matadero</th>
-                            <th>Fecha Liquidación</th>
-                            <th>Monto Liquidado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="liq : ${ultimasLiquidaciones}">
-                            <td style="font-weight: 600;" th:text="${liq.idNumComprobante}">LIQ-001</td>
-                            <td th:text="${liq.empresa}">MACESA</td>
-                            <td th:text="${liq.fechaLiquidacion}">2026-10-10</td>
-                            <td style="font-weight: 700; color: #15803d;" th:text="'$' + ${#numbers.formatDecimal(liq.monto, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
 
     </main>

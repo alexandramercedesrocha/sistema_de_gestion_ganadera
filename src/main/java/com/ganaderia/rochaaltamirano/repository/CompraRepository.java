@@ -3,13 +3,11 @@ package com.ganaderia.rochaaltamirano.repository;
 import com.ganaderia.rochaaltamirano.model.Compra;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Repositorio Simulado para el Registro de Compras de Ganado en Pie
+ * Repositorio de Compras (Sin datos precargados)
  */
 @Repository
 public class CompraRepository {
@@ -17,45 +15,7 @@ public class CompraRepository {
     private final Map<Long, Compra> compras = new ConcurrentHashMap<>();
 
     public CompraRepository() {
-        cargarDatosDePrueba();
-    }
-
-    private void cargarDatosDePrueba() {
-        guardar(new Compra(
-                101L,
-                LocalDate.of(2026, 10, 5),
-                18,
-                new BigDecimal("2.10"),
-                new BigDecimal("2.05"),
-                new BigDecimal("6930.00"),
-                "Don Chepe Miranda (Hacienda La Gloria)",
-                new BigDecimal("14553.00"),
-                "Comarca San Jerónimo, Teustepe, Boaco"
-        ));
-
-        guardar(new Compra(
-                102L,
-                LocalDate.of(2026, 10, 11),
-                22,
-                new BigDecimal("2.15"),
-                new BigDecimal("2.10"),
-                new BigDecimal("8800.00"),
-                "Ganados del Norte S.A. (Matagalpa)",
-                new BigDecimal("18920.00"),
-                "El Tuma - La Dalia, Matagalpa"
-        ));
-
-        guardar(new Compra(
-                103L,
-                LocalDate.of(2026, 10, 19),
-                14,
-                new BigDecimal("2.08"),
-                new BigDecimal("2.00"),
-                new BigDecimal("5320.00"),
-                "Finca Santa Rosa (Chontales)",
-                new BigDecimal("11065.60"),
-                "Acoyapa, Chontales"
-        ));
+        // Inicialmente vacío: se alimenta de la base de datos o registros manuales
     }
 
     public List<Compra> listarTodas() {

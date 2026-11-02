@@ -1,46 +1,59 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 /**
- * Entidad Ganado (Animal Bovino)
- * 
- * Representa cada cabeza de ganado individual identificada por su arete.
- * Contiene información biométrica, estado y categoría comercial.
+ * Entidad Ganado (Tabla: ganado)
+ * Representa cada res bovina identificada por su arete.
+ * Posee clave foránea id_lote y autorreferencia arete_anterior para re-aretado.
  */
+@Entity
+@Table(name = "ganado")
 public class Ganado {
 
-    // Primary Key: Número o código único del arete (ej. NI-40291)
+    @Id
+    @Column(name = "arete", length = 20)
     private String arete;
-    
-    // Identificador de edad ganadera por dentición (ej. "0 Paletas - Ternero", "2 Paletas", "4 Paletas")
-    private Integer paletas;
-    
-    // Color o pelaje del bovino (ej. "Hosco", "Bermejo", "Bramil", "Negro", "Pintado")
+
+    @Column(name = "paletas", length = 50)
+    private String paletas;
+
+    @Column(name = "color", length = 50)
     private String color;
-    
-    // Estado físico/logístico: 'En Finca', 'Entregado a Matadero'
-    private String estado;
-    
-    // Peso inicial registrado al ingresar a la finca en kilogramos
-    private BigDecimal pesoEntradaKg;
-    
-    // Categoría comercial: 'Apto' (para engorde/matadero) o 'Rechazo'
-    private String categoria;
+
+    @Column(name = "peso_kg", precision = 8, scale = 2)
+    private BigDecimal pesoKg;
+
+    @Column(name = "condicion_compra", length = 50)
+    private String condicionCompra; // ej. Regular, Bueno, Excelente
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "arete_anterior")
+    private Ganado areteAnterior;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_lote")
+    private Lote lote;
+
+    @Transient
+    private String estado = "En Finca"; // En Finca / Entregado a Matadero
+
+    @Transient
+    private String categoria = "Apto"; // Apto / Rechazo
 
     public Ganado() {
     }
 
-    public Ganado(String arete, Integer paletas, String color, String estado, BigDecimal pesoEntradaKg, String categoria) {
+    public Ganado(String arete, String paletas, String color, BigDecimal pesoKg, String condicionCompra, Lote lote) {
         this.arete = arete;
         this.paletas = paletas;
         this.color = color;
-        this.estado = estado;
-        this.pesoEntradaKg = pesoEntradaKg;
-        this.categoria = categoria;
+        this.pesoKg = pesoKg;
+        this.condicionCompra = condicionCompra;
+        this.lote = lote;
     }
 
-    // Getters y Setters
     public String getArete() {
         return arete;
     }
@@ -49,11 +62,11 @@ public class Ganado {
         this.arete = arete;
     }
 
-    public Integer getPaletas() {
+    public String getPaletas() {
         return paletas;
     }
 
-    public void setPaletas(Integer paletas) {
+    public void setPaletas(String paletas) {
         this.paletas = paletas;
     }
 
@@ -65,20 +78,53 @@ public class Ganado {
         this.color = color;
     }
 
+    public BigDecimal getPesoKg() {
+        return pesoKg;
+    }
+
+    public void setPesoKg(BigDecimal pesoKg) {
+        this.pesoKg = pesoKg;
+    }
+
+    // Compatibilidad con vistas previas
+    public BigDecimal getPesoEntradaKg() {
+        return pesoKg;
+    }
+
+    public void setPesoEntradaKg(BigDecimal pesoEntradaKg) {
+        this.pesoKg = pesoEntradaKg;
+    }
+
+    public String getCondicionCompra() {
+        return condicionCompra;
+    }
+
+    public void setCondicionCompra(String condicionCompra) {
+        this.condicionCompra = condicionCompra;
+    }
+
+    public Ganado getAreteAnterior() {
+        return areteAnterior;
+    }
+
+    public void setAreteAnterior(Ganado areteAnterior) {
+        this.areteAnterior = areteAnterior;
+    }
+
+    public Lote getLote() {
+        return lote;
+    }
+
+    public void setLote(Lote lote) {
+        this.lote = lote;
+    }
+
     public String getEstado() {
         return estado;
     }
 
     public void setEstado(String estado) {
         this.estado = estado;
-    }
-
-    public BigDecimal getPesoEntradaKg() {
-        return pesoEntradaKg;
-    }
-
-    public void setPesoEntradaKg(BigDecimal pesoEntradaKg) {
-        this.pesoEntradaKg = pesoEntradaKg;
     }
 
     public String getCategoria() {
@@ -89,24 +135,11 @@ public class Ganado {
         this.categoria = categoria;
     }
 
-    // Métodos utilitarios de negocio
-    public boolean isRechazo() {
-        return "Rechazo".equalsIgnoreCase(this.categoria);
-    }
-
     public boolean isEnFinca() {
         return "En Finca".equalsIgnoreCase(this.estado);
     }
 
-    public String getDescripcionPaletas() {
-        if (paletas == null) return "Sin especificar";
-        return switch (paletas) {
-            case 0 -> "0 Paletas (Dientes de leche - Ternero/a)";
-            case 2 -> "2 Paletas (~18-24 meses)";
-            case 4 -> "4 Paletas (~2.5 - 3 años)";
-            case 6 -> "6 Paletas (~3.5 años)";
-            case 8 -> "8 Paletas (Boca llena - Adulto)";
-            default -> paletas + " Paletas";
-        };
+    public boolean isRechazo() {
+        return "Rechazo".equalsIgnoreCase(this.categoria);
     }
 }

@@ -36,3 +36,9 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+
+### Local Dev Config & Uploads ###
+application-local.properties
+.env
+uploads/*
+!uploads/.gitkeep

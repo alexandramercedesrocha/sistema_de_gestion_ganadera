@@ -11,79 +11,94 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-truck"></i> Servicios de Transporte (Viajes y Fletes)</h1>
-                <p class="page-subtitle">Logística de movilización ganadera desde fincas de acopio hacia mataderos industriales</p>
+                <p class="page-subtitle">Logística de movilización ganadera entre fincas de acopio y mataderos industriales</p>
             </div>
             <a th:href="@{/transporte/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Nuevo Viaje</a>
         </div>
 
-        <!-- TARJETAS DE COSTOS DE TRANSPORTE -->
+        <!-- TARJETAS DE RESUMEN -->
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-header">
-                    <span class="kpi-label">Costo Total Fletes</span>
-                    <i class="fa-solid fa-receipt kpi-icon"></i>
+                    <span class="kpi-label">Total Viajes Realizados</span>
+                    <i class="fa-solid fa-road kpi-icon"></i>
                 </div>
-                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(totalCostos, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
-                <div class="kpi-subtext">Total facturado por transportistas</div>
+                <div class="kpi-value" th:text="${totalViajes}">0</div>
+                <div class="kpi-subtext">Traslados registrados</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-header">
                     <span class="kpi-label">Fletes Pendientes de Pago</span>
-                    <i class="fa-solid fa-clock-rotate-left kpi-icon" style="color: #b45309; background: #fef3c7;"></i>
+                    <i class="fa-solid fa-clock-rotate-left kpi-icon" class="badge badge-warning-soft"></i>
                 </div>
-                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(totalPendiente, 1, 'COMMA', 2, 'POINT')}" style="color: #b45309;">$0.00</div>
-                <div class="kpi-subtext">Compromisos financieros por saldar</div>
+                <div class="kpi-value" th:text="${totalPendiente}" class="text-warning-dark">0</div>
+                <div class="kpi-subtext">Viajes por liquidar al conductor</div>
             </div>
         </div>
 
         <!-- TABLA DE VIAJES -->
         <div class="table-card">
             <div class="card-header">
-                <strong style="color: #1b4332;">Registro de Traslados de Ganado</strong>
+                <strong class="text-brand"><i class="fa-solid fa-list-check"></i> Registro de Traslados de Ganado</strong>
             </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Fecha Viaje</th>
-                            <th>Nombre Transportista</th>
+                            <th>Nº Viaje</th>
                             <th>Origen</th>
                             <th>Destino</th>
-                            <th>Costo del Flete</th>
+                            <th>Conductor</th>
+                            <th>Camión / Placa</th>
                             <th>Estado de Pago</th>
-                            <th>Acciones</th>
+                            <th>Fecha de Pago</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="v : ${viajes}">
-                            <td><strong style="color: #6b7280;" th:text="'#TR-' + ${v.idTransporte}">#TR-301</strong></td>
-                            <td th:text="${v.fechaViaje}">2026-10-05</td>
-                            <td><strong th:text="${v.nombreTransportista}">Don Marvin Centeno</strong></td>
-                            <td th:text="${v.origen}">Teustepe, Boaco</td>
-                            <td th:text="${v.destino}">Finca Santa Elena</td>
-                            <td style="font-weight: 700;" th:text="'$' + ${#numbers.formatDecimal(v.costoViaje, 1, 'COMMA', 2, 'POINT')}">$450.00</td>
-                            <td>
-                                <span th:class="'badge ' + (${v.estadoPago == 'Pagado'} ? 'badge-pagado' : 'badge-pendiente')"
-                                      th:text="${v.estadoPago}">Pagado</span>
-                            </td>
-                            <td>
-                                <div th:if="${v.estadoPago == 'Pendiente'}">
-                                    <form th:action="@{/transporte/{id}/pagar(id=${v.idTransporte})}" method="post">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fa-solid fa-check"></i> Marcar Pagado
-                                        </button>
-                                    </form>
-                                </div>
-                                <div th:if="${v.estadoPago == 'Pagado'}">
-                                    <span style="color: #15803d; font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Al día</span>
-                                </div>
+                        <tr th:if="${#lists.isEmpty(viajes)}">
+                            <td colspan="8" class="empty-table-cell">
+                                No hay viajes registrados en la base de datos.
                             </td>
                         </tr>
-                        <tr th:if="${#lists.isEmpty(viajes)}">
-                            <td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">
-                                No hay viajes de transporte registrados en el sistema.
+                        <tr th:each="v : ${viajes}">
+                            <td class="text-brand-bold" th:text="'VIAJE-' + ${v.idViaje}">VIAJE-1</td>
+                            <td>
+                                <strong th:text="${v.ubicacionOrigen != null ? v.ubicacionOrigen.nombreLugar : 'No especificado'}">Origen</strong>
+                                <a th:if="${v.ubicacionOrigen != null and v.ubicacionOrigen.url != null and !v.ubicacionOrigen.url.isBlank()}" 
+                                   th:href="${v.ubicacionOrigen.url}" target="_blank" class="ml-xs text-brand">
+                                    <i class="fa-solid fa-map-pin"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <strong th:text="${v.ubicacionDestino != null ? v.ubicacionDestino.nombreLugar : 'No especificado'}">Destino</strong>
+                                <a th:if="${v.ubicacionDestino != null and v.ubicacionDestino.url != null and !v.ubicacionDestino.url.isBlank()}" 
+                                   th:href="${v.ubicacionDestino.url}" target="_blank" class="ml-xs text-brand">
+                                    <i class="fa-solid fa-map-pin"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <span th:text="${v.conductor != null ? v.conductor.nombre : 'Sin chofer asignado'}">Marvin Centeno</span>
+                                <small th:if="${v.conductor != null}" class="text-muted-xs" th:text="${v.conductor.cedula}">121-000000-0000A</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-info" th:text="${v.camion != null ? v.camion.numPlaca : 'S/P'}">CH-18290</span>
+                            </td>
+                            <td>
+                                <span th:if="${v.estadoPago == 'Pagado'}" class="badge badge-success"><i class="fa-solid fa-check"></i> Pagado</span>
+                                <span th:if="${v.estadoPago != 'Pagado'}" class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>
+                            </td>
+                            <td>
+                                <span th:text="${v.fechaPago != null ? #temporals.format(v.fechaPago, 'dd/MM/yyyy') : '&mdash;'}">01/01/2026</span>
+                            </td>
+                            <td class="text-center">
+                                <form th:if="${v.estadoPago != 'Pagado'}" th:action="@{'/transporte/' + ${v.idViaje} + '/pagar'}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline" class="btn btn-outline-success">
+                                        <i class="fa-solid fa-check"></i> Marcar Pagado
+                                    </button>
+                                </form>
+                                <span th:if="${v.estadoPago == 'Pagado'}" class="text-muted-xs">Completado</span>
                             </td>
                         </tr>
                     </tbody>
@@ -94,5 +109,6 @@
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
 </body>
 </html>

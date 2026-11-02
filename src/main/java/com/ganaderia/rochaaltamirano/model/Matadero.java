@@ -1,33 +1,43 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Entidad Matadero
- * 
- * Representa las plantas industriales procesadoras de carne bovina
- * (ej. MACESA en Juigalpa, SAN MARTIN en Nandaime) a las cuales la sociedad entrega ganado.
+ * Entidad Matadero (Tabla: matadero)
  */
+@Entity
+@Table(name = "matadero")
 public class Matadero {
 
-    private Long idMatadero;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_matadero")
+    private Integer idMatadero;
+
+    @Column(name = "nombre_matadero", nullable = false, length = 100)
     private String nombreMatadero;
-    private String ubicacion;
-    private String contactoTelefono;
+
+    @OneToMany(mappedBy = "matadero", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Telefono> telefonos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "matadero", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ubicacion> ubicaciones = new ArrayList<>();
 
     public Matadero() {
     }
 
-    public Matadero(Long idMatadero, String nombreMatadero, String ubicacion, String contactoTelefono) {
+    public Matadero(Integer idMatadero, String nombreMatadero) {
         this.idMatadero = idMatadero;
         this.nombreMatadero = nombreMatadero;
-        this.ubicacion = ubicacion;
-        this.contactoTelefono = contactoTelefono;
     }
 
-    public Long getIdMatadero() {
+    public Integer getIdMatadero() {
         return idMatadero;
     }
 
-    public void setIdMatadero(Long idMatadero) {
+    public void setIdMatadero(Integer idMatadero) {
         this.idMatadero = idMatadero;
     }
 
@@ -39,19 +49,19 @@ public class Matadero {
         this.nombreMatadero = nombreMatadero;
     }
 
-    public String getUbicacion() {
-        return ubicacion;
+    public List<Telefono> getTelefonos() {
+        return telefonos;
     }
 
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
+    public void setTelefonos(List<Telefono> telefonos) {
+        this.telefonos = telefonos;
     }
 
-    public String getContactoTelefono() {
-        return contactoTelefono;
+    public List<Ubicacion> getUbicaciones() {
+        return ubicaciones;
     }
 
-    public void setContactoTelefono(String contactoTelefono) {
-        this.contactoTelefono = contactoTelefono;
+    public void setUbicaciones(List<Ubicacion> ubicaciones) {
+        this.ubicaciones = ubicaciones;
     }
 }

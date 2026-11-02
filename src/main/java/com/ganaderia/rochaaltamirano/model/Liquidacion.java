@@ -1,37 +1,43 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Entidad Liquidación
- * 
- * Representa los pagos y comprobantes oficiales emitidos por los mataderos
- * industriales a favor de la sociedad de Wilber Rocha y Yader Altamirano
- * tras el faenado y pesaje en canal de los lotes entregados.
+ * Entidad Liquidacion (Tabla: liquidacion)
+ * Comprobante oficial de pago y liquidación emitido por el matadero.
  */
+@Entity
+@Table(name = "liquidacion")
 public class Liquidacion {
 
-    // Número de comprobante o factura fiscal emitida por el matadero
+    @Id
+    @Column(name = "id_num_comprobante", length = 20)
     private String idNumComprobante;
-    
-    // Empresa pagadora (ej. "MACESA - Matadero Central S.A.", "San Martín S.A.")
-    private String empresa;
-    
-    // Fecha efectiva de liquidación
+
+    @Column(name = "fecha_liquidacion", nullable = false)
     private LocalDate fechaLiquidacion;
-    
-    // Monto liquidado a favor de la sociedad
+
+    @Column(name = "monto", precision = 10, scale = 2)
     private BigDecimal monto;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_matadero")
+    private Matadero matadero;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_arqueo")
+    private ArqueoMensual arqueo;
 
     public Liquidacion() {
     }
 
-    public Liquidacion(String idNumComprobante, String empresa, LocalDate fechaLiquidacion, BigDecimal monto) {
+    public Liquidacion(String idNumComprobante, LocalDate fechaLiquidacion, BigDecimal monto, Matadero matadero) {
         this.idNumComprobante = idNumComprobante;
-        this.empresa = empresa;
         this.fechaLiquidacion = fechaLiquidacion;
         this.monto = monto;
+        this.matadero = matadero;
     }
 
     public String getIdNumComprobante() {
@@ -40,14 +46,6 @@ public class Liquidacion {
 
     public void setIdNumComprobante(String idNumComprobante) {
         this.idNumComprobante = idNumComprobante;
-    }
-
-    public String getEmpresa() {
-        return empresa;
-    }
-
-    public void setEmpresa(String empresa) {
-        this.empresa = empresa;
     }
 
     public LocalDate getFechaLiquidacion() {
@@ -64,5 +62,29 @@ public class Liquidacion {
 
     public void setMonto(BigDecimal monto) {
         this.monto = monto;
+    }
+
+    public Matadero getMatadero() {
+        return matadero;
+    }
+
+    public void setMatadero(Matadero matadero) {
+        this.matadero = matadero;
+    }
+
+    public ArqueoMensual getArqueo() {
+        return arqueo;
+    }
+
+    public void setArqueo(ArqueoMensual arqueo) {
+        this.arqueo = arqueo;
+    }
+
+    // Compatibilidad con vistas previas
+    public String getEmpresa() {
+        return matadero != null ? matadero.getNombreMatadero() : "Matadero";
+    }
+
+    public void setEmpresa(String empresa) {
     }
 }

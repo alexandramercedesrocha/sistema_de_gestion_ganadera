@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pesajes de Entrega #' + ${entrega.idEntrega})}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- ENCABEZADO -->
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title">
+                    <i class="fa-solid fa-weight-scale"></i> Pesajes y Dictamen: Entrega #<span th:text="${entrega.idEntrega}">1</span>
+                </h1>
+                <p class="page-subtitle">
+                    Planta: <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'N/D'}">MACESA</strong> &mdash; 
+                    Fecha: <span th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</span> &mdash;
+                    Precio Acordado: <strong>C$ <span th:text="${entrega.precioAcordado}">0.00</span>/kg</strong>
+                </p>
+            </div>
+            <div>
+                <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Entregas</a>
+            </div>
+        </div>
+
+        <div class="grid-split">
+            
+            <!-- FORMULARIO: REGISTRAR PESAJE DE ARETE -->
+            <div class="form-card" class="form-card catalog-card">
+                <h2 class="section-subtitle-bordered">
+                    <i class="fa-solid fa-plus-circle"></i> Agregar Res a la Entrega
+                </h2>
+
+                <form th:action="@{'/entregas/' + ${entrega.idEntrega} + '/agregar-detalle'}" method="post">
+                    
+                    <div class="form-group" class="form-group mb-lg">
+                        <label class="catalog-form-label">
+                            <i class="fa-solid fa-tag"></i> Seleccionar Arete:
+                        </label>
+                        <select name="arete" class="form-control" required
+                                class="catalog-control">
+                            <option value="" disabled selected>-- Elija un animal del inventario --</option>
+                            <option th:each="g : ${ganadoDisponible}" 
+                                    th:value="${g.arete}" 
+                                    th:text="${g.arete} + ' (' + ${g.color} + ', ' + ${g.pesoKg} + ' kg entrada)'">NI-10021</option>
+                        </select>
+                        <small class="text-muted-xs">Muestra animales actualmente con estado "En Finca"</small>
+                    </div>
+
+                    <div class="form-group" class="form-group mb-lg">
+                        <label class="catalog-form-label">
+                            <i class="fa-solid fa-weight-scale"></i> Peso en Matadero (kg canal):
+                        </label>
+                        <input type="number" step="0.01" name="pesoMataderoKg" class="form-control" required placeholder="Ej. 410.50"
+                               class="catalog-control">
+                    </div>
+
+                    <div class="form-group" class="form-group mb-lg">
+                        <label class="catalog-form-label">
+                            <i class="fa-solid fa-stethoscope"></i> Dictamen Veterinario:
+                        </label>
+                        <select name="estadoDictamen" id="selectDictamen" class="form-control" required
+                                onchange="toggleMotivoRechazo(this.value)"
+                                class="catalog-control">
+                            <option value="Apto" selected>Apto (Canal Aprobada)</option>
+                            <option value="Rechazado">Rechazado / Decomiso</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="divMotivoRechazo" class="form-group mb-lg d-none">
+                        <label class="form-input-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Motivo del Rechazo:
+                        </label>
+                        <textarea name="motivoRechazo" rows="2" class="form-control" placeholder="Ej. Hematoma severo en paleta, fiebre leve en retén..."
+                                  class="catalog-control input-alert"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" class="btn btn-primary w-full justify-center">
+                        <i class="fa-solid fa-floppy-disk"></i> Registrar Pesaje
+                    </button>
+                </form>
+            </div>
+
+            <!-- TABLA DE ANIMALES YA PESADOS -->
+            <div class="table-card" >
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-list-ol"></i> Cabezas Registradas en esta Entrega (<span th:text="${detalles.size()}">0</span>)</h2>
+                    <span class="badge badge-success" th:text="'Peso Total: ' + ${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Arete</th>
+                                <th>Color</th>
+                                <th>Paletas</th>
+                                <th>Peso Entrada</th>
+                                <th>Peso Matadero</th>
+                                <th>Dictamen</th>
+                                <th>Motivo Rechazo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(detalles)}">
+                                <td colspan="7" class="empty-table-cell">
+                                    Aún no has registrado animales en este despacho. Usa el formulario de la izquierda.
+                                </td>
+                            </tr>
+                            <tr th:each="det : ${detalles}">
+                                <td class="text-brand-bold" th:text="${det.ganado != null ? det.ganado.arete : 'S/A'}">NI-10021</td>
+                                <td th:text="${det.ganado != null ? det.ganado.color : 'N/D'}">Hosco</td>
+                                <td th:text="${det.ganado != null ? det.ganado.paletas : 'N/D'}">2</td>
+                                <td th:text="${det.ganado != null && det.ganado.pesoKg != null ? det.ganado.pesoKg + ' kg' : 'N/D'}">380 kg</td>
+                                <td class="font-semibold" th:text="${det.pesoMataderoKg} + ' kg'">375 kg</td>
+                                <td>
+                                    <span th:if="${det.estadoDictamen == 'Apto'}" class="badge badge-success">
+                                        <i class="fa-solid fa-check"></i> Apto
+                                    </span>
+                                    <span th:if="${det.estadoDictamen == 'Rechazado'}" class="badge badge-danger">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Rechazado
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${!#lists.isEmpty(det.rechazos)}" class="text-danger" 
+                                          th:text="${det.rechazos[0].motivoRechazo}">Golpes en canal</span>
+                                    <span th:if="${#lists.isEmpty(det.rechazos)}" class="text-muted">&mdash;</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script>
+        function toggleMotivoRechazo(val) {
+            const div = document.getElementById('divMotivoRechazo');
+            if (val === 'Rechazado') {
+                div.style.display = 'block';
+            } else {
+                div.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

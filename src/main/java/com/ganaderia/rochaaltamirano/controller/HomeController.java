@@ -1,10 +1,7 @@
 package com.ganaderia.rochaaltamirano.controller;
 
 import com.ganaderia.rochaaltamirano.dto.BalanceSociedadDTO;
-import com.ganaderia.rochaaltamirano.service.CompraService;
-import com.ganaderia.rochaaltamirano.service.FinanzasService;
-import com.ganaderia.rochaaltamirano.service.GanadoService;
-import com.ganaderia.rochaaltamirano.service.TransporteService;
+import com.ganaderia.rochaaltamirano.service.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,17 +14,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
     private final GanadoService ganadoService;
-    private final CompraService compraService;
-    private final TransporteService transporteService;
+    private final LoteService loteService;
+    private final ViajeService viajeService;
+    private final EntregaService entregaService;
     private final FinanzasService finanzasService;
 
     public HomeController(GanadoService ganadoService,
-                          CompraService compraService,
-                          TransporteService transporteService,
+                          LoteService loteService,
+                          ViajeService viajeService,
+                          EntregaService entregaService,
                           FinanzasService finanzasService) {
         this.ganadoService = ganadoService;
-        this.compraService = compraService;
-        this.transporteService = transporteService;
+        this.loteService = loteService;
+        this.viajeService = viajeService;
+        this.entregaService = entregaService;
         this.finanzasService = finanzasService;
     }
 
@@ -38,12 +38,13 @@ public class HomeController {
         model.addAttribute("balance", balance);
         model.addAttribute("totalGanado", ganadoService.listarInventarioCompleto().size());
         model.addAttribute("ganadoEnFinca", ganadoService.contarCabezasEnFinca());
-        model.addAttribute("ganadoEntregado", ganadoService.contarCabezasEntregadas());
-        model.addAttribute("ganadoRechazo", ganadoService.contarRechazos());
+        model.addAttribute("ganadoEntregado", entregaService.contarTotalCabezasEntregadas());
+        model.addAttribute("ganadoRechazo", entregaService.contarTotalRechazosMatadero());
         
-        model.addAttribute("ultimasCompras", compraService.listarCompras());
-        model.addAttribute("ultimosViajes", transporteService.listarTodos());
+        model.addAttribute("ultimosLotes", loteService.listarLotes());
+        model.addAttribute("ultimosViajes", viajeService.listarTodos());
         model.addAttribute("ultimasLiquidaciones", finanzasService.listarLiquidaciones());
+        model.addAttribute("ultimasEntregas", entregaService.listarTodas());
 
         return "index";
     }

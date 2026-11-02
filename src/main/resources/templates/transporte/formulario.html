@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Registrar Viaje de Transporte')}"></head>
+<head th:replace="~{fragments/layout :: head('Nuevo Viaje de Transporte')}"></head>
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -10,60 +10,95 @@
 
         <div class="header-actions">
             <div>
-                <h1 class="page-title"><i class="fa-solid fa-truck-moving"></i> Registrar Servicio de Transporte</h1>
-                <p class="page-subtitle">Control de acarreo, ruta y liquidación de fletes ganaderos</p>
+                <h1 class="page-title"><i class="fa-solid fa-truck"></i> Registrar Nuevo Viaje de Transporte</h1>
+                <p class="page-subtitle">Asignar ruta de traslado, camión jaula y chofer responsable</p>
             </div>
-            <a th:href="@{/transporte}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Transporte</a>
+            <div>
+                <a th:href="@{/transporte}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Transporte</a>
+            </div>
         </div>
 
-        <div class="form-card">
-            <form th:action="@{/transporte/guardar}" th:object="${transporte}" method="post">
-                <div class="form-grid">
+        <div class="form-card" class="form-container-card">
+            <form th:action="@{/transporte/guardar}" th:object="${viaje}" method="post">
 
+                <div class="grid-two-cols mb-lg">
                     <div class="form-group">
-                        <label for="fechaViaje">Fecha del Viaje *</label>
-                        <input type="date" id="fechaViaje" th:field="*{fechaViaje}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nombreTransportista">Nombre del Transportista / Camión *</label>
-                        <input type="text" id="nombreTransportista" th:field="*{nombreTransportista}" placeholder="Ej. Transportes Hernández (Rastra 32 pies)" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="origen">Lugar de Origen *</label>
-                        <input type="text" id="origen" th:field="*{origen}" placeholder="Ej. Finca Santa Elena (Teustepe)" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="destino">Lugar de Destino *</label>
-                        <input type="text" id="destino" th:field="*{destino}" placeholder="Ej. MACESA - Juigalpa, Chontales" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="costoViaje">Costo del Viaje / Flete ($) *</label>
-                        <input type="number" step="0.01" id="costoViaje" th:field="*{costoViaje}" placeholder="Ej. 650.00" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="estadoPago">Estado de Pago *</label>
-                        <select id="estadoPago" th:field="*{estadoPago}" required>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Pagado">Pagado</option>
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-location-dot"></i> Ubicación de Origen:
+                        </label>
+                        <select name="idOrigen" class="form-control" required
+                                class="form-input-control">
+                            <option value="" disabled selected>-- Seleccione punto de partida --</option>
+                            <option th:each="u : ${ubicaciones}" 
+                                    th:value="${u.idUbicacion}" 
+                                    th:text="${u.nombreLugar} + ' (' + ${u.tipoLugar} + ')'">Finca Santa Elena</option>
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-map-pin"></i> Ubicación de Destino:
+                        </label>
+                        <select name="idDestino" class="form-control" required
+                                class="form-input-control">
+                            <option value="" disabled selected>-- Seleccione destino final --</option>
+                            <option th:each="u : ${ubicaciones}" 
+                                    th:value="${u.idUbicacion}" 
+                                    th:text="${u.nombreLugar} + ' (' + ${u.tipoLugar} + ')'">MACESA (Juigalpa)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-actions">
+                <div class="grid-two-cols mb-lg">
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-id-card"></i> Conductor Asignado:
+                        </label>
+                        <select name="cedulaConductor" class="form-control" required
+                                class="form-input-control">
+                            <option value="" disabled selected>-- Seleccione chofer --</option>
+                            <option th:each="c : ${conductores}" 
+                                    th:value="${c.cedula}" 
+                                    th:text="${c.nombre} + ' (' + ${c.cedula} + ')'">Marvin Centeno</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-truck"></i> Camión / Placa:
+                        </label>
+                        <select name="numPlaca" class="form-control" required
+                                class="form-input-control">
+                            <option value="" disabled selected>-- Seleccione camión --</option>
+                            <option th:each="cam : ${camiones}" 
+                                    th:value="${cam.numPlaca}" 
+                                    th:text="'Placa: ' + ${cam.numPlaca}">CH-18290</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" class="mb-xl">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-clock"></i> Estado de Pago del Flete:
+                    </label>
+                    <select th:field="*{estadoPago}" class="form-control"
+                            class="form-input-control">
+                        <option value="Pendiente">Pendiente de Pago</option>
+                        <option value="Pagado">Pagado</option>
+                    </select>
+                </div>
+
+                <div class="form-footer-actions">
                     <a th:href="@{/transporte}" class="btn btn-outline">Cancelar</a>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Servicio</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Viaje
+                    </button>
                 </div>
             </form>
         </div>
-
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
 </body>
 </html>

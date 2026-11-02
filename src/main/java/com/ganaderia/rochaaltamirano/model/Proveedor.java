@@ -1,31 +1,43 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Entidad Proveedor
- * 
- * Representa a los finqueros, ganaderos y productores a quienes
- * la sociedad compra lotes de ganado.
+ * Entidad Proveedor (Tabla: proveedor)
  */
+@Entity
+@Table(name = "proveedor")
 public class Proveedor {
 
-    private Long idProveedor;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_proveedor")
+    private Integer idProveedor;
+
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
-    private String telefono;
+
+    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Telefono> telefonos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ubicacion> ubicaciones = new ArrayList<>();
 
     public Proveedor() {
     }
 
-    public Proveedor(Long idProveedor, String nombre, String telefono) {
+    public Proveedor(Integer idProveedor, String nombre) {
         this.idProveedor = idProveedor;
         this.nombre = nombre;
-        this.telefono = telefono;
     }
 
-    public Long getIdProveedor() {
+    public Integer getIdProveedor() {
         return idProveedor;
     }
 
-    public void setIdProveedor(Long idProveedor) {
+    public void setIdProveedor(Integer idProveedor) {
         this.idProveedor = idProveedor;
     }
 
@@ -37,11 +49,19 @@ public class Proveedor {
         this.nombre = nombre;
     }
 
-    public String getTelefono() {
-        return telefono;
+    public List<Telefono> getTelefonos() {
+        return telefonos;
     }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
+    public void setTelefonos(List<Telefono> telefonos) {
+        this.telefonos = telefonos;
+    }
+
+    public List<Ubicacion> getUbicaciones() {
+        return ubicaciones;
+    }
+
+    public void setUbicaciones(List<Ubicacion> ubicaciones) {
+        this.ubicaciones = ubicaciones;
     }
 }

@@ -1,39 +1,46 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Entidad Arqueos Mensuales
- * 
- * Modela el cierre contable periódico para evaluar ingresos brutos,
- * gastos operativos y monto neto a distribuir entre los socios Wilber Rocha y Yader Altamirano (50% - 50%).
+ * Entidad ArqueoMensual (Tabla: arqueos_mensuales)
+ * Registra el cierre contable mensual con liquidaciones y gastos asociados.
  */
+@Entity
+@Table(name = "arqueos_mensuales")
 public class ArqueoMensual {
 
-    private Long idArqueo;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_arqueo")
+    private Integer idArqueo;
+
+    @Column(name = "fecha")
     private LocalDate fecha;
-    private BigDecimal montoBruto;
-    private BigDecimal montoNeto;
-    private BigDecimal gastosVarios;
+
+    @OneToMany(mappedBy = "arqueo")
+    private List<Liquidacion> liquidaciones = new ArrayList<>();
+
+    @OneToMany(mappedBy = "arqueo")
+    private List<Gasto> gastos = new ArrayList<>();
 
     public ArqueoMensual() {
     }
 
-    public ArqueoMensual(Long idArqueo, LocalDate fecha, BigDecimal montoBruto, BigDecimal montoNeto, BigDecimal gastosVarios) {
+    public ArqueoMensual(Integer idArqueo, LocalDate fecha) {
         this.idArqueo = idArqueo;
         this.fecha = fecha;
-        this.montoBruto = montoBruto;
-        this.montoNeto = montoNeto;
-        this.gastosVarios = gastosVarios;
     }
 
-    public Long getIdArqueo() {
+    public Integer getIdArqueo() {
         return idArqueo;
     }
 
-    public void setIdArqueo(Long idArqueo) {
+    public void setIdArqueo(Integer idArqueo) {
         this.idArqueo = idArqueo;
     }
 
@@ -45,47 +52,49 @@ public class ArqueoMensual {
         this.fecha = fecha;
     }
 
+    public List<Liquidacion> getLiquidaciones() {
+        return liquidaciones;
+    }
+
+    public void setLiquidaciones(List<Liquidacion> liquidaciones) {
+        this.liquidaciones = liquidaciones;
+    }
+
+    public List<Gasto> getGastos() {
+        return gastos;
+    }
+
+    public void setGastos(List<Gasto> gastos) {
+        this.gastos = gastos;
+    }
+
+    // Cálculos contables dinámicos
     public BigDecimal getMontoBruto() {
-        return montoBruto;
-    }
-
-    public void setMontoBruto(BigDecimal montoBruto) {
-        this.montoBruto = montoBruto;
-    }
-
-    public BigDecimal getMontoNeto() {
-        return montoNeto;
-    }
-
-    public void setMontoNeto(BigDecimal montoNeto) {
-        this.montoNeto = montoNeto;
+        if (liquidaciones == null || liquidaciones.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return liquidaciones.stream()
+                .map(Liquidacion::getMonto)
+                .filter(m -> m != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public BigDecimal getGastosVarios() {
-        return gastosVarios;
-    }
-
-    public void setGastosVarios(BigDecimal gastosVarios) {
-        this.gastosVarios = gastosVarios;
-    }
-
-    /**
-     * Cuota de ganancia correspondiente a Wilber Rocha (50%)
-     */
-    public BigDecimal getParticipacionWilber() {
-        if (montoNeto != null) {
-            return montoNeto.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
+        if (gastos == null || gastos.isEmpty()) {
+            return BigDecimal.ZERO;
         }
-        return BigDecimal.ZERO;
+        return gastos.stream()
+                .map(Gasto::getMonto)
+                .filter(m -> m != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * Cuota de ganancia correspondiente a Yader Altamirano (50%)
-     */
-    public BigDecimal getParticipacionYader() {
-        if (montoNeto != null) {
-            return montoNeto.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
-        }
-        return BigDecimal.ZERO;
+    public BigDecimal getMontoNeto() {
+        return getMontoBruto().subtract(getGastosVarios());
     }
+
+    // Métodos para compatibilidad previa
+    public void setMontoBruto(BigDecimal montoBruto) {}
+    public void setMontoNeto(BigDecimal montoNeto) {}
+    public void setGastosVarios(BigDecimal gastosVarios) {}
 }

@@ -86,6 +86,14 @@ public class BalanceSociedadDTO {
         this.totalGastosVarios = totalGastosVarios;
     }
 
+    public void setTotalGastos(BigDecimal totalGastos) {
+        this.totalGastosVarios = totalGastos;
+    }
+
+    public BigDecimal getTotalGastos() {
+        return totalGastosVarios;
+    }
+
     public BigDecimal getTotalEgresos() {
         return totalEgresos;
     }
@@ -132,6 +140,10 @@ public class BalanceSociedadDTO {
 
     public void setCabezasEnFinca(int cabezasEnFinca) {
         this.cabezasEnFinca = cabezasEnFinca;
+    }
+
+    public void setTotalCabezasEnFinca(long cabezas) {
+        this.cabezasEnFinca = (int) cabezas;
     }
 
     public int getCabezasEntregadas() {
