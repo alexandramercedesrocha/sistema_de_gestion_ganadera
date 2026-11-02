@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registrar Ganado')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-plus-circle"></i> Registro de Cabeza de Ganado</h1>
+                <p class="page-subtitle">Ingreso de arete y características biométricas al inventario de la finca</p>
+            </div>
+            <a th:href="@{/ganado}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al inventario</a>
+        </div>
+
+        <div class="form-card">
+            <form th:action="@{/ganado/guardar}" th:object="${ganado}" method="post">
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label for="arete">Número / Código de Arete (PK) *</label>
+                        <input type="text" id="arete" th:field="*{arete}" placeholder="Ej. NI-10035" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paletas">Paletas (Edad por dentición) *</label>
+                        <select id="paletas" th:field="*{paletas}" required>
+                            <option value="">Seleccione paletas...</option>
+                            <option value="0">0 Paletas (Dientes de leche - Ternero)</option>
+                            <option value="2">2 Paletas (~18-24 meses)</option>
+                            <option value="4">4 Paletas (~2.5 - 3 años)</option>
+                            <option value="6">6 Paletas (~3.5 años)</option>
+                            <option value="8">8 Paletas (Boca llena / Adulto)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="color">Color / Pelaje *</label>
+                        <select id="color" th:field="*{color}" required>
+                            <option value="">Seleccione color...</option>
+                            <option value="Hosco">Hosco</option>
+                            <option value="Bermejo">Bermejo</option>
+                            <option value="Bramil">Bramil</option>
+                            <option value="Negro">Negro</option>
+                            <option value="Pintado">Pintado</option>
+                            <option value="Blanco">Blanco</option>
+                            <option value="Gris">Gris</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pesoEntradaKg">Peso de Entrada en Báscula (kg) *</label>
+                        <input type="number" step="0.01" id="pesoEntradaKg" th:field="*{pesoEntradaKg}" placeholder="Ej. 420.50" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="estado">Estado Físico / Ubicación *</label>
+                        <select id="estado" th:field="*{estado}" required>
+                            <option value="En Finca">En Finca (Potrero / Engorde)</option>
+                            <option value="Entregado a Matadero">Entregado a Matadero</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoria">Categoría Comercial *</label>
+                        <select id="categoria" th:field="*{categoria}" required>
+                            <option value="Apto">Apto (Para matadero / exportación)</option>
+                            <option value="Rechazo">Rechazo (Condición sanitaria o golpe)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/ganado}" class="btn btn-outline">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar en Inventario</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Compras de Ganado')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Registro de Compras de Ganado</h1>
+                <p class="page-subtitle">Adquisición de lotes bovinos a proveedores, control de pesaje, precios por kilo y totales</p>
+            </div>
+            <a th:href="@{/compras/nueva}" class="btn btn-primary"><i class="fa-solid fa-cart-plus"></i> Registrar Nueva Compra</a>
+        </div>
+
+        <!-- TARJETAS DE RESUMEN DE COMPRA -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Invertido en Compras</span>
+                    <i class="fa-solid fa-money-bill-wave kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(totalInvertido, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <div class="kpi-subtext">Costo de adquisición de ganado en pie</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Cabezas Compradas</span>
+                    <i class="fa-solid fa-cow kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${totalCabezasCompradas} + ' Cabezas'">0</div>
+                <div class="kpi-subtext">Acumulado de compras en el período</div>
+            </div>
+        </div>
+
+        <!-- TABLA DE COMPRAS -->
+        <div class="table-card">
+            <div class="card-header">
+                <strong style="color: #1b4332;">Historial Detallado de Compras</strong>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Proveedor</th>
+                            <th>Cabezas</th>
+                            <th>Total Kilos</th>
+                            <th>Precio / kg</th>
+                            <th>Precio Estándar</th>
+                            <th>Monto Total</th>
+                            <th>Procedencia / Dirección</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${compras}">
+                            <td><strong style="color: #6b7280;" th:text="'#' + ${c.idCompra}">#101</strong></td>
+                            <td th:text="${c.fechaCompra}">2026-10-05</td>
+                            <td><strong th:text="${c.proveedor}">Proveedor</strong></td>
+                            <td><span class="badge badge-finca" th:text="${c.totalCabezas} + ' cab'">18</span></td>
+                            <td th:text="${#numbers.formatDecimal(c.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">6,930.0 kg</td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(c.precioKg, 1, 'COMMA', 2, 'POINT')}">$2.10</td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(c.precioEstandar, 1, 'COMMA', 2, 'POINT')}">$2.05</td>
+                            <td style="font-weight: 700; color: #15803d;" th:text="'$' + ${#numbers.formatDecimal(c.montoTotal, 1, 'COMMA', 2, 'POINT')}">$14,553.00</td>
+                            <td style="font-size: 0.85rem; color: #4b5563;" th:text="${c.direccion}">Comarca San Jerónimo</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(compras)}">
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                No hay compras de ganado registradas en el sistema.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

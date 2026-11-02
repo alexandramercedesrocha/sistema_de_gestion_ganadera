@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Panel de Control')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- ENCABEZADO PRINCIPAL -->
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-gauge-high"></i> Panel Ejecutivo Ganadero</h1>
+                <p class="page-subtitle">Sociedad Wilber Rocha & Yader Altamirano &mdash; Control Operativo y Financiero 50-50</p>
+            </div>
+            <div style="display: flex; gap: 0.6rem;">
+                <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
+                <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nueva Compra</a>
+            </div>
+        </div>
+
+        <!-- TARJETAS SOCIEDAD 50-50 (DISTRIBUCIÓN DE UTILIDADES) -->
+        <div class="partner-grid">
+            <div class="partner-card">
+                <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Wilber Rocha</span>
+                <span class="partner-share">Socio Accionista (50%)</span>
+                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <p style="font-size: 0.8rem; color: #6b7280; margin-top: 0.4rem;">Cuota de ganancia neta acumulada en período activo</p>
+            </div>
+
+            <div class="partner-card">
+                <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Yader Altamirano</span>
+                <span class="partner-share">Socio Accionista (50%)</span>
+                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <p style="font-size: 0.8rem; color: #6b7280; margin-top: 0.4rem;">Cuota de ganancia neta acumulada en período activo</p>
+            </div>
+        </div>
+
+        <!-- MÉTRICAS CLAVE (KPIs) -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Ganado en Finca</span>
+                    <i class="fa-solid fa-cow kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${ganadoEnFinca} + ' Cabezas'">0</div>
+                <div class="kpi-subtext" th:text="'Peso est.: ' + ${#numbers.formatDecimal(balance.totalKilosEnFinca, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Entregado a Matadero</span>
+                    <i class="fa-solid fa-industry kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="${ganadoEntregado} + ' Cabezas'">0</div>
+                <div class="kpi-subtext">MACESA / SAN MARTIN</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Ganado de Rechazo</span>
+                    <i class="fa-solid fa-triangle-exclamation kpi-icon" style="color: #d32f2f; background: #fee2e2;"></i>
+                </div>
+                <div class="kpi-value" th:text="${ganadoRechazo} + ' Cabezas'" style="color: #b91c1c;">0</div>
+                <div class="kpi-subtext">Seguimiento por dictamen</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Utilidad Neta Total</span>
+                    <i class="fa-solid fa-sack-dollar kpi-icon" style="color: #2e7d32; background: #dcfce7;"></i>
+                </div>
+                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}" style="color: #15803d;">$0.00</div>
+                <div class="kpi-subtext">Ingresos menos Egresos totales</div>
+            </div>
+        </div>
+
+        <!-- RESÚMENES OPERATIVOS -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 1.5rem;">
+            
+            <!-- Compras Recientes -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-cart-shopping"></i> Compras Recientes de Ganado</h2>
+                    <a th:href="@{/compras}" class="btn btn-outline btn-sm">Ver todas</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Proveedor</th>
+                                <th>Cabezas</th>
+                                <th>Total Kilos</th>
+                                <th>Inversión</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="compra : ${ultimasCompras}">
+                                <td th:text="${compra.fechaCompra}">2026-10-01</td>
+                                <td th:text="${compra.proveedor}">Proveedor</td>
+                                <td><span class="badge badge-finca" th:text="${compra.totalCabezas}">0</span></td>
+                                <td th:text="${#numbers.formatDecimal(compra.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
+                                <td style="font-weight: 700;" th:text="'$' + ${#numbers.formatDecimal(compra.montoTotal, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Servicios de Transporte / Fletes -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-truck"></i> Fletes y Traslados Recientes</h2>
+                    <a th:href="@{/transporte}" class="btn btn-outline btn-sm">Ver todos</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Transportista</th>
+                                <th>Destino</th>
+                                <th>Costo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="viaje : ${ultimosViajes}">
+                                <td th:text="${viaje.fechaViaje}">2026-10-01</td>
+                                <td th:text="${viaje.nombreTransportista}">Transportista</td>
+                                <td th:text="${viaje.destino}">Destino</td>
+                                <td th:text="'$' + ${#numbers.formatDecimal(viaje.costoViaje, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                                <td>
+                                    <span th:class="'badge ' + (${viaje.estadoPago == 'Pagado'} ? 'badge-pagado' : 'badge-pendiente')"
+                                          th:text="${viaje.estadoPago}">Pendiente</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Liquidaciones de Mataderos -->
+        <div class="table-card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 style="font-size: 1.05rem; color: #1b4332;"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones Recientes Emitidas por Matadero</h2>
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline btn-sm">Ver módulo liquidaciones</a>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Comprobante</th>
+                            <th>Empresa Matadero</th>
+                            <th>Fecha Liquidación</th>
+                            <th>Monto Liquidado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="liq : ${ultimasLiquidaciones}">
+                            <td style="font-weight: 600;" th:text="${liq.idNumComprobante}">LIQ-001</td>
+                            <td th:text="${liq.empresa}">MACESA</td>
+                            <td th:text="${liq.fechaLiquidacion}">2026-10-10</td>
+                            <td style="font-weight: 700; color: #15803d;" th:text="'$' + ${#numbers.formatDecimal(liq.monto, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

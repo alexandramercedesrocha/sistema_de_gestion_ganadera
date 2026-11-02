@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Arqueos Mensuales')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-calendar-check"></i> Arqueos y Cierres Mensuales</h1>
+                <p class="page-subtitle">Consolidación de fin de mes y partición formal de utilidades 50-50</p>
+            </div>
+            <a th:href="@{/finanzas/balance}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Balance</a>
+        </div>
+
+        <!-- FORMULARIO DE NUEVO ARQUEO -->
+        <div class="form-card" style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.1rem; color: #1b4332; margin-bottom: 1.2rem;"><i class="fa-solid fa-plus-circle"></i> Asentar Nuevo Cierre Mensual</h2>
+            <form th:action="@{/finanzas/arqueos/guardar}" th:object="${nuevoArqueo}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fecha">Fecha de Cierre *</label>
+                        <input type="date" id="fecha" th:field="*{fecha}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="montoBruto">Monto Bruto Total ($) *</label>
+                        <input type="number" step="0.01" id="montoBruto" th:field="*{montoBruto}" placeholder="Ej. 52000.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gastosVarios">Gastos Varios Deducibles ($) *</label>
+                        <input type="number" step="0.01" id="gastosVarios" th:field="*{gastosVarios}" placeholder="Ej. 41000.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="montoNeto">Monto Neto a Distribuir ($) *</label>
+                        <input type="number" step="0.01" id="montoNeto" th:field="*{montoNeto}" placeholder="Ej. 11000.00" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Cierre de Arqueo</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE ARQUEOS -->
+        <div class="table-card">
+            <div class="card-header">
+                <strong style="color: #1b4332;">Histórico de Arqueos Mensuales Realizados</strong>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha Cierre</th>
+                            <th>Monto Bruto</th>
+                            <th>Gastos Varios</th>
+                            <th>Monto Neto</th>
+                            <th>50% Wilber Rocha</th>
+                            <th>50% Yader Altamirano</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="a : ${arqueos}">
+                            <td><strong style="color: #6b7280;" th:text="'#ARQ-' + ${a.idArqueo}">#ARQ-1</strong></td>
+                            <td th:text="${a.fecha}">2026-08-31</td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(a.montoBruto, 1, 'COMMA', 2, 'POINT')}">$48,500.00</td>
+                            <td style="color: #b91c1c;" th:text="'$' + ${#numbers.formatDecimal(a.gastosVarios, 1, 'COMMA', 2, 'POINT')}">$38,700.00</td>
+                            <td><strong style="color: #15803d; font-size: 0.95rem;" th:text="'$' + ${#numbers.formatDecimal(a.montoNeto, 1, 'COMMA', 2, 'POINT')}">$9,800.00</strong></td>
+                            <td style="font-weight: 700; color: #1b4332;" th:text="'$' + ${#numbers.formatDecimal(a.participacionWilber, 1, 'COMMA', 2, 'POINT')}">$4,900.00</td>
+                            <td style="font-weight: 700; color: #1b4332;" th:text="'$' + ${#numbers.formatDecimal(a.participacionYader, 1, 'COMMA', 2, 'POINT')}">$4,900.00</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(arqueos)}">
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                No hay arqueos mensuales registrados.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

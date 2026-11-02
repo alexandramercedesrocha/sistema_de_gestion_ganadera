@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Control de Transporte')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-truck"></i> Servicios de Transporte (Viajes y Fletes)</h1>
+                <p class="page-subtitle">Logística de movilización ganadera desde fincas de acopio hacia mataderos industriales</p>
+            </div>
+            <a th:href="@{/transporte/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Nuevo Viaje</a>
+        </div>
+
+        <!-- TARJETAS DE COSTOS DE TRANSPORTE -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Costo Total Fletes</span>
+                    <i class="fa-solid fa-receipt kpi-icon"></i>
+                </div>
+                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(totalCostos, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <div class="kpi-subtext">Total facturado por transportistas</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Fletes Pendientes de Pago</span>
+                    <i class="fa-solid fa-clock-rotate-left kpi-icon" style="color: #b45309; background: #fef3c7;"></i>
+                </div>
+                <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(totalPendiente, 1, 'COMMA', 2, 'POINT')}" style="color: #b45309;">$0.00</div>
+                <div class="kpi-subtext">Compromisos financieros por saldar</div>
+            </div>
+        </div>
+
+        <!-- TABLA DE VIAJES -->
+        <div class="table-card">
+            <div class="card-header">
+                <strong style="color: #1b4332;">Registro de Traslados de Ganado</strong>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha Viaje</th>
+                            <th>Nombre Transportista</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Costo del Flete</th>
+                            <th>Estado de Pago</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="v : ${viajes}">
+                            <td><strong style="color: #6b7280;" th:text="'#TR-' + ${v.idTransporte}">#TR-301</strong></td>
+                            <td th:text="${v.fechaViaje}">2026-10-05</td>
+                            <td><strong th:text="${v.nombreTransportista}">Don Marvin Centeno</strong></td>
+                            <td th:text="${v.origen}">Teustepe, Boaco</td>
+                            <td th:text="${v.destino}">Finca Santa Elena</td>
+                            <td style="font-weight: 700;" th:text="'$' + ${#numbers.formatDecimal(v.costoViaje, 1, 'COMMA', 2, 'POINT')}">$450.00</td>
+                            <td>
+                                <span th:class="'badge ' + (${v.estadoPago == 'Pagado'} ? 'badge-pagado' : 'badge-pendiente')"
+                                      th:text="${v.estadoPago}">Pagado</span>
+                            </td>
+                            <td>
+                                <div th:if="${v.estadoPago == 'Pendiente'}">
+                                    <form th:action="@{/transporte/{id}/pagar(id=${v.idTransporte})}" method="post">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fa-solid fa-check"></i> Marcar Pagado
+                                        </button>
+                                    </form>
+                                </div>
+                                <div th:if="${v.estadoPago == 'Pagado'}">
+                                    <span style="color: #15803d; font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Al día</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(viajes)}">
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                No hay viajes de transporte registrados en el sistema.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

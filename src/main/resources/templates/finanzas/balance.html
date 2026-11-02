@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Balance Financiero Sociedad 50-50')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-scale-balanced"></i> Balance Financiero General (Sociedad 50 - 50)</h1>
+                <p class="page-subtitle">Estado de resultados consolidado y liquidación equitativa para Wilber Rocha y Yader Altamirano</p>
+            </div>
+            <div style="display: flex; gap: 0.6rem;">
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-primary"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones</a>
+                <a th:href="@{/finanzas/gastos}" class="btn btn-outline"><i class="fa-solid fa-receipt"></i> Gastos de Finca</a>
+                <a th:href="@{/finanzas/arqueos}" class="btn btn-outline"><i class="fa-solid fa-calendar-check"></i> Arqueos Mensuales</a>
+            </div>
+        </div>
+
+        <!-- REPARTO ENTRE SOCIOS 50-50 -->
+        <div class="partner-grid">
+            <div class="partner-card">
+                <span class="partner-name"><i class="fa-solid fa-user-check"></i> Wilber Rocha</span>
+                <span class="partner-share">Participación Social: 50.0%</span>
+                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <p style="font-size: 0.85rem; color: #4b5563; margin-top: 0.4rem;">
+                    <strong>Fórmula de Liquidación:</strong> 50% de la Utilidad Neta Consolidada.
+                </p>
+            </div>
+
+            <div class="partner-card">
+                <span class="partner-name"><i class="fa-solid fa-user-check"></i> Yader Altamirano</span>
+                <span class="partner-share">Participación Social: 50.0%</span>
+                <div class="partner-amount" th:text="'$' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <p style="font-size: 0.85rem; color: #4b5563; margin-top: 0.4rem;">
+                    <strong>Fórmula de Liquidación:</strong> 50% de la Utilidad Neta Consolidada.
+                </p>
+            </div>
+        </div>
+
+        <!-- DESGLOSE FINANCIERO -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+            <!-- INGRESOS -->
+            <div class="table-card">
+                <div class="card-header" style="background: #ecfdf5;">
+                    <h2 style="font-size: 1.1rem; color: #065f46;"><i class="fa-solid fa-arrow-trend-up"></i> Ingresos Operativos</h2>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <span>Liquidaciones Mataderos (San Martín / MACESA)</span>
+                        <strong style="color: #047857;" th:text="'$' + ${#numbers.formatDecimal(balance.totalLiquidaciones, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 1rem 0 0.5rem; font-size: 1.1rem; font-weight: 700;">
+                        <span>TOTAL INGRESOS BRUTOS:</span>
+                        <span style="color: #047857;" th:text="'$' + ${#numbers.formatDecimal(balance.totalLiquidaciones, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EGRESOS -->
+            <div class="table-card">
+                <div class="card-header" style="background: #fff1f2;">
+                    <h2 style="font-size: 1.1rem; color: #9f1239;"><i class="fa-solid fa-arrow-trend-down"></i> Costos y Gastos Totales</h2>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <span>Compras de Ganado en Pie</span>
+                        <strong th:text="'$' + ${#numbers.formatDecimal(balance.totalCompras, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <span>Fletes y Logística de Transporte</span>
+                        <strong th:text="'$' + ${#numbers.formatDecimal(balance.totalTransporte, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                        <span>Gastos Operativos (Sal, Vacunas, Peones)</span>
+                        <strong th:text="'$' + ${#numbers.formatDecimal(balance.totalGastosVarios, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 1rem 0 0.5rem; font-size: 1.1rem; font-weight: 700; color: #be123c;">
+                        <span>TOTAL EGRESOS:</span>
+                        <span th:text="'$' + ${#numbers.formatDecimal(balance.totalEgresos, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RESUMEN DE RENTABILIDAD NETA -->
+        <div class="table-card" style="border: 2px solid #2d6a4f;">
+            <div style="padding: 1.8rem; background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.35rem; font-weight: 700;">UTILIDAD NETA TOTAL A DISTRIBUIR (50% / 50%)</h2>
+                    <p style="opacity: 0.85; font-size: 0.88rem; margin-top: 0.3rem;">Base de reparto equitativo para los socios de la ganadería</p>
+                </div>
+                <div style="font-size: 2.4rem; font-weight: 800; color: #d4a373;" th:text="'$' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}">
+                    $0.00
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

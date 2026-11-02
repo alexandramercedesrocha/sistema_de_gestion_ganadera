@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ganado de Rechazo')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation" style="color: #b91c1c;"></i> Control de Ganado de Rechazo</h1>
+                <p class="page-subtitle">Entidad especializada (Hereda de Ganado): Motivos de dictamen, fecha de rechazo y pesaje en matadero</p>
+            </div>
+            <div style="display: flex; gap: 0.6rem;">
+                <a th:href="@{/ganado}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Inventario Completo</a>
+                <a th:href="@{/ganado/nuevo-rechazo}" class="btn btn-danger"><i class="fa-solid fa-plus"></i> Registrar Rechazo</a>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="card-header">
+                <div>
+                    <strong style="color: #991b1b;">Expedientes de Rechazo Técnico / Sanitario</strong>
+                </div>
+                <div style="font-size: 0.88rem; color: #4b5563;">
+                    Total Cabezas Rechazadas: <strong th:text="${totalRechazos}">0</strong>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Arete</th>
+                            <th>Color</th>
+                            <th>Paletas</th>
+                            <th>Fecha Dictamen</th>
+                            <th>Motivo del Rechazo</th>
+                            <th>Peso Entrada</th>
+                            <th>Peso Matadero</th>
+                            <th>Merma (kg)</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rechazos}">
+                            <td>
+                                <strong style="color: #991b1b; font-family: monospace; font-size: 1rem;" th:text="${r.arete}">NI-10008</strong>
+                            </td>
+                            <td th:text="${r.color}">Bermejo</td>
+                            <td th:text="${r.paletas} + ' Paletas'">4 Paletas</td>
+                            <td th:text="${r.fechaRechazo}">2026-10-15</td>
+                            <td style="color: #b91c1c; font-weight: 500;" th:text="${r.motivoRechazo}">Hematoma severo</td>
+                            <td th:text="${#numbers.formatDecimal(r.pesoEntradaKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">430.00 kg</td>
+                            <td>
+                                <strong th:text="${#numbers.formatDecimal(r.pesoMatadero, 1, 'COMMA', 2, 'POINT')} + ' kg'">410.50 kg</strong>
+                            </td>
+                            <td>
+                                <span class="badge badge-pendiente" th:text="${#numbers.formatDecimal(r.mermaKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">-19.50 kg</span>
+                            </td>
+                            <td>
+                                <span th:class="'badge ' + (${r.estado == 'En Finca'} ? 'badge-finca' : 'badge-matadero')"
+                                      th:text="${r.estado}">En Finca</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rechazos)}">
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                No hay animales registrados como rechazo actualmente.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

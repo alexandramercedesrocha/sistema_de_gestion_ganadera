@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registrar Rechazo de Ganado')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation" style="color: #b91c1c;"></i> Registro de Ganado de Rechazo</h1>
+                <p class="page-subtitle">Ingreso formal de dictamen de devolución, peso oficial en matadero y causal</p>
+            </div>
+            <a th:href="@{/ganado/rechazos}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Rechazos</a>
+        </div>
+
+        <div class="form-card">
+            <form th:action="@{/ganado/guardar-rechazo}" th:object="${ganadoRechazo}" method="post">
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label for="arete">Número / Arete del Bovino *</label>
+                        <input type="text" id="arete" th:field="*{arete}" placeholder="Ej. NI-10040" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paletas">Paletas (Edad por dentición) *</label>
+                        <select id="paletas" th:field="*{paletas}" required>
+                            <option value="">Seleccione...</option>
+                            <option value="0">0 Paletas</option>
+                            <option value="2">2 Paletas</option>
+                            <option value="4">4 Paletas</option>
+                            <option value="6">6 Paletas</option>
+                            <option value="8">8 Paletas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="color">Color / Pelaje *</label>
+                        <select id="color" th:field="*{color}" required>
+                            <option value="Hosco">Hosco</option>
+                            <option value="Bermejo">Bermejo</option>
+                            <option value="Bramil">Bramil</option>
+                            <option value="Negro">Negro</option>
+                            <option value="Pintado">Pintado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pesoEntradaKg">Peso Entrada en Finca (kg) *</label>
+                        <input type="number" step="0.01" id="pesoEntradaKg" th:field="*{pesoEntradaKg}" placeholder="Ej. 420.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pesoMatadero">Peso Báscula Matadero (kg) *</label>
+                        <input type="number" step="0.01" id="pesoMatadero" th:field="*{pesoMatadero}" placeholder="Ej. 405.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fechaRechazo">Fecha del Rechazo *</label>
+                        <input type="date" id="fechaRechazo" th:field="*{fechaRechazo}" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="motivoRechazo">Motivo / Causa del Rechazo Técnico *</label>
+                        <textarea id="motivoRechazo" th:field="*{motivoRechazo}" rows="3" placeholder="Ej. Hematoma en cuarto trasero por transporte, condición febril en corral de espera, etc." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="estado">Estado / Destino del Animal *</label>
+                        <select id="estado" th:field="*{estado}" required>
+                            <option value="En Finca">Retornado a Finca (Tratamiento / Recuperación)</option>
+                            <option value="Entregado a Matadero">Entregado / Decomisado en Matadero</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/ganado/rechazos}" class="btn btn-outline">Cancelar</a>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-floppy-disk"></i> Guardar Dictamen de Rechazo</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

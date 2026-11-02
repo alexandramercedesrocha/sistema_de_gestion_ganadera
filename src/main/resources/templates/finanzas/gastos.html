@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gastos Operativos de Finca')}"></head>
+<body>
+
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-receipt"></i> Gastos Operativos y de Manejo</h1>
+                <p class="page-subtitle">Desembolsos en sal mineral, vacunas, medicamentos, peones, mantenimiento y permisos</p>
+            </div>
+            <a th:href="@{/finanzas/balance}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Balance</a>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Gastos Operativos</span>
+                    <i class="fa-solid fa-money-bill-transfer kpi-icon" style="color: #b91c1c; background: #fee2e2;"></i>
+                </div>
+                <div class="kpi-value" style="color: #b91c1c;" th:text="'$' + ${#numbers.formatDecimal(totalGastos, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <div class="kpi-subtext">Costos deducibles de la utilidad neta</div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE GASTO -->
+        <div class="form-card" style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.1rem; color: #1b4332; margin-bottom: 1.2rem;"><i class="fa-solid fa-plus-circle"></i> Registrar Nuevo Gasto</h2>
+            <form th:action="@{/finanzas/gastos/guardar}" th:object="${nuevoGasto}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombreGasto">Nombre / Concepto del Gasto *</label>
+                        <input type="text" id="nombreGasto" th:field="*{nombreGasto}" placeholder="Ej. Vacunación y Vitaminas Bovinas" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fechaGasto">Fecha del Gasto *</label>
+                        <input type="date" id="fechaGasto" th:field="*{fechaGasto}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monto">Monto Desembolsado ($) *</label>
+                        <input type="number" step="0.01" id="monto" th:field="*{monto}" placeholder="Ej. 350.00" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="descripcion">Descripción Detallada / Observaciones *</label>
+                        <input type="text" id="descripcion" th:field="*{descripcion}" placeholder="Ej. 20 dosis de Ivermectina 3.15% y 15 frascos de Catosal" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Gasto</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE GASTOS -->
+        <div class="table-card">
+            <div class="card-header">
+                <strong style="color: #1b4332;">Historial de Gastos Operativos</strong>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="g : ${gastos}">
+                            <td><strong style="color: #6b7280;" th:text="'#G-' + ${g.idGasto}">#G-1</strong></td>
+                            <td th:text="${g.fechaGasto}">2026-10-04</td>
+                            <td><strong th:text="${g.nombreGasto}">Vacunación</strong></td>
+                            <td style="color: #4b5563; font-size: 0.88rem;" th:text="${g.descripcion}">Detalle</td>
+                            <td style="font-weight: 700; color: #b91c1c;" th:text="'$' + ${#numbers.formatDecimal(g.monto, 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(gastos)}">
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280;">
+                                No hay gastos operativos registrados en el sistema.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

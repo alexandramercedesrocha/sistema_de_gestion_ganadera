@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | Ganadería Rocha & Altamirano'">Ganadería Rocha & Altamirano</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- NAVBAR COMÚN -->
+    <nav class="navbar" th:fragment="navbar">
+        <a th:href="@{/}" class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-cow"></i>
+            </div>
+            <div class="brand-text">
+                <h1>ROCHA & ALTAMIRANO</h1>
+                <span>Gestión y Comercialización Bovina</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li>
+                <a th:href="@{/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            </li>
+            <li>
+                <a th:href="@{/ganado}"><i class="fa-solid fa-tags"></i> Inventario Ganado</a>
+            </li>
+            <li>
+                <a th:href="@{/ganado/rechazos}"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos</a>
+            </li>
+            <li>
+                <a th:href="@{/compras}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
+            </li>
+            <li>
+                <a th:href="@{/transporte}"><i class="fa-solid fa-truck"></i> Transporte</a>
+            </li>
+            <li>
+                <a th:href="@{/finanzas/balance}"><i class="fa-solid fa-scale-balanced"></i> Balance 50-50</a>
+            </li>
+            <li>
+                <a th:href="@{/finanzas/liquidaciones}"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones</a>
+            </li>
+            <li>
+                <a th:href="@{/finanzas/gastos}"><i class="fa-solid fa-receipt"></i> Gastos</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- NOTIFICACIONES FLASH -->
+    <div th:fragment="alerts">
+        <div th:if="${mensajeExito}" class="alert alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            <span th:text="${mensajeExito}">Operación realizada con éxito</span>
+        </div>
+        <div th:if="${mensajeError}" class="alert alert-danger">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span th:text="${mensajeError}">Ocurrió un error</span>
+        </div>
+    </div>
+
+    <!-- FOOTER COMÚN -->
+    <footer class="footer" th:fragment="footer">
+        <p><strong>Sociedad Comercial Ganadera Wilber Rocha & Yader Altamirano</strong> &copy; 2026. Todos los derechos reservados.</p>
+        <p style="margin-top: 4px; color: #9ca3af; font-size: 0.78rem;">Sistema de Información Ganadero desarrollado con Spring Boot 3 & Thymeleaf</p>
+    </footer>
+
+</body>
+</html>
