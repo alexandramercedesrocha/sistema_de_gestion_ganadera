@@ -1,12 +1,20 @@
 # ==============================================================================
-# CONFIGURACIÓN LOCAL DE BASE DE DATOS (OPCIONAL)
-# Si tu MySQL local usa una contraseña o puerto distinto a XAMPP por defecto:
-# 1. Copia este archivo como 'application-local.properties' (está en .gitignore)
-# 2. O define variables de entorno en tu sistema: DB_PASSWORD, DB_PORT, etc.
+# CONFIGURACIÓN LOCAL PRIVADA DE BASE DE DATOS (NO SE SUBE A GITHUB)
+# ==============================================================================
+# Si tu MySQL local tiene contraseña o usa un puerto distinto:
+# 1. Haz una copia de este archivo en esta misma carpeta principal del proyecto.
+# 2. Renombra la copia exactamente como: application-local.properties
+# 3. Descomenta la línea de la contraseña y escribe tu clave real de MySQL.
+# 4. Listo. Spring Boot usará tus credenciales locales sin afectar a tus compañeros.
 # ==============================================================================
 
-# spring.datasource.url=jdbc:mysql://localhost:3307/sgg?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-# spring.datasource.username=root
+# Si tu usuario root tiene contraseña, descomenta y escribe tu clave:
 # spring.datasource.password=tu_contrasena_aqui
-# server.port=8080
+
+# Si tu usuario no es root (por ejemplo, si creaste otro usuario):
+# spring.datasource.username=root
+
+# Si tu puerto MySQL es distinto a 3306 (por ejemplo 3307 o 3308):
+# spring.datasource.url=jdbc:mysql://localhost:3307/sgg?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+
 

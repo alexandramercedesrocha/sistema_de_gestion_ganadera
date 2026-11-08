@@ -20,18 +20,29 @@ if not exist "%MYSQL_BIN%" (
     )
 )
 
+set MYSQL_AUTH=-u root
+
 echo [1/3] Verificando conexion a MySQL (localhost:3306)...
-"%MYSQL_BIN%" -u root -e "SELECT 1;" >nul 2>nul
+"%MYSQL_BIN%" %MYSQL_AUTH% -e "SELECT 1;" >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [ERROR] No se pudo conectar con el servidor MySQL.
-    echo Por favor, abra el panel de control de XAMPP y presione 'Start' en MySQL.
-    echo.
-    pause
-    exit /b 1
+    echo [AVISO] No se pudo conectar a MySQL sin contrasena.
+    echo Si su usuario root tiene contrasena (ej. MySQL Workbench o XAMPP con clave), escribala a continuacion:
+    set /p DB_PASS="Contrasena de MySQL root (o presione Enter para reintentar): "
+    if defined DB_PASS (
+        set MYSQL_AUTH=-u root -p%DB_PASS%
+    )
+    "%MYSQL_BIN%" %MYSQL_AUTH% -e "SELECT 1;" >nul 2>nul
+    if %errorlevel% neq 0 (
+        echo [ERROR] No se pudo conectar al servidor MySQL.
+        echo Asegurese de que MySQL este iniciado (Start en XAMPP o servicio de Windows) y que la contrasena sea correcta.
+        echo.
+        pause
+        exit /b 1
+    )
 )
 
 echo [2/3] Creando base de datos 'sgg' si no existe...
-"%MYSQL_BIN%" -u root -e "CREATE DATABASE IF NOT EXISTS sgg CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+"%MYSQL_BIN%" %MYSQL_AUTH% -e "CREATE DATABASE IF NOT EXISTS sgg CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 if %errorlevel% neq 0 (
     echo [ERROR] No se pudo crear la base de datos 'sgg'.
     pause
@@ -39,7 +50,7 @@ if %errorlevel% neq 0 (
 )
 
 echo [3/3] Importando esquema relacional (17 tablas) desde sgg.sql...
-"%MYSQL_BIN%" -u root sgg < "%~dp0src\main\resources\db\sgg.sql"
+"%MYSQL_BIN%" %MYSQL_AUTH% sgg < "%~dp0src\main\resources\db\sgg.sql"
 if %errorlevel% neq 0 (
     echo [ERROR] Ocurrio un problema al importar las tablas en 'sgg'.
     pause
