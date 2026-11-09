@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <div class="form-card form-container-card">
+        <div class="form-card form-container-card form-container-wide">
             <form th:action="@{/entregas/guardar}" th:object="${entrega}" method="post" id="formNuevaEntrega">
 
                 <div class="grid-two-cols mb-lg">
@@ -42,19 +42,76 @@
                     </div>
                 </div>
 
-                <div class="form-group mb-lg">
-                    <label class="form-label-primary">
-                        <i class="fa-solid fa-truck"></i> Transporte Asignado (Opcional):
-                    </label>
-                    <select name="idViaje" class="form-control form-input-control">
-                        <option value="">-- Sin viaje de flete asignado --</option>
-                        <option th:each="v : ${viajes}" 
-                                th:value="${v.idViaje}" 
-                                th:text="'VIAJE-#' + ${v.idViaje} + ' | Chofer: ' + (${v.conductor != null ? v.conductor.nombre : 'Sin chofer'}) + ' | Camión: ' + (${v.camion != null ? v.camion.numPlaca : 'S/P'}) + ' | ' + ${v.estadoPago}">
-                            VIAJE-#1
-                        </option>
-                    </select>
-                    <small class="text-muted-xs">Asocia el camión y chofer que transporta este ganado a la planta matadero</small>
+                <!-- CONFORMACIÓN DINÁMICA DEL VIAJE LOGÍSTICO (EER: VIAJE -> CONDUCTOR, CAMIÓN, ORIGEN, FLETE) -->
+                <div class="logistica-card">
+                    <div class="mb-md">
+                        <h3 class="section-subtitle mb-xs">
+                            <i class="fa-solid fa-truck"></i> Conformación del Viaje de Despacho (Transporte)
+                        </h3>
+                        <p class="text-muted-xs">
+                            Cada entrega conforma un viaje logístico específico asociando chofer, camión, origen y flete operativo.
+                        </p>
+                    </div>
+
+                    <div class="grid-three-cols mb-md">
+                        <div class="form-group">
+                            <label class="form-label-primary">
+                                <i class="fa-solid fa-id-card"></i> Conductor / Chofer *:
+                            </label>
+                            <select name="cedulaConductor" class="form-control form-input-control" required>
+                                <option value="" disabled selected>-- Seleccione el chofer --</option>
+                                <option th:each="c : ${conductores}" 
+                                        th:value="${c.cedula}" 
+                                        th:text="${c.nombre} + ' (Céd: ' + ${c.cedula} + ')'">Marvin Rivera</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-primary">
+                                <i class="fa-solid fa-truck-moving"></i> Camión de Carga *:
+                            </label>
+                            <select name="numPlaca" class="form-control form-input-control" required>
+                                <option value="" disabled selected>-- Seleccione el camión --</option>
+                                <option th:each="cam : ${camiones}" 
+                                        th:value="${cam.numPlaca}" 
+                                        th:text="'Placa: ' + ${cam.numPlaca}">Placa: M 234-567</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-primary">
+                                <i class="fa-solid fa-map-pin"></i> Ubicación de Origen (Embarque):
+                            </label>
+                            <select name="idUbicacionOrigen" class="form-control form-input-control">
+                                <option value="">-- Seleccione Finca o Lugar de Origen --</option>
+                                <option th:each="ubi : ${ubicaciones}" 
+                                        th:value="${ubi.idUbicacion}" 
+                                        th:text="${ubi.nombreLugar} + (${ubi.tipoLugar != null} ? ' (' + ${ubi.tipoLugar} + ')' : '')">Finca El Carmen</option>
+                            </select>
+                            <small class="text-muted-xs">Lugar de partida del ganado</small>
+                        </div>
+                    </div>
+
+                    <div class="grid-two-cols">
+                        <div class="form-group">
+                            <label class="form-label-primary">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Costo del Flete (C$) (Opcional):
+                            </label>
+                            <input type="number" step="0.01" min="0" name="costoFlete" class="form-control form-input-control" placeholder="Ej. 3500.00 (Puede definirse después)">
+                            <small class="text-muted-xs">Opcional. Si el costo se define posteriormente, puede dejarse vacío</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-primary">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Estado del Pago del Flete:
+                            </label>
+                            <select name="estadoPagoViaje" class="form-control form-input-control">
+                                <option value="Pendiente" selected>Pendiente de Pago</option>
+                                <option value="Pagado">Pagado</option>
+                            </select>
+                            <small class="text-muted-xs">Control contable del servicio de transporte</small>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid-two-cols mb-xl">

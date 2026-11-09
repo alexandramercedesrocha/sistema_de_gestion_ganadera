@@ -996,6 +996,26 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-sm);
 }
 
+.form-container-wide {
+  max-width: 1180px;
+  width: 100%;
+}
+
+.logistica-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid-three-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
 .form-label-primary {
   display: block;
   font-weight: 600;
@@ -1063,7 +1083,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width: 768px) {
-  .grid-two-cols {
+  .grid-two-cols,
+  .grid-three-cols {
     grid-template-columns: 1fr;
   }
   

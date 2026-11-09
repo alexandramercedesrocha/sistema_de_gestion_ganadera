@@ -12,6 +12,7 @@ public interface GastoRepository extends JpaRepository<Gasto, Integer> {
 
     List<Gasto> findByCategoriaIdCategoria(Integer idCategoria);
     List<Gasto> findByArqueoIdArqueo(Integer idArqueo);
+    List<Gasto> findByViajeIdViaje(Integer idViaje);
 
     default List<Gasto> listarTodos() {
         return findAll();

@@ -53,7 +53,9 @@ public class EntregaController {
         entrega.setFechaEntrega(LocalDate.now());
         model.addAttribute("entrega", entrega);
         model.addAttribute("mataderos", catalogoService.listarMataderos());
-        model.addAttribute("viajes", viajeService.listarTodos());
+        model.addAttribute("conductores", catalogoService.listarConductores());
+        model.addAttribute("camiones", catalogoService.listarCamiones());
+        model.addAttribute("ubicaciones", catalogoService.listarUbicaciones());
         model.addAttribute("ganadosDisponibles", ganadoService.listarGanadoEnFincaSinDespacho());
         return "entregas/formulario";
     }
@@ -61,15 +63,23 @@ public class EntregaController {
     @PostMapping("/guardar")
     public String guardarEntrega(@ModelAttribute("entrega") Entrega entrega,
                                  @RequestParam(name = "idMatadero", required = false) Integer idMatadero,
-                                 @RequestParam(name = "idViaje", required = false) Integer idViaje,
+                                 @RequestParam(name = "cedulaConductor", required = false) String cedulaConductor,
+                                 @RequestParam(name = "numPlaca", required = false) String numPlaca,
+                                 @RequestParam(name = "idUbicacionOrigen", required = false) Integer idUbicacionOrigen,
+                                 @RequestParam(name = "idUbicacionDestino", required = false) Integer idUbicacionDestino,
+                                 @RequestParam(name = "costoFlete", required = false) BigDecimal costoFlete,
+                                 @RequestParam(name = "estadoPagoViaje", required = false, defaultValue = "Pendiente") String estadoPagoViaje,
                                  @RequestParam(name = "aretesSeleccionados", required = false) List<String> aretesSeleccionados,
                                  RedirectAttributes redirectAttributes) {
-        Entrega guardada = entregaService.registrarEntrega(entrega, idMatadero, idViaje);
+        Entrega guardada = entregaService.registrarEntregaConViaje(
+                entrega, idMatadero, cedulaConductor, numPlaca,
+                idUbicacionOrigen, idUbicacionDestino, costoFlete, estadoPagoViaje);
+
         if (aretesSeleccionados != null && !aretesSeleccionados.isEmpty()) {
             entregaService.asociarGanadoAEntrega(guardada.getIdEntrega(), aretesSeleccionados);
-            redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con " + aretesSeleccionados.size() + " reses cargadas al despacho exitosamente.");
+            redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con " + aretesSeleccionados.size() + " reses cargadas al despacho y viaje logístico asignado.");
         } else {
-            redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada exitosamente.");
+            redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con viaje logístico asignado exitosamente.");
         }
         return "redirect:/entregas/" + guardada.getIdEntrega();
     }
