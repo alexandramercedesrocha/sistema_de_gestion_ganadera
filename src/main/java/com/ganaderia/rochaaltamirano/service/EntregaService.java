@@ -108,6 +108,66 @@ public class EntregaService {
         return detalleEntregaRepository.findByEntregaIdEntrega(idEntrega);
     }
 
+    @Transactional
+    public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes) {
+        if (aretes == null || aretes.isEmpty()) return;
+        Entrega entrega = entregaRepository.findById(idEntrega)
+                .orElseThrow(() -> new IllegalArgumentException("Entrega no encontrada: " + idEntrega));
+
+        for (String arete : aretes) {
+            if (arete == null || arete.isBlank()) continue;
+            Optional<Ganado> optGanado = ganadoRepository.findById(arete.trim().toUpperCase());
+            if (optGanado.isPresent()) {
+                Ganado ganado = optGanado.get();
+                ganado.setCategoria("Apto");
+                ganado.setEstado("Entregado a Matadero");
+                ganadoRepository.save(ganado);
+
+                DetalleEntrega detalle = new DetalleEntrega();
+                detalle.setEntrega(entrega);
+                detalle.setGanado(ganado);
+                detalle.setPesoMataderoKg(ganado.getPesoKg());
+                detalle.setEstadoDictamen("Apto");
+                detalleEntregaRepository.save(detalle);
+            }
+        }
+    }
+
+    @Transactional
+    public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, String estadoDictamen, String motivoRechazo) {
+        DetalleEntrega detalle = detalleEntregaRepository.findById(idDetalle)
+                .orElseThrow(() -> new IllegalArgumentException("Detalle no encontrado: " + idDetalle));
+
+        if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) > 0) {
+            detalle.setPesoMataderoKg(pesoMataderoKg);
+        }
+        if (estadoDictamen != null && !estadoDictamen.isBlank()) {
+            detalle.setEstadoDictamen(estadoDictamen);
+            Ganado ganado = detalle.getGanado();
+            if (ganado != null) {
+                if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+                    ganado.setCategoria("Rechazo");
+                    ganado.setEstado("En Finca");
+                } else {
+                    ganado.setCategoria("Apto");
+                    ganado.setEstado("Entregado a Matadero");
+                }
+                ganadoRepository.save(ganado);
+            }
+
+            if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+                if (detalle.getRechazos() == null || detalle.getRechazos().isEmpty()) {
+                    GanadoRechazado rechazo = new GanadoRechazado();
+                    rechazo.setDetalleEntrega(detalle);
+                    rechazo.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
+                            ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
+                    ganadoRechazadoRepository.save(rechazo);
+                }
+            }
+        }
+        detalleEntregaRepository.save(detalle);
+    }
+
     public long contarTotalCabezasEntregadas() {
         return detalleEntregaRepository.count();
     }

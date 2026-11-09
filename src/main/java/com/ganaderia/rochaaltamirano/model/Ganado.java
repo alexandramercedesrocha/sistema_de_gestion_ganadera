@@ -58,6 +58,15 @@ public class Ganado {
         return arete;
     }
 
+    public String getAreteFormateado() {
+        if (arete == null) return "";
+        String limpio = arete.replaceAll("\\s+", "");
+        if (limpio.length() == 9) {
+            return limpio.substring(0, 5) + " " + limpio.substring(5);
+        }
+        return arete;
+    }
+
     public void setArete(String arete) {
         this.arete = arete;
     }

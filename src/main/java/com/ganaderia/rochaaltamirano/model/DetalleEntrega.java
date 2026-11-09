@@ -93,5 +93,22 @@ public class DetalleEntrega {
     public void setRechazos(List<GanadoRechazado> rechazos) {
         this.rechazos = rechazos;
     }
+
+    /**
+     * Calcula el porcentaje de merma en peso entre la entrada (finca) y la báscula de matadero:
+     * % Merma = ((Peso Entrada - Peso Matadero) / Peso Entrada) * 100
+     */
+    public BigDecimal getPorcentajeMerma() {
+        if (ganado == null || ganado.getPesoKg() == null || pesoMataderoKg == null) {
+            return null;
+        }
+        BigDecimal pesoEntrada = ganado.getPesoKg();
+        if (pesoEntrada.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+        BigDecimal diferencia = pesoEntrada.subtract(pesoMataderoKg);
+        return diferencia.multiply(new BigDecimal("100"))
+                .divide(pesoEntrada, 2, java.math.RoundingMode.HALF_UP);
+    }
 }
 

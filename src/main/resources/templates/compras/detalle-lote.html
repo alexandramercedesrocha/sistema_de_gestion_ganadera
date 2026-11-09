@@ -30,6 +30,18 @@
             </div>
         </div>
 
+        <!-- ALERTA SI NO HAY PRECIO DE RECHAZO ASIGNADO -->
+        <div th:if="${lote.precioDeRechazo == null or lote.precioDeRechazo <= 0}" class="alert alert-warning mb-md flex-between flex-wrap gap-sm">
+            <div>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Este lote <strong>no tiene asignado un Precio de Rechazo</strong>. Si ingresa ganado de rechazo, defina el precio por kilo aquí:</span>
+            </div>
+            <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/actualizar-precio-rechazo'}" method="post" class="flex-center gap-xs">
+                <input type="number" step="0.01" min="0.01" name="precioDeRechazo" placeholder="C$ por kg rechazo" class="filter-provider-select" required>
+                <button type="submit" class="btn btn-sm btn-primary">Asignar Precio</button>
+            </form>
+        </div>
+
         <!-- CONTENIDO PRINCIPAL: DOS COLUMNAS -->
         <div class="grid-split">
             
@@ -45,17 +57,16 @@
                         
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">
-                                Arete Oficial Asignado * (9 dígitos: 5 + espacio + 4):
+                                Arete *:
                             </label>
                             <input type="text" th:field="*{arete}" id="areteInput" class="form-control catalog-control input-uppercase" 
                                    placeholder="Ej. 21455 6685" pattern="^[0-9]{5}\s[0-9]{4}$" maxlength="10" 
                                    title="Debe ingresar exactamente 9 números con formato: 5 dígitos, espacio y 4 dígitos (Ej. 21455 6685)" required>
-                            <small class="text-muted-xs">Formato obligatorio: 5 números, espacio y 4 números (ejemplo: 21455 6685)</small>
                         </div>
 
                         <div class="grid-two-cols mb-md">
                             <div class="form-group">
-                                <label class="catalog-form-label">Color / Pelaje:</label>
+                                <label class="catalog-form-label">Color:</label>
                                 <select th:field="*{color}" class="form-control catalog-control">
                                     <option value="Hosco">Hosco</option>
                                     <option value="Bermejo">Bermejo</option>
@@ -67,7 +78,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="catalog-form-label">Dentición / Paletas:</label>
+                                <label class="catalog-form-label">Dentición:</label>
                                 <select th:field="*{paletas}" class="form-control catalog-control">
                                     <option value="0 Paletas">0 Paletas (Ternero)</option>
                                     <option value="2 Paletas" selected>2 Paletas</option>
@@ -81,12 +92,12 @@
                         <div class="grid-two-cols mb-lg">
                             <div class="form-group">
                                 <label class="catalog-form-label">Peso Báscula (kg):</label>
-                                <input type="number" step="0.01" th:field="*{pesoKg}" class="form-control catalog-control" placeholder="Ej. 395.00" required>
+                                <input type="number" step="0.01" min="0.01" th:field="*{pesoKg}" class="form-control catalog-control" placeholder="Ej. 395.00" required>
                             </div>
 
                             <div class="form-group">
                                 <label class="catalog-form-label">Condición:</label>
-                                <select th:field="*{condicionCompra}" class="form-control catalog-control">
+                                <select th:field="*{condicionCompra}" id="selectCondicionCompra" class="form-control catalog-control" onchange="verificarPrecioRechazo(this.value)">
                                     <option value="Bueno" selected>Bueno</option>
                                     <option value="Rechazo">Rechazo</option>
                                 </select>
@@ -99,10 +110,10 @@
                     </form>
                 </div>
 
-                <!-- FORMULARIO 2: REGISTRAR PAGO/VOUCHER -->
+                <!-- FORMULARIO 2: REGISTRAR PAGO -->
                 <div class="form-card catalog-card">
                     <h2 class="section-subtitle-bordered">
-                        <i class="fa-solid fa-receipt"></i> Registrar Voucher / Pago
+                        <i class="fa-solid fa-receipt"></i> Registrar Pago
                     </h2>
 
                     <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-pago'}" method="post" id="formPagoLote">
@@ -217,7 +228,16 @@
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
-    <script>
+    <script th:inline="javascript">
+        // Precio de rechazo configurado en el lote (o null)
+        const precioRechazoLote = /*[[${lote.precioDeRechazo}]]*/ null;
+
+        function verificarPrecioRechazo(val) {
+            if (val === 'Rechazo' && (!precioRechazoLote || parseFloat(precioRechazoLote) <= 0)) {
+                alert('ADVERTENCIA: Este lote no tiene configurado un Precio de Rechazo. Debe definir o asignar el precio de rechazo para el lote antes de agregar reses con condición de rechazo.');
+            }
+        }
+
         // Auto-formateo del arete: 5 dígitos + espacio + 4 dígitos (Ej. 21455 6685)
         const areteInput = document.getElementById('areteInput');
         if (areteInput) {
@@ -230,16 +250,24 @@
                 }
             });
 
-            // Verificación previa en frontend para arete duplicado en el lote actual
+            // Verificaciones en frontend antes de enviar
             const formAnimal = document.getElementById('formAgregarAnimal');
             if (formAnimal) {
                 formAnimal.addEventListener('submit', function(e) {
+                    const selectCond = document.getElementById('selectCondicionCompra');
+                    if (selectCond && selectCond.value === 'Rechazo' && (!precioRechazoLote || parseFloat(precioRechazoLote) <= 0)) {
+                        e.preventDefault();
+                        alert('ADVERTENCIA: No se puede agregar una res de rechazo porque el lote no tiene asignado un Precio de Rechazo. Por favor, asigne primero el precio en la barra superior.');
+                        return false;
+                    }
+
                     const areteVal = areteInput.value.trim();
                     const aretesExistentes = Array.from(document.querySelectorAll('.arete-en-tabla')).map(el => el.textContent.trim());
                     if (aretesExistentes.includes(areteVal)) {
                         e.preventDefault();
                         alert('El arete [' + areteVal + '] ya está registrado en este mismo lote. Ingrese un arete único.');
                         areteInput.focus();
+                        return false;
                     }
                 });
             }
@@ -252,7 +280,7 @@
             const ayuda = document.getElementById('ayudaVoucher');
 
             if (estado === 'Pendiente') {
-                lbl.innerHTML = 'Nº Comprobante / Voucher (Opcional mientras esté pendiente):';
+                lbl.innerHTML = 'Nº Comprobante Bancario (Opcional mientras esté pendiente):';
                 input.placeholder = 'No requerido aún (Pendiente de pago)';
                 input.removeAttribute('required');
                 input.removeAttribute('pattern');

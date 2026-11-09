@@ -2,6 +2,7 @@ package com.ganaderia.rochaaltamirano.controller;
 
 import com.ganaderia.rochaaltamirano.model.Ganado;
 import com.ganaderia.rochaaltamirano.model.GanadoRechazo;
+import com.ganaderia.rochaaltamirano.service.CatalogoService;
 import com.ganaderia.rochaaltamirano.service.GanadoService;
 import com.ganaderia.rochaaltamirano.service.LoteService;
 import org.springframework.stereotype.Controller;
@@ -20,14 +21,17 @@ public class GanadoController {
 
     private final GanadoService ganadoService;
     private final LoteService loteService;
+    private final CatalogoService catalogoService;
 
-    public GanadoController(GanadoService ganadoService, LoteService loteService) {
+    public GanadoController(GanadoService ganadoService, LoteService loteService, CatalogoService catalogoService) {
         this.ganadoService = ganadoService;
         this.loteService = loteService;
+        this.catalogoService = catalogoService;
     }
 
     @GetMapping
     public String listarGanado(@RequestParam(name = "vista", required = false, defaultValue = "activos") String vista,
+                               @RequestParam(name = "idProveedor", required = false) Integer idProveedor,
                                Model model) {
         List<Ganado> inventario;
 
@@ -66,8 +70,16 @@ public class GanadoController {
             }
         }
 
+        if (idProveedor != null && idProveedor > 0) {
+            inventario = inventario.stream()
+                    .filter(g -> g.getLote() != null && g.getLote().getProveedor() != null && idProveedor.equals(g.getLote().getProveedor().getIdProveedor()))
+                    .toList();
+            model.addAttribute("idProveedorSeleccionado", idProveedor);
+        }
+
         model.addAttribute("vistaSeleccionada", vista);
         model.addAttribute("ganados", inventario);
+        model.addAttribute("proveedores", catalogoService.listarProveedores());
         model.addAttribute("totalCabezas", inventario.size());
         model.addAttribute("totalEnFinca", ganadoService.contarCabezasEnFinca());
         model.addAttribute("totalRechazos", ganadoService.contarRechazos());

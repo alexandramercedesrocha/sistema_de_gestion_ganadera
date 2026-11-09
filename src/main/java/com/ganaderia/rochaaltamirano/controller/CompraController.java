@@ -29,9 +29,24 @@ public class CompraController {
     }
 
     @GetMapping
-    public String listarCompras(Model model) {
+    public String listarCompras(@RequestParam(name = "idProveedor", required = false) Integer idProveedor,
+                                @RequestParam(name = "fecha", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate fecha,
+                                Model model) {
         List<Lote> lotes = loteService.listarLotes();
+        if (idProveedor != null && idProveedor > 0) {
+            lotes = lotes.stream()
+                    .filter(l -> l.getProveedor() != null && idProveedor.equals(l.getProveedor().getIdProveedor()))
+                    .toList();
+            model.addAttribute("idProveedorSeleccionado", idProveedor);
+        }
+        if (fecha != null) {
+            lotes = lotes.stream()
+                    .filter(l -> fecha.equals(l.getFechaCompra()))
+                    .toList();
+            model.addAttribute("fechaSeleccionada", fecha);
+        }
         model.addAttribute("lotes", lotes);
+        model.addAttribute("proveedores", catalogoService.listarProveedores());
         model.addAttribute("totalCabezasCompradas", loteService.contarTotalCabezasCompradas());
         model.addAttribute("totalInvertido", loteService.calcularTotalInvertidoEstimado());
         return "compras/lista";
@@ -76,6 +91,20 @@ public class CompraController {
             return "redirect:/compras/lote/" + id;
         }
 
+        if (animal.getPesoKg() == null || animal.getPesoKg().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El peso de la báscula debe ser mayor que cero.");
+            return "redirect:/compras/lote/" + id;
+        }
+
+        Lote lote = loteService.buscarPorId(id).orElse(null);
+        if (lote != null && "Rechazo".equalsIgnoreCase(animal.getCondicionCompra())) {
+            if (lote.getPrecioDeRechazo() == null || lote.getPrecioDeRechazo().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                redirectAttributes.addFlashAttribute("mensajeError", 
+                    "Advertencia: El lote #" + id + " no tiene configurado un Precio de Rechazo. Debe definir el precio de rechazo antes de registrar ganado con condición de rechazo.");
+                return "redirect:/compras/lote/" + id;
+            }
+        }
+
         if (loteService.existeAreteEnSistema(arete)) {
             redirectAttributes.addFlashAttribute("mensajeError", 
                 "El arete [" + arete + "] ya se encuentra registrado en el sistema o en el inventario actual. Ingrese un arete único.");
@@ -84,6 +113,21 @@ public class CompraController {
 
         loteService.registrarAnimalEnLote(id, animal, null);
         redirectAttributes.addFlashAttribute("mensajeExito", "Animal con arete " + arete + " añadido exitosamente al lote #" + id);
+        return "redirect:/compras/lote/" + id;
+    }
+
+    @PostMapping("/lote/{id}/actualizar-precio-rechazo")
+    public String actualizarPrecioRechazo(@PathVariable("id") Integer id,
+                                          @RequestParam("precioDeRechazo") java.math.BigDecimal precioDeRechazo,
+                                          RedirectAttributes redirectAttributes) {
+        Lote lote = loteService.buscarPorId(id).orElse(null);
+        if (lote != null && precioDeRechazo != null && precioDeRechazo.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            lote.setPrecioDeRechazo(precioDeRechazo);
+            loteService.guardarLote(lote);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Precio de rechazo actualizado a C$ " + precioDeRechazo + " /kg para el lote #" + id);
+        } else {
+            redirectAttributes.addFlashAttribute("mensajeError", "Ingrese un precio de rechazo válido mayor que cero.");
+        }
         return "redirect:/compras/lote/" + id;
     }
 

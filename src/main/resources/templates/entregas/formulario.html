@@ -11,7 +11,7 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-industry"></i> Registrar Entrega a Matadero</h1>
-                <p class="page-subtitle">Paso 1: Configurar el despacho hacia la planta faenadora, transporte asignado y precios pactados en Córdobas (C$)</p>
+                <p class="page-subtitle">Configuración del despacho a planta faenadora, transporte asignado, precios pactados y selección de ganado</p>
             </div>
             <div>
                 <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver al Listado</a>
@@ -19,30 +19,32 @@
         </div>
 
         <div class="form-card form-container-card">
-            <form th:action="@{/entregas/guardar}" th:object="${entrega}" method="post">
+            <form th:action="@{/entregas/guardar}" th:object="${entrega}" method="post" id="formNuevaEntrega">
 
-                <div class="form-group mb-lg">
-                    <label class="form-label-primary">
-                        <i class="fa-solid fa-calendar"></i> Fecha de Entrega:
-                    </label>
-                    <input type="date" th:field="*{fechaEntrega}" class="form-control form-input-control" required>
+                <div class="grid-two-cols mb-lg">
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-calendar"></i> Fecha de Entrega *:
+                        </label>
+                        <input type="date" th:field="*{fechaEntrega}" class="form-control form-input-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-building"></i> Planta Destino *:
+                        </label>
+                        <select name="idMatadero" class="form-control form-input-control" required>
+                            <option value="" disabled selected>-- Seleccione la planta matadero --</option>
+                            <option th:each="mat : ${mataderos}" 
+                                    th:value="${mat.idMatadero}" 
+                                    th:text="${mat.nombreMatadero}">MACESA</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group mb-lg">
                     <label class="form-label-primary">
-                        <i class="fa-solid fa-building"></i> Planta / Matadero Receptor:
-                    </label>
-                    <select name="idMatadero" class="form-control form-input-control" required>
-                        <option value="" disabled selected>-- Seleccione el matadero destino --</option>
-                        <option th:each="mat : ${mataderos}" 
-                                th:value="${mat.idMatadero}" 
-                                th:text="${mat.nombreMatadero}">MACESA</option>
-                    </select>
-                </div>
-
-                <div class="form-group mb-lg">
-                    <label class="form-label-primary">
-                        <i class="fa-solid fa-truck"></i> Viaje de Transporte / Flete Asignado (Opcional):
+                        <i class="fa-solid fa-truck"></i> Transporte Asignado (Opcional):
                     </label>
                     <select name="idViaje" class="form-control form-input-control">
                         <option value="">-- Sin viaje de flete asignado --</option>
@@ -52,31 +54,88 @@
                             VIAJE-#1
                         </option>
                     </select>
-                    <small class="text-muted-xs">Asocia el camión y transportista que acarreó este ganado a la planta matadero</small>
+                    <small class="text-muted-xs">Asocia el camión y chofer que transporta este ganado a la planta matadero</small>
                 </div>
 
                 <div class="grid-two-cols mb-xl">
                     <div class="form-group">
                         <label class="form-label-primary">
-                            <i class="fa-solid fa-coins"></i> Precio Acordado (C$ por kg canal):
+                            <i class="fa-solid fa-coins"></i> Precio Acordado (C$ por kg en pie) *:
                         </label>
-                        <input type="number" step="0.01" th:field="*{precioAcordado}" class="form-control form-input-control" placeholder="Ej. 125.00" required>
-                        <small class="text-muted-xs">Precio pactado para ganado de calidad Apta</small>
+                        <input type="number" step="0.01" min="0.01" th:field="*{precioAcordado}" class="form-control form-input-control" placeholder="Ej. 125.00" required>
+                        <small class="text-muted-xs">Precio pactado para el animal vivo completo (en pie)</small>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label-primary">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg):
+                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg en canal):
                         </label>
-                        <input type="number" step="0.01" th:field="*{precioRechazo}" class="form-control form-input-control" placeholder="Ej. 95.00">
-                        <small class="text-muted-xs">Precio liquidado en caso de dictamen de decomiso o daño</small>
+                        <input type="number" step="0.01" min="0.01" th:field="*{precioRechazo}" class="form-control form-input-control" placeholder="Ej. 95.00">
+                        <small class="text-muted-xs">Precio pactado únicamente para carne de rechazo en canal</small>
+                    </div>
+                </div>
+
+                <!-- SELECCIÓN DE GANADO DISPONIBLE EN INVENTARIO (POR CASILLAS / CHECKBOXES) -->
+                <div class="table-card mt-lg mb-xl">
+                    <div class="card-header flex-between flex-wrap gap-sm">
+                        <div>
+                            <h3 class="section-subtitle mb-xs"><i class="fa-solid fa-cow"></i> Ganado en Inventario Activo (En Finca)</h3>
+                            <p class="text-muted-xs">Marque las reses que viajan en este despacho (se enviarán como Aptas sin requerir peso de canal previo)</p>
+                        </div>
+                        <div class="flex-center gap-sm">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="toggleSeleccionarTodos(true)">Marcar Todos</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="toggleSeleccionarTodos(false)">Desmarcar</button>
+                            <span class="badge badge-info" id="contadorSeleccionados">0 reses marcadas</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="w-10 text-center">
+                                        <input type="checkbox" id="checkMaster" onchange="toggleSeleccionarTodos(this.checked)">
+                                    </th>
+                                    <th>Arete</th>
+                                    <th>Proveedor</th>
+                                    <th>Lote</th>
+                                    <th>Color</th>
+                                    <th>Paletas</th>
+                                    <th>Peso Entrada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(ganadosDisponibles)}">
+                                    <td colspan="7" class="empty-table-cell">
+                                        No hay ganado activo en finca en este momento. Puede registrar compras en el módulo de Lotes.
+                                    </td>
+                                </tr>
+                                <tr th:each="g : ${ganadosDisponibles}">
+                                    <td class="text-center">
+                                        <input type="checkbox" name="aretesSeleccionados" th:value="${g.arete}" 
+                                               class="checkbox-res-entrega" onchange="actualizarContadorReses()">
+                                    </td>
+                                    <td>
+                                        <strong class="text-code-brand" th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455 6685</strong>
+                                    </td>
+                                    <td th:text="${g.lote != null and g.lote.proveedor != null ? g.lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</td>
+                                    <td>
+                                        <span th:if="${g.lote != null}" class="badge badge-info" th:text="'LOTE-' + ${g.lote.idLote}">LOTE-1</span>
+                                    </td>
+                                    <td th:text="${g.color}">Hosco</td>
+                                    <td th:text="${g.paletas}">2 Paletas</td>
+                                    <td>
+                                        <strong th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
                 <div class="form-footer-actions">
                     <a th:href="@{/entregas}" class="btn btn-outline">Cancelar</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-check"></i> Continuar al Registro de Pesajes &rarr;
+                        <i class="fa-solid fa-truck-ramp-box"></i> Guardar Entrega y Despachar Ganado
                     </button>
                 </div>
             </form>
@@ -85,5 +144,22 @@
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
+    <script>
+        function toggleSeleccionarTodos(marcar) {
+            const checkboxes = document.querySelectorAll('.checkbox-res-entrega');
+            checkboxes.forEach(cb => cb.checked = marcar);
+            const master = document.getElementById('checkMaster');
+            if (master) master.checked = marcar;
+            actualizarContadorReses();
+        }
+
+        function actualizarContadorReses() {
+            const marcados = document.querySelectorAll('.checkbox-res-entrega:checked').length;
+            const badge = document.getElementById('contadorSeleccionados');
+            if (badge) {
+                badge.textContent = marcados + ' reses marcadas';
+            }
+        }
+    </script>
 </body>
 </html>

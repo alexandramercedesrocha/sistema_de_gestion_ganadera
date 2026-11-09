@@ -18,33 +18,52 @@
             </div>
         </div>
 
-        <!-- BARRA DE FILTROS RÁPIDOS -->
-        <div class="flex-wrap-gap mb-lg">
-            <a th:href="@{/ganado(vista='activos')}" 
-               th:classappend="${vistaSeleccionada == 'activos' ? 'btn-primary' : 'btn-outline'}" 
-               class="btn btn-sm"><i class="fa-solid fa-cow"></i> En Inventario Activo (Disponibles)</a>
+        <!-- BARRA DE FILTROS Y SELECTOR DE PROVEEDOR -->
+        <div class="filter-bar-container">
+            <div class="flex-wrap-gap">
+                <a th:href="@{/ganado(vista='activos', idProveedor=${idProveedorSeleccionado})}" 
+                   th:classappend="${vistaSeleccionada == 'activos' ? 'btn-primary' : 'btn-outline'}" 
+                   class="btn btn-sm"><i class="fa-solid fa-cow"></i> En Inventario Activo (Disponibles)</a>
 
-            <a th:href="@{/ganado(vista='en-finca')}" 
-               th:classappend="${vistaSeleccionada == 'en-finca' ? 'btn-primary' : 'btn-outline'}" 
-               class="btn btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca (Sin despachar)</a>
+                <a th:href="@{/ganado(vista='en-finca', idProveedor=${idProveedorSeleccionado})}" 
+                   th:classappend="${vistaSeleccionada == 'en-finca' ? 'btn-primary' : 'btn-outline'}" 
+                   class="btn btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca (Sin despachar)</a>
 
-            <a th:href="@{/ganado(vista='rechazos')}" th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-primary' : 'btn-outline'}"class="btn btn-sm text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
+                <a th:href="@{/ganado(vista='rechazos', idProveedor=${idProveedorSeleccionado})}" 
+                   th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-filter-rechazos-active' : 'btn-outline'}" 
+                   class="btn btn-sm text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
 
-            <a th:href="@{/ganado(vista='vendidos')}" 
-               th:classappend="${vistaSeleccionada == 'vendidos' ? 'btn-primary' : 'btn-outline'}" 
-               class="btn btn-sm"><i class="fa-solid fa-industry"></i> Vendidos / Aceptados en Canal</a>
+                <a th:href="@{/ganado(vista='vendidos', idProveedor=${idProveedorSeleccionado})}" 
+                   th:classappend="${vistaSeleccionada == 'vendidos' ? 'btn-primary' : 'btn-outline'}" 
+                   class="btn btn-sm"><i class="fa-solid fa-industry"></i> Vendidos / Aceptados en Canal</a>
 
-            <a th:href="@{/ganado(vista='todos')}" 
-               th:classappend="${vistaSeleccionada == 'todos' ? 'btn-primary' : 'btn-outline'}" 
-               class="btn btn-sm"><i class="fa-solid fa-list"></i> Historial Completo</a>
+                <a th:href="@{/ganado(vista='todos', idProveedor=${idProveedorSeleccionado})}" 
+                   th:classappend="${vistaSeleccionada == 'todos' ? 'btn-primary' : 'btn-outline'}" 
+                   class="btn btn-sm"><i class="fa-solid fa-list"></i> Historial Completo</a>
+            </div>
+
+            <!-- FILTRO POR PROVEEDOR EN INVENTARIO ACTIVO -->
+            <form th:action="@{/ganado}" method="get" class="flex-center gap-xs">
+                <input type="hidden" name="vista" th:value="${vistaSeleccionada}">
+                <label for="idProveedor" class="text-sm font-semibold text-muted"><i class="fa-solid fa-filter"></i> Proveedor:</label>
+                <select name="idProveedor" id="idProveedor" class="filter-provider-select" onchange="this.form.submit()">
+                    <option value="">-- Todos los Proveedores --</option>
+                    <option th:each="p : ${proveedores}" 
+                            th:value="${p.idProveedor}" 
+                            th:text="${p.nombre}" 
+                            th:selected="${p.idProveedor == idProveedorSeleccionado}">Don Chepe</option>
+                </select>
+                <a th:if="${idProveedorSeleccionado != null}" th:href="@{/ganado(vista=${vistaSeleccionada})}" 
+                   class="btn btn-sm btn-outline" title="Quitar filtro de proveedor">✕</a>
+            </form>
         </div>
 
         <!-- TABLA DE INVENTARIO -->
         <div class="table-card">
             <div class="card-header">
                 <div>
-                    <strong class="text-brand">Listado de Cabezas</strong> &mdash; 
-                    <span class="text-muted-sm" th:text="${filtroActivo}">Todos los registros</span>
+                    <strong class="text-brand" th:text="${filtroActivo}">Ganado Activo en Inventario</strong>
+                    <span th:if="${idProveedorSeleccionado != null}" class="badge badge-info">Filtrado por proveedor</span>
                 </div>
                 <div class="text-muted-sm">
                     Cabezas en vista: <strong th:text="${totalCabezas}">0</strong> | 
@@ -56,10 +75,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Arete (ID)</th>
-                            <th>Proveedor / Hacienda</th>
+                            <th>Arete</th>
+                            <th>Proveedor</th>
                             <th>Lote</th>
-                            <th>Paletas (Edad)</th>
+                            <th>Paletas</th>
                             <th>Color</th>
                             <th>Peso Báscula</th>
                             <th>Condición</th>
@@ -70,10 +89,7 @@
                     <tbody>
                         <tr th:each="g : ${ganados}">
                             <td>
-                                <strong class="text-code-brand" th:text="${g.arete}">NI-10021</strong>
-                                <small th:if="${g.areteAnterior != null}" class="text-muted-xs">
-                                    Previo: <span th:text="${g.areteAnterior.arete}">NI-PREV</span>
-                                </small>
+                                <strong class="text-code-brand" th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455 6685</strong>
                             </td>
                             <td>
                                 <strong th:if="${g.lote != null and g.lote.proveedor != null}" th:text="${g.lote.proveedor.nombre}">Don Chepe Miranda</strong>
@@ -101,7 +117,7 @@
                                 <span th:if="${g.estado == 'Entregado a Matadero'}"class="badge badge-primary badge-indigo-soft"><i class="fa-solid fa-check-double"></i> Vendido en Planta</span>
                             </td>
                             <td>
-                                <div class="action-buttons-group">
+                                <div class="action-buttons-group" th:if="${g.estado != 'Entregado a Matadero'}">
                                     <form th:action="@{/ganado/eliminar/{arete}(arete=${g.arete})}" method="post" 
                                           onsubmit="return confirm('¿Está seguro de retirar del inventario el arete ' + this.getAttribute('data-arete') + '?');" 
                                           th:data-arete="${g.arete}">

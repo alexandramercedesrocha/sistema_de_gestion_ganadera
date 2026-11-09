@@ -24,7 +24,7 @@
                     <i class="fa-solid fa-money-bill-wave kpi-icon"></i>
                 </div>
                 <div class="kpi-value" th:text="'C$ ' + ${#numbers.formatDecimal(totalInvertido, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
-                <div class="kpi-subtext">Costo de adquisición de lotes en pie (MySQL)</div>
+                <div class="kpi-subtext">Costo de adquisición de lotes en pie</div>
             </div>
 
             <div class="kpi-card">
@@ -33,15 +33,36 @@
                     <i class="fa-solid fa-cow kpi-icon"></i>
                 </div>
                 <div class="kpi-value" th:text="${totalCabezasCompradas} + ' Cabezas'">0 Cabezas</div>
-                <div class="kpi-subtext">Aretes registrados en la base de datos</div>
+                <div class="kpi-subtext">Aretes registrados en el sistema</div>
             </div>
+        </div>
+
+        <!-- BARRA DE FILTROS POR FECHA Y PROVEEDOR -->
+        <div class="filter-bar-container">
+            <div>
+                <strong class="text-brand"><i class="fa-solid fa-boxes-stacked"></i> Historial de Lotes de Compra</strong>
+                <span class="text-muted-sm" th:text="'(' + ${#lists.size(lotes)} + ' lotes)'">(0 lotes)</span>
+            </div>
+            <form th:action="@{/compras}" method="get" class="flex-center gap-xs flex-wrap">
+                <label for="idProveedor" class="text-sm font-semibold text-muted"><i class="fa-solid fa-filter"></i> Proveedor:</label>
+                <select name="idProveedor" id="idProveedor" class="filter-provider-select" onchange="this.form.submit()">
+                    <option value="">-- Todos los Proveedores --</option>
+                    <option th:each="p : ${proveedores}" 
+                            th:value="${p.idProveedor}" 
+                            th:text="${p.nombre}" 
+                            th:selected="${p.idProveedor == idProveedorSeleccionado}">Don Chepe</option>
+                </select>
+
+                <label for="fecha" class="text-sm font-semibold text-muted ml-sm"><i class="fa-solid fa-calendar"></i> Fecha:</label>
+                <input type="date" name="fecha" id="fecha" class="filter-provider-select" th:value="${fechaSeleccionada}" onchange="this.form.submit()">
+
+                <a th:if="${idProveedorSeleccionado != null or fechaSeleccionada != null}" th:href="@{/compras}" 
+                   class="btn btn-sm btn-outline" title="Limpiar filtros">✕ Limpiar</a>
+            </form>
         </div>
 
         <!-- TABLA DE LOTES -->
         <div class="table-card">
-            <div class="card-header">
-                <strong class="text-brand"><i class="fa-solid fa-boxes-stacked"></i> Historial de Lotes de Compra (MySQL)</strong>
-            </div>
             <div class="table-responsive">
                 <table>
                     <thead>

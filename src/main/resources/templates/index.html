@@ -12,20 +12,17 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-gauge-high"></i> Panel Ejecutivo Ganadero</h1>
-                <p class="page-subtitle">Sociedad Wilber Rocha & Yader Altamirano &mdash; Control Operativo y Financiero 50-50 (C$)</p>
             </div>
             <div class="header-buttons-wrap">
-                <a th:href="@{/ganado/nuevo}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Registrar Arete</a>
                 <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nuevo Lote</a>
-                <a th:href="@{/entregas/nueva}"class="btn btn-outline btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
+                <a th:href="@{/entregas/nueva}" class="btn btn-outline btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
             </div>
         </div>
 
-        <!-- TARJETAS SOCIEDAD 50-50 (DISTRIBUCIÓN DE UTILIDADES EN CÓRDOBAS) -->
+        <!-- TARJETAS SOCIEDAD (DISTRIBUCIÓN DE UTILIDADES EN CÓRDOBAS) -->
         <div class="partner-grid">
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Wilber Rocha</span>
-                <span class="partner-share">Socio Accionista (50%)</span>
                 <div class="partner-amount" 
                      th:classappend="${balance.cuotaWilberRocha >= 0} ? 'amount-positive' : 'amount-negative'"
                      th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
@@ -37,7 +34,6 @@
 
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Yader Altamirano</span>
-                <span class="partner-share">Socio Accionista (50%)</span>
                 <div class="partner-amount" 
                      th:classappend="${balance.cuotaYaderAltamirano >= 0} ? 'amount-positive' : 'amount-negative'"
                      th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>

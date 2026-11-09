@@ -52,6 +52,11 @@ public class LoteService {
     }
 
     @Transactional
+    public Lote guardarLote(Lote lote) {
+        return loteRepository.save(lote);
+    }
+
+    @Transactional
     public Lote registrarLote(Lote lote, Integer idProveedor) {
         if (idProveedor != null) {
             proveedorRepository.findById(idProveedor).ifPresent(lote::setProveedor);
