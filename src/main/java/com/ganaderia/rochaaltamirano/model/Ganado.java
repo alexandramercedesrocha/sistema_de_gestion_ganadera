@@ -28,6 +28,9 @@ public class Ganado {
     @Column(name = "condicion_compra", length = 50)
     private String condicionCompra; // ej. Regular, Bueno, Excelente
 
+    @Column(name = "precio_compra", precision = 10, scale = 2)
+    private BigDecimal precioCompra;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "arete_anterior")
     private Ganado areteAnterior;
@@ -110,6 +113,29 @@ public class Ganado {
 
     public void setCondicionCompra(String condicionCompra) {
         this.condicionCompra = condicionCompra;
+    }
+
+    public BigDecimal getPrecioCompra() {
+        return precioCompra;
+    }
+
+    public void setPrecioCompra(BigDecimal precioCompra) {
+        this.precioCompra = precioCompra;
+    }
+
+    public BigDecimal getPrecioPorKilo() {
+        if (precioCompra != null && precioCompra.compareTo(BigDecimal.ZERO) > 0) {
+            return precioCompra;
+        }
+        if (lote != null && lote.getPrecioEstandar() != null) {
+            return lote.getPrecioEstandar();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    public BigDecimal getSubtotalCompra() {
+        BigDecimal peso = pesoKg != null ? pesoKg : BigDecimal.ZERO;
+        return peso.multiply(getPrecioPorKilo());
     }
 
     public Ganado getAreteAnterior() {

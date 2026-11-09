@@ -996,6 +996,10 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-sm);
 }
 
+.d-none {
+  display: none !important;
+}
+
 .form-container-wide {
   max-width: 1180px;
   width: 100%;

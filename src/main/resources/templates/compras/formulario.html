@@ -43,21 +43,13 @@
                     </small>
                 </div>
 
-                <div class="grid-two-cols mb-xl">
-                    <div class="form-group">
+                <div class="mb-xl">
+                    <div class="form-group max-w-500">
                         <label class="form-label-primary">
-                            <i class="fa-solid fa-coins"></i> Precio (C$ por kg):
+                            <i class="fa-solid fa-coins"></i> Precio Base (C$ por kg):
                         </label>
-                        <input type="number" step="0.01" th:field="*{precioEstandar}"class="form-control form-input-control" placeholder="Ej. 75.00" required>
-                        <small class="text-muted-xs">Precio base pactado por kilo en pie</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label-primary">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg) (Opcional):
-                        </label>
-                        <input type="number" step="0.01" th:field="*{precioDeRechazo}"class="form-control form-input-control" placeholder="Ej. 65.00 (Opcional)">
-                        <small class="text-muted-xs">Precio castigado en caso de animal con defecto</small>
+                        <input type="number" step="0.01" min="0.01" th:field="*{precioEstandar}" class="form-control form-input-control" placeholder="Ej. 75.00" required>
+                        <small class="text-muted-xs">Precio pactado para ganado apto en pie. El precio de rechazo se define individualmente al ingresar cada animal.</small>
                     </div>
                 </div>
 

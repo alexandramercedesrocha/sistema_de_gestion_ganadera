@@ -112,25 +112,21 @@ public class LoteService {
         List<Lote> lotes = loteRepository.findAll();
         BigDecimal total = BigDecimal.ZERO;
         for (Lote lote : lotes) {
-            BigDecimal precio = lote.getPrecioEstandar() != null ? lote.getPrecioEstandar() : BigDecimal.ZERO;
-            BigDecimal kilos = BigDecimal.ZERO;
             try {
                 if (lote.getAnimales() != null && !lote.getAnimales().isEmpty()) {
-                    kilos = lote.getAnimales().stream()
-                            .map(Ganado::getPesoKg)
-                            .filter(java.util.Objects::nonNull)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    for (Ganado g : lote.getAnimales()) {
+                        total = total.add(g.getSubtotalCompra());
+                    }
                 }
             } catch (Exception e) {
                 // Fallback seguro si la sesión lazy estuviera cerrada
                 if (lote.getIdLote() != null) {
-                    kilos = ganadoRepository.findByLoteIdLote(lote.getIdLote()).stream()
-                            .map(Ganado::getPesoKg)
-                            .filter(java.util.Objects::nonNull)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    List<Ganado> animales = ganadoRepository.findByLoteIdLote(lote.getIdLote());
+                    for (Ganado g : animales) {
+                        total = total.add(g.getSubtotalCompra());
+                    }
                 }
             }
-            total = total.add(precio.multiply(kilos));
         }
         return total;
     }

@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -84,6 +85,7 @@ public class CompraController {
     @PostMapping("/lote/{id}/agregar-animal")
     public String agregarAnimalALote(@PathVariable("id") Integer id,
                                      @ModelAttribute("nuevoAnimal") Ganado animal,
+                                     @RequestParam(name = "precioAnimalRechazo", required = false) BigDecimal precioAnimalRechazo,
                                      RedirectAttributes redirectAttributes) {
         String arete = animal.getArete() != null ? animal.getArete().trim() : "";
         if (arete.isBlank()) {
@@ -97,12 +99,22 @@ public class CompraController {
         }
 
         Lote lote = loteService.buscarPorId(id).orElse(null);
-        if (lote != null && "Rechazo".equalsIgnoreCase(animal.getCondicionCompra())) {
-            if (lote.getPrecioDeRechazo() == null || lote.getPrecioDeRechazo().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+        if (lote == null) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El lote especificado no existe.");
+            return "redirect:/compras";
+        }
+
+        // Asignación de precio de compra individual:
+        if ("Rechazo".equalsIgnoreCase(animal.getCondicionCompra())) {
+            if (precioAnimalRechazo == null || precioAnimalRechazo.compareTo(java.math.BigDecimal.ZERO) <= 0) {
                 redirectAttributes.addFlashAttribute("mensajeError", 
-                    "Advertencia: El lote #" + id + " no tiene configurado un Precio de Rechazo. Debe definir el precio de rechazo antes de registrar ganado con condición de rechazo.");
+                    "Debe indicar el precio de compra específico (C$/kg) para este animal con condición de rechazo.");
                 return "redirect:/compras/lote/" + id;
             }
+            animal.setPrecioCompra(precioAnimalRechazo);
+        } else {
+            // Condición Bueno (Apto): utiliza el precio estándar base del lote
+            animal.setPrecioCompra(lote.getPrecioEstandar());
         }
 
         if (loteService.existeAreteEnSistema(arete)) {
@@ -129,7 +141,7 @@ public class CompraController {
     @ResponseBody
     public java.util.Map<String, Object> verificarAreteEnBaseDatos(@RequestParam("arete") String arete) {
         java.util.Map<String, Object> respuesta = new java.util.HashMap<>();
-        if (arete == null || arete.trim().isBlank()) {
+        if (arete == null || arete.trim().replaceAll("\\s+", "").length() < 9) {
             respuesta.put("existe", false);
             return respuesta;
         }

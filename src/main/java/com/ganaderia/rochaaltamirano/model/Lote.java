@@ -127,5 +127,20 @@ public class Lote {
             return BigDecimal.ZERO;
         }
     }
+
+    public BigDecimal getMontoTotalEstimado() {
+        try {
+            if (animales == null || animales.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            BigDecimal total = BigDecimal.ZERO;
+            for (Ganado g : animales) {
+                total = total.add(g.getSubtotalCompra());
+            }
+            return total;
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
 }
 

@@ -21,14 +21,9 @@
                         th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</strong>
                     |
                     Fecha: <strong th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">01/01/2026</strong> |
-                    Precio Base: <strong
+                    Precio Base (Aptos): <strong
                         th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioEstandar != null ? lote.precioEstandar : 0, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$
                         75.00</strong>
-                    <span th:if="${lote.precioDeRechazo != null}">
-                        | Precio Rechazo: <strong
-                            th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioDeRechazo, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$
-                            65.00</strong>
-                    </span>
                 </p>
             </div>
             <div>
@@ -36,22 +31,6 @@
                     <i class="fa-solid fa-arrow-left"></i> Volver a Lotes
                 </a>
             </div>
-        </div>
-
-        <!-- ALERTA SI NO HAY PRECIO DE RECHAZO ASIGNADO -->
-        <div th:if="${lote.precioDeRechazo == null or lote.precioDeRechazo <= 0}"
-            class="alert alert-warning mb-md flex-between flex-wrap gap-sm">
-            <div>
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Este lote <strong>no tiene asignado un Precio de Rechazo</strong>. Si ingresa ganado de rechazo,
-                    defina el precio por kilo aquí:</span>
-            </div>
-            <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/actualizar-precio-rechazo'}" method="post"
-                class="flex-center gap-xs">
-                <input type="number" step="0.01" min="0.01" name="precioDeRechazo" placeholder="C$ por kg rechazo"
-                    class="filter-provider-select" required>
-                <button type="submit" class="btn btn-sm btn-primary">Asignar Precio</button>
-            </form>
         </div>
 
         <!-- CONTENIDO PRINCIPAL: DOS COLUMNAS -->
@@ -79,7 +58,7 @@
                                 required autocomplete="off">
 
                             <!-- ALERTA ANIMADA DE ARETE DUPLICADO EN BD -->
-                            <div id="alertaAreteDuplicado" class="animated-arete-alert d-none">
+                            <div id="alertaAreteDuplicado" class="animated-arete-alert d-none" style="display: none;">
                                 <div class="alert-icon-pulse">
                                     <i class="fa-solid fa-triangle-exclamation"></i>
                                 </div>
@@ -117,7 +96,7 @@
                             </div>
                         </div>
 
-                        <div class="grid-two-cols mb-lg">
+                        <div class="grid-two-cols mb-md">
                             <div class="form-group">
                                 <label class="catalog-form-label">Peso Báscula (kg):</label>
                                 <input type="number" step="0.01" min="0.01" th:field="*{pesoKg}"
@@ -127,11 +106,21 @@
                             <div class="form-group">
                                 <label class="catalog-form-label">Condición:</label>
                                 <select th:field="*{condicionCompra}" id="selectCondicionCompra"
-                                    class="form-control catalog-control" onchange="verificarPrecioRechazo(this.value)">
-                                    <option value="Bueno" selected>Bueno</option>
-                                    <option value="Rechazo">Rechazo</option>
+                                    class="form-control catalog-control" onchange="toggleCampoPrecioRechazo(this.value)">
+                                    <option value="Bueno" selected>Bueno (Apto - Precio Base)</option>
+                                    <option value="Rechazo">Rechazo (Definir Precio)</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- CAMPO DINÁMICO: PRECIO DE RECHAZO ESPECÍFICO DE ESTE ANIMAL -->
+                        <div class="form-group mb-lg d-none" id="divPrecioRechazoAnimal" style="display: none;">
+                            <label class="catalog-form-label text-danger">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo de este Animal (C$/kg) *:
+                            </label>
+                            <input type="number" step="0.01" min="0.01" name="precioAnimalRechazo" id="precioAnimalRechazoInput"
+                                class="form-control catalog-control input-alert" placeholder="Ej. 65.00 (Precio pactado para esta res)">
+                            <small class="text-muted-xs">Cada res de rechazo tiene su precio individual pactado por kilo</small>
                         </div>
 
                         <button type="submit" id="btnSubmitAnimal" class="btn btn-primary w-full justify-center">
@@ -185,12 +174,16 @@
             <div>
                 <!-- TABLA DE ANIMALES DEL LOTE -->
                 <div class="table-card mb-xl">
-                    <div class="card-header">
+                    <div class="card-header flex-between flex-wrap gap-xs">
                         <h2><i class="fa-solid fa-cow"></i> Animales en este Lote (<span
                                 th:text="${lote.totalCabezas}">0</span>)</h2>
-                        <span class="badge badge-success"
-                            th:text="'Peso Total: ' + ${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0
-                            kg</span>
+                        <div class="flex-center gap-xs">
+                            <span class="badge badge-info"
+                                th:text="'Peso Total: ' + ${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0
+                                kg</span>
+                            <span class="badge badge-success"
+                                th:text="'Total Estimado: C$ ' + ${#numbers.formatDecimal(lote.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</span>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table>
@@ -201,11 +194,13 @@
                                     <th>Paletas</th>
                                     <th>Peso (kg)</th>
                                     <th>Condición</th>
+                                    <th>Precio (C$/kg)</th>
+                                    <th>Subtotal (C$)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(lote.animales)}">
-                                    <td colspan="5" class="empty-table-cell">
+                                    <td colspan="7" class="empty-table-cell">
                                         No has añadido animales a este lote todavía. Usa el formulario de la izquierda.
                                     </td>
                                 </tr>
@@ -218,6 +213,17 @@
                                         <span
                                             th:class="'badge ' + (${a.condicionCompra == 'Bueno'} ? 'badge-success' : 'badge-danger')"
                                             th:text="${a.condicionCompra}">Bueno</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${a.condicionCompra == 'Rechazo'}" class="badge badge-danger">
+                                            C$ <span th:text="${#numbers.formatDecimal(a.precioPorKilo, 1, 'COMMA', 2, 'POINT')}">65.00</span>
+                                        </span>
+                                        <span th:if="${a.condicionCompra != 'Rechazo'}" class="badge badge-success">
+                                            C$ <span th:text="${#numbers.formatDecimal(a.precioPorKilo, 1, 'COMMA', 2, 'POINT')}">75.00</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-brand" th:text="'C$ ' + ${#numbers.formatDecimal(a.subtotalCompra, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</strong>
                                     </td>
                                 </tr>
                             </tbody>
@@ -268,12 +274,22 @@
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
     <script th:inline="javascript">
-        // Precio de rechazo configurado en el lote (o null)
-        const precioRechazoLote = /*[[${lote.precioDeRechazo}]]*/ null;
+        // Manejo dinámico del campo de precio de rechazo individual por animal
+        function toggleCampoPrecioRechazo(val) {
+            const div = document.getElementById('divPrecioRechazoAnimal');
+            const input = document.getElementById('precioAnimalRechazoInput');
+            if (!div || !input) return;
 
-        function verificarPrecioRechazo(val) {
-            if (val === 'Rechazo' && (!precioRechazoLote || parseFloat(precioRechazoLote) <= 0)) {
-                alert('ADVERTENCIA: Este lote no tiene configurado un Precio de Rechazo. Debe definir o asignar el precio de rechazo para el lote antes de agregar reses con condición de rechazo.');
+            if (val === 'Rechazo') {
+                div.style.display = 'block';
+                div.classList.remove('d-none');
+                input.setAttribute('required', 'required');
+                input.focus();
+            } else {
+                div.style.display = 'none';
+                div.classList.add('d-none');
+                input.removeAttribute('required');
+                input.value = '';
             }
         }
 
@@ -289,6 +305,7 @@
             areteDuplicadoDetectado = true;
             if (alertaDuplicado) {
                 mensajeAlerta.textContent = mensaje;
+                alertaDuplicado.style.display = 'flex';
                 alertaDuplicado.classList.remove('d-none');
                 // Reiniciar animación slideInBounce
                 alertaDuplicado.style.animation = 'none';
@@ -309,6 +326,7 @@
         function ocultarAlertaArete() {
             areteDuplicadoDetectado = false;
             if (alertaDuplicado) {
+                alertaDuplicado.style.display = 'none';
                 alertaDuplicado.classList.add('d-none');
             }
             if (areteInput) {
@@ -321,16 +339,15 @@
         }
 
         async function validarAreteEnSistema(valor) {
-            const areteVal = valor.trim();
-            if (!areteVal || areteVal.length < 9) {
+            const areteVal = valor ? valor.trim() : '';
+            const areteLimpio = areteVal.replace(/\D/g, '');
+            if (!areteVal || areteLimpio.length < 9) {
                 ocultarAlertaArete();
                 return;
             }
 
             // 1. Verificación en el lote actual (tabla en pantalla)
             const aretesLote = Array.from(document.querySelectorAll('.arete-en-tabla')).map(el => el.textContent.trim().toUpperCase());
-            const areteLimpio = areteVal.replace(/\s+/g, '').toUpperCase();
-            
             const existeEnLoteActual = aretesLote.some(a => a.replace(/\s+/g, '').toUpperCase() === areteLimpio);
             if (existeEnLoteActual) {
                 mostrarAlertaArete('¡Atención! El arete [' + areteVal + '] ya está registrado en este mismo lote de compra. Ingrese un arete único.');
@@ -374,8 +391,11 @@
             });
 
             areteInput.addEventListener('blur', function () {
-                if (this.value.trim().length >= 9) {
+                const digits = this.value.replace(/\D/g, '');
+                if (digits.length === 9) {
                     validarAreteEnSistema(this.value);
+                } else {
+                    ocultarAlertaArete();
                 }
             });
 
@@ -384,10 +404,15 @@
             if (formAnimal) {
                 formAnimal.addEventListener('submit', function (e) {
                     const selectCond = document.getElementById('selectCondicionCompra');
-                    if (selectCond && selectCond.value === 'Rechazo' && (!precioRechazoLote || parseFloat(precioRechazoLote) <= 0)) {
-                        e.preventDefault();
-                        alert('ADVERTENCIA: No se puede agregar una res de rechazo porque el lote no tiene asignado un Precio de Rechazo. Por favor, asigne primero el precio en la barra superior.');
-                        return false;
+                    const inputPrecioRechazo = document.getElementById('precioAnimalRechazoInput');
+
+                    if (selectCond && selectCond.value === 'Rechazo') {
+                        if (!inputPrecioRechazo || !inputPrecioRechazo.value || parseFloat(inputPrecioRechazo.value) <= 0) {
+                            e.preventDefault();
+                            alert('Debe ingresar el precio por kilo pactado para este animal con condición de rechazo.');
+                            if (inputPrecioRechazo) inputPrecioRechazo.focus();
+                            return false;
+                        }
                     }
 
                     if (areteDuplicadoDetectado) {
@@ -410,6 +435,15 @@
                 });
             }
         }
+
+        // Inicialización al cargar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            ocultarAlertaArete();
+            const selectCond = document.getElementById('selectCondicionCompra');
+            if (selectCond) {
+                toggleCampoPrecioRechazo(selectCond.value);
+            }
+        });
 
         // Manejo dinámico del campo de voucher bancario (9 a 16 dígitos)
         function actualizarFormatoVoucher(estado) {
