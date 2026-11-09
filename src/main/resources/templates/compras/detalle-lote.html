@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Detalle del Lote de Compra')}"></head>
+
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -15,11 +17,17 @@
                     <i class="fa-solid fa-boxes-stacked"></i> Lote de Compra #<span th:text="${lote.idLote}">1</span>
                 </h1>
                 <p class="page-subtitle">
-                    Proveedor: <strong class="text-brand" th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</strong> |
+                    Proveedor: <strong class="text-brand"
+                        th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</strong>
+                    |
                     Fecha: <strong th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">01/01/2026</strong> |
-                    Precio Base: <strong th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioEstandar != null ? lote.precioEstandar : 0, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$ 75.00</strong>
+                    Precio Base: <strong
+                        th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioEstandar != null ? lote.precioEstandar : 0, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$
+                        75.00</strong>
                     <span th:if="${lote.precioDeRechazo != null}">
-                        | Precio Rechazo: <strong th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioDeRechazo, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$ 65.00</strong>
+                        | Precio Rechazo: <strong
+                            th:text="'C$ ' + ${#numbers.formatDecimal(lote.precioDeRechazo, 1, 'COMMA', 2, 'POINT')} + ' /kg'">C$
+                            65.00</strong>
                     </span>
                 </p>
             </div>
@@ -31,20 +39,24 @@
         </div>
 
         <!-- ALERTA SI NO HAY PRECIO DE RECHAZO ASIGNADO -->
-        <div th:if="${lote.precioDeRechazo == null or lote.precioDeRechazo <= 0}" class="alert alert-warning mb-md flex-between flex-wrap gap-sm">
+        <div th:if="${lote.precioDeRechazo == null or lote.precioDeRechazo <= 0}"
+            class="alert alert-warning mb-md flex-between flex-wrap gap-sm">
             <div>
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Este lote <strong>no tiene asignado un Precio de Rechazo</strong>. Si ingresa ganado de rechazo, defina el precio por kilo aquí:</span>
+                <span>Este lote <strong>no tiene asignado un Precio de Rechazo</strong>. Si ingresa ganado de rechazo,
+                    defina el precio por kilo aquí:</span>
             </div>
-            <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/actualizar-precio-rechazo'}" method="post" class="flex-center gap-xs">
-                <input type="number" step="0.01" min="0.01" name="precioDeRechazo" placeholder="C$ por kg rechazo" class="filter-provider-select" required>
+            <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/actualizar-precio-rechazo'}" method="post"
+                class="flex-center gap-xs">
+                <input type="number" step="0.01" min="0.01" name="precioDeRechazo" placeholder="C$ por kg rechazo"
+                    class="filter-provider-select" required>
                 <button type="submit" class="btn btn-sm btn-primary">Asignar Precio</button>
             </form>
         </div>
 
         <!-- CONTENIDO PRINCIPAL: DOS COLUMNAS -->
         <div class="grid-split">
-            
+
             <!-- COLUMNA IZQUIERDA: FORMULARIOS PARA AGREGAR ARETE Y PAGO -->
             <div>
                 <!-- FORMULARIO 1: REGISTRAR ARETE EN ESTE LOTE -->
@@ -53,15 +65,30 @@
                         <i class="fa-solid fa-plus-circle"></i> Registrar Arete en este Lote
                     </h2>
 
-                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-animal'}" th:object="${nuevoAnimal}" method="post" id="formAgregarAnimal">
-                        
+                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-animal'}"
+                        th:object="${nuevoAnimal}" method="post" id="formAgregarAnimal">
+
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">
                                 Arete *:
                             </label>
-                            <input type="text" th:field="*{arete}" id="areteInput" class="form-control catalog-control input-uppercase" 
-                                   placeholder="Ej. 21455 6685" pattern="^[0-9]{5}\s[0-9]{4}$" maxlength="10" 
-                                   title="Debe ingresar exactamente 9 números con formato: 5 dígitos, espacio y 4 dígitos (Ej. 21455 6685)" required>
+                            <input type="text" th:field="*{arete}" id="areteInput"
+                                class="form-control catalog-control input-uppercase" placeholder="Ej. 21455 6685"
+                                pattern="^[0-9]{5}\s[0-9]{4}$" maxlength="10"
+                                title="Debe ingresar exactamente 9 números con formato: 5 dígitos, espacio y 4 dígitos (Ej. 21455 6685)"
+                                required autocomplete="off">
+
+                            <!-- ALERTA ANIMADA DE ARETE DUPLICADO EN BD -->
+                            <div id="alertaAreteDuplicado" class="animated-arete-alert d-none">
+                                <div class="alert-icon-pulse">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <strong id="tituloAlertaArete">¡Arete Ya Registrado en el Sistema!</strong>
+                                    <p id="mensajeAlertaArete" class="mb-none">Este arete ya se encuentra en la base de datos.</p>
+                                </div>
+                                <button type="button" class="btn-close-alert" onclick="ocultarAlertaArete()" title="Cerrar aviso">&times;</button>
+                            </div>
                         </div>
 
                         <div class="grid-two-cols mb-md">
@@ -78,9 +105,10 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="catalog-form-label">Dentición:</label>
+                                <label class="catalog-form-label">Paletas:</label>
                                 <select th:field="*{paletas}" class="form-control catalog-control">
                                     <option value="0 Paletas">0 Paletas (Ternero)</option>
+                                    <option value="1 Paletas">1 Paletas (Ternero)</option>
                                     <option value="2 Paletas" selected>2 Paletas</option>
                                     <option value="4 Paletas">4 Paletas</option>
                                     <option value="6 Paletas">6 Paletas</option>
@@ -92,19 +120,21 @@
                         <div class="grid-two-cols mb-lg">
                             <div class="form-group">
                                 <label class="catalog-form-label">Peso Báscula (kg):</label>
-                                <input type="number" step="0.01" min="0.01" th:field="*{pesoKg}" class="form-control catalog-control" placeholder="Ej. 395.00" required>
+                                <input type="number" step="0.01" min="0.01" th:field="*{pesoKg}"
+                                    class="form-control catalog-control" placeholder="Ej. 395.00" required>
                             </div>
 
                             <div class="form-group">
                                 <label class="catalog-form-label">Condición:</label>
-                                <select th:field="*{condicionCompra}" id="selectCondicionCompra" class="form-control catalog-control" onchange="verificarPrecioRechazo(this.value)">
+                                <select th:field="*{condicionCompra}" id="selectCondicionCompra"
+                                    class="form-control catalog-control" onchange="verificarPrecioRechazo(this.value)">
                                     <option value="Bueno" selected>Bueno</option>
                                     <option value="Rechazo">Rechazo</option>
                                 </select>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-full justify-center">
+                        <button type="submit" id="btnSubmitAnimal" class="btn btn-primary w-full justify-center">
                             <i class="fa-solid fa-plus"></i> Añadir Arete al Lote
                         </button>
                     </form>
@@ -116,12 +146,14 @@
                         <i class="fa-solid fa-receipt"></i> Registrar Pago
                     </h2>
 
-                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-pago'}" method="post" id="formPagoLote">
+                    <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/agregar-pago'}" method="post"
+                        id="formPagoLote">
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">
                                 Estado del Pago del Lote:
                             </label>
-                            <select name="estadoPago" id="estadoPagoSelect" class="form-control catalog-control" onchange="actualizarFormatoVoucher(this.value)">
+                            <select name="estadoPago" id="estadoPagoSelect" class="form-control catalog-control"
+                                onchange="actualizarFormatoVoucher(this.value)">
                                 <option value="Pagado" selected>Pagado Total</option>
                                 <option value="Parcial">Pago Parcial (Abono)</option>
                                 <option value="Pendiente">Pendiente de Pago</option>
@@ -132,10 +164,11 @@
                             <label id="lblVoucher" class="catalog-form-label">
                                 Nº Comprobante Bancario * (9 a 16 dígitos):
                             </label>
-                            <input type="text" name="comprobanteVoucher" id="comprobanteVoucherInput" class="form-control catalog-control" 
-                                   placeholder="Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)" 
-                                   pattern="[0-9]{9,16}" minlength="9" maxlength="16" 
-                                   title="Debe contener entre 9 y 16 dígitos numéricos" required>
+                            <input type="text" name="comprobanteVoucher" id="comprobanteVoucherInput"
+                                class="form-control catalog-control"
+                                placeholder="Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)"
+                                pattern="[0-9]{9,16}" minlength="9" maxlength="16"
+                                title="Debe contener entre 9 y 16 dígitos numéricos" required>
                             <small id="ayudaVoucher" class="text-muted-xs">
                                 Formato: Generalmente de 9 a 16 dígitos, dependiendo del banco (BAC, Lafise, Banpro).
                             </small>
@@ -153,8 +186,11 @@
                 <!-- TABLA DE ANIMALES DEL LOTE -->
                 <div class="table-card mb-xl">
                     <div class="card-header">
-                        <h2><i class="fa-solid fa-cow"></i> Animales en este Lote (<span th:text="${lote.totalCabezas}">0</span>)</h2>
-                        <span class="badge badge-success" th:text="'Peso Total: ' + ${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</span>
+                        <h2><i class="fa-solid fa-cow"></i> Animales en este Lote (<span
+                                th:text="${lote.totalCabezas}">0</span>)</h2>
+                        <span class="badge badge-success"
+                            th:text="'Peso Total: ' + ${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0
+                            kg</span>
                     </div>
                     <div class="table-responsive">
                         <table>
@@ -179,8 +215,9 @@
                                     <td th:text="${a.paletas}">2 Paletas</td>
                                     <td class="font-semibold" th:text="${a.pesoKg} + ' kg'">395 kg</td>
                                     <td>
-                                        <span th:class="'badge ' + (${a.condicionCompra == 'Bueno'} ? 'badge-success' : 'badge-danger')" 
-                                              th:text="${a.condicionCompra}">Bueno</span>
+                                        <span
+                                            th:class="'badge ' + (${a.condicionCompra == 'Bueno'} ? 'badge-success' : 'badge-danger')"
+                                            th:text="${a.condicionCompra}">Bueno</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -212,8 +249,10 @@
                                     <td class="text-brand-bold" th:text="'PAG-' + ${p.idPago}">PAG-1</td>
                                     <td class="font-semibold" th:text="${p.comprobanteVoucher}">TRANSF-BAC-481920</td>
                                     <td>
-                                        <span th:if="${p.estadoPago == 'Pagado'}" class="badge badge-success"><i class="fa-solid fa-check"></i> Pagado</span>
-                                        <span th:if="${p.estadoPago != 'Pagado'}" class="badge badge-warning" th:text="${p.estadoPago}">Pendiente</span>
+                                        <span th:if="${p.estadoPago == 'Pagado'}" class="badge badge-success"><i
+                                                class="fa-solid fa-check"></i> Pagado</span>
+                                        <span th:if="${p.estadoPago != 'Pagado'}" class="badge badge-warning"
+                                            th:text="${p.estadoPago}">Pendiente</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -238,22 +277,112 @@
             }
         }
 
-        // Auto-formateo del arete: 5 dígitos + espacio + 4 dígitos (Ej. 21455 6685)
+        // Auto-formateo y Detección Reactiva de Arete Duplicado (Lote y Base de Datos Completa)
         const areteInput = document.getElementById('areteInput');
+        const alertaDuplicado = document.getElementById('alertaAreteDuplicado');
+        const mensajeAlerta = document.getElementById('mensajeAlertaArete');
+        const btnSubmitAnimal = document.getElementById('btnSubmitAnimal');
+        let areteDuplicadoDetectado = false;
+        let debounceTimer = null;
+
+        function mostrarAlertaArete(mensaje) {
+            areteDuplicadoDetectado = true;
+            if (alertaDuplicado) {
+                mensajeAlerta.textContent = mensaje;
+                alertaDuplicado.classList.remove('d-none');
+                // Reiniciar animación slideInBounce
+                alertaDuplicado.style.animation = 'none';
+                alertaDuplicado.offsetHeight; // trigger reflow
+                alertaDuplicado.style.animation = null;
+            }
+            if (areteInput) {
+                areteInput.classList.remove('input-shake-error');
+                void areteInput.offsetWidth;
+                areteInput.classList.add('input-shake-error');
+            }
+            if (btnSubmitAnimal) {
+                btnSubmitAnimal.setAttribute('disabled', 'disabled');
+                btnSubmitAnimal.title = 'Ingrese un arete único que no exista en la base de datos';
+            }
+        }
+
+        function ocultarAlertaArete() {
+            areteDuplicadoDetectado = false;
+            if (alertaDuplicado) {
+                alertaDuplicado.classList.add('d-none');
+            }
+            if (areteInput) {
+                areteInput.classList.remove('input-shake-error');
+            }
+            if (btnSubmitAnimal) {
+                btnSubmitAnimal.removeAttribute('disabled');
+                btnSubmitAnimal.title = '';
+            }
+        }
+
+        async function validarAreteEnSistema(valor) {
+            const areteVal = valor.trim();
+            if (!areteVal || areteVal.length < 9) {
+                ocultarAlertaArete();
+                return;
+            }
+
+            // 1. Verificación en el lote actual (tabla en pantalla)
+            const aretesLote = Array.from(document.querySelectorAll('.arete-en-tabla')).map(el => el.textContent.trim().toUpperCase());
+            const areteLimpio = areteVal.replace(/\s+/g, '').toUpperCase();
+            
+            const existeEnLoteActual = aretesLote.some(a => a.replace(/\s+/g, '').toUpperCase() === areteLimpio);
+            if (existeEnLoteActual) {
+                mostrarAlertaArete('¡Atención! El arete [' + areteVal + '] ya está registrado en este mismo lote de compra. Ingrese un arete único.');
+                return;
+            }
+
+            // 2. Verificación en toda la base de datos (cualquier lote, vendido, rechazo, en finca)
+            try {
+                const resp = await fetch('/compras/api/verificar-arete?arete=' + encodeURIComponent(areteVal));
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.existe) {
+                        mostrarAlertaArete(data.mensaje || '¡Atención! Este arete ya existe registrado en la base de datos del sistema.');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error al verificar arete:', err);
+            }
+
+            // Si no existe, limpiar advertencia
+            ocultarAlertaArete();
+        }
+
         if (areteInput) {
-            areteInput.addEventListener('input', function(e) {
+            areteInput.addEventListener('input', function (e) {
                 let digits = this.value.replace(/\D/g, '').slice(0, 9);
                 if (digits.length > 5) {
                     this.value = digits.slice(0, 5) + ' ' + digits.slice(5);
                 } else {
                     this.value = digits;
                 }
+
+                // Debounce para consultar a la base de datos cuando complete 9 números
+                clearTimeout(debounceTimer);
+                if (digits.length === 9) {
+                    debounceTimer = setTimeout(() => validarAreteEnSistema(this.value), 200);
+                } else {
+                    ocultarAlertaArete();
+                }
+            });
+
+            areteInput.addEventListener('blur', function () {
+                if (this.value.trim().length >= 9) {
+                    validarAreteEnSistema(this.value);
+                }
             });
 
             // Verificaciones en frontend antes de enviar
             const formAnimal = document.getElementById('formAgregarAnimal');
             if (formAnimal) {
-                formAnimal.addEventListener('submit', function(e) {
+                formAnimal.addEventListener('submit', function (e) {
                     const selectCond = document.getElementById('selectCondicionCompra');
                     if (selectCond && selectCond.value === 'Rechazo' && (!precioRechazoLote || parseFloat(precioRechazoLote) <= 0)) {
                         e.preventDefault();
@@ -261,11 +390,20 @@
                         return false;
                     }
 
+                    if (areteDuplicadoDetectado) {
+                        e.preventDefault();
+                        areteInput.classList.remove('input-shake-error');
+                        void areteInput.offsetWidth; // trigger reflow
+                        areteInput.classList.add('input-shake-error');
+                        areteInput.focus();
+                        return false;
+                    }
+
                     const areteVal = areteInput.value.trim();
                     const aretesExistentes = Array.from(document.querySelectorAll('.arete-en-tabla')).map(el => el.textContent.trim());
                     if (aretesExistentes.includes(areteVal)) {
                         e.preventDefault();
-                        alert('El arete [' + areteVal + '] ya está registrado en este mismo lote. Ingrese un arete único.');
+                        mostrarAlertaArete('El arete [' + areteVal + '] ya está registrado en este mismo lote. Ingrese un arete único.');
                         areteInput.focus();
                         return false;
                     }
@@ -308,4 +446,5 @@
     </script>
 
 </body>
+
 </html>

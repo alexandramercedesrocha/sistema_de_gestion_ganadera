@@ -21,6 +21,12 @@ public interface GanadoRepository extends JpaRepository<Ganado, String> {
     @Query("SELECT g FROM Ganado g WHERE g.lote.idLote = :idLote")
     List<Ganado> findByLoteIdLote(@Param("idLote") Integer idLote);
 
+    @Query("SELECT g FROM Ganado g WHERE REPLACE(g.arete, ' ', '') = :areteLimpio OR g.arete = :areteOriginal")
+    List<Ganado> buscarPorAreteFlexible(@Param("areteLimpio") String areteLimpio, @Param("areteOriginal") String areteOriginal);
+
+    @Query("SELECT COUNT(g) > 0 FROM Ganado g WHERE REPLACE(g.arete, ' ', '') = :areteLimpio OR g.arete = :areteOriginal")
+    boolean existeAreteEnBaseDatos(@Param("areteLimpio") String areteLimpio, @Param("areteOriginal") String areteOriginal);
+
     /**
      * Regla de Negocio: Animales activos en inventario.
      * Incluye todo el ganado comprado que NO tenga entrega asociada con dictamen 'Apto'

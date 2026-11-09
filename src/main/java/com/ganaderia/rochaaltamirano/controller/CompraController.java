@@ -106,14 +106,56 @@ public class CompraController {
         }
 
         if (loteService.existeAreteEnSistema(arete)) {
+            List<Ganado> existentes = loteService.buscarGanadoPorAreteFlexible(arete);
+            String detalleLote = "";
+            if (!existentes.isEmpty() && existentes.get(0).getLote() != null) {
+                detalleLote = " (Registrado en Lote #" + existentes.get(0).getLote().getIdLote();
+                if (existentes.get(0).getLote().getProveedor() != null) {
+                    detalleLote += " - " + existentes.get(0).getLote().getProveedor().getNombre();
+                }
+                detalleLote += ")";
+            }
             redirectAttributes.addFlashAttribute("mensajeError", 
-                "El arete [" + arete + "] ya se encuentra registrado en el sistema o en el inventario actual. Ingrese un arete único.");
+                "¡Atención! El arete [" + arete + "] ya se encuentra registrado en la base de datos" + detalleLote + ". No se permiten aretes duplicados en el sistema.");
             return "redirect:/compras/lote/" + id;
         }
 
         loteService.registrarAnimalEnLote(id, animal, null);
         redirectAttributes.addFlashAttribute("mensajeExito", "Animal con arete " + arete + " añadido exitosamente al lote #" + id);
         return "redirect:/compras/lote/" + id;
+    }
+
+    @GetMapping("/api/verificar-arete")
+    @ResponseBody
+    public java.util.Map<String, Object> verificarAreteEnBaseDatos(@RequestParam("arete") String arete) {
+        java.util.Map<String, Object> respuesta = new java.util.HashMap<>();
+        if (arete == null || arete.trim().isBlank()) {
+            respuesta.put("existe", false);
+            return respuesta;
+        }
+
+        List<Ganado> encontrados = loteService.buscarGanadoPorAreteFlexible(arete);
+        if (!encontrados.isEmpty()) {
+            Ganado g = encontrados.get(0);
+            respuesta.put("existe", true);
+            String info = "El arete [" + arete.trim() + "] ya existe en la base de datos";
+            if (g.getLote() != null) {
+                info += " (Lote #" + g.getLote().getIdLote();
+                if (g.getLote().getProveedor() != null) {
+                    info += " - " + g.getLote().getProveedor().getNombre();
+                }
+                info += ")";
+            }
+            if (g.getCondicionCompra() != null) {
+                info += " | Condición: " + g.getCondicionCompra();
+            }
+            respuesta.put("mensaje", info);
+            respuesta.put("loteId", g.getLote() != null ? g.getLote().getIdLote() : null);
+            return respuesta;
+        }
+
+        respuesta.put("existe", false);
+        return respuesta;
     }
 
     @PostMapping("/lote/{id}/actualizar-precio-rechazo")

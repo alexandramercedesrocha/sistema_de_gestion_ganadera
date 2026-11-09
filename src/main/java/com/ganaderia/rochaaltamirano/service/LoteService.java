@@ -44,7 +44,16 @@ public class LoteService {
     
     public boolean existeAreteEnSistema(String arete) {
         if (arete == null || arete.isBlank()) return false;
-        return ganadoRepository.existsById(arete.trim().toUpperCase());
+        String original = arete.trim().toUpperCase();
+        String limpio = original.replaceAll("\\s+", "");
+        return ganadoRepository.existeAreteEnBaseDatos(limpio, original);
+    }
+
+    public List<Ganado> buscarGanadoPorAreteFlexible(String arete) {
+        if (arete == null || arete.isBlank()) return List.of();
+        String original = arete.trim().toUpperCase();
+        String limpio = original.replaceAll("\\s+", "");
+        return ganadoRepository.buscarPorAreteFlexible(limpio, original);
     }
 
     public Optional<Lote> buscarPorId(Integer idLote) {
