@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Panel de Control')}"></head>
+
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -14,8 +16,10 @@
                 <h1 class="page-title"><i class="fa-solid fa-gauge-high"></i> Panel Ejecutivo Ganadero</h1>
             </div>
             <div class="header-buttons-wrap">
-                <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nuevo Lote</a>
-                <a th:href="@{/entregas/nueva}" class="btn btn-outline btn-outline-primary"><i class="fa-solid fa-industry"></i> Nueva Entrega</a>
+                <a th:href="@{/compras/nueva}" class="btn btn-accent"><i class="fa-solid fa-cart-plus"></i> Nuevo
+                    Lote</a>
+                <a th:href="@{/entregas/nueva}" class="btn btn-outline btn-outline-primary"><i
+                        class="fa-solid fa-industry"></i> Nueva Entrega</a>
             </div>
         </div>
 
@@ -23,23 +27,27 @@
         <div class="partner-grid">
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Wilber Rocha</span>
-                <div class="partner-amount" 
-                     th:classappend="${balance.cuotaWilberRocha >= 0} ? 'amount-positive' : 'amount-negative'"
-                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="partner-amount"
+                    th:classappend="${balance.cuotaWilberRocha >= 0} ? 'amount-positive' : 'amount-negative'"
+                    th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaWilberRocha, 1, 'COMMA', 2, 'POINT')}">C$
+                    0.00</div>
                 <p class="text-muted-xs">
                     <span th:if="${balance.cuotaWilberRocha >= 0}">Cuota de ganancia neta acumulada</span>
-                    <span th:if="${balance.cuotaWilberRocha < 0}" class="text-danger-bold">Inversión en curso pendiente de liquidación</span>
+                    <span th:if="${balance.cuotaWilberRocha < 0}" class="text-danger-bold">Inversión en curso pendiente
+                        de liquidación</span>
                 </p>
             </div>
 
             <div class="partner-card">
                 <span class="partner-name"><i class="fa-solid fa-user-tie"></i> Yader Altamirano</span>
-                <div class="partner-amount" 
-                     th:classappend="${balance.cuotaYaderAltamirano >= 0} ? 'amount-positive' : 'amount-negative'"
-                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
+                <div class="partner-amount"
+                    th:classappend="${balance.cuotaYaderAltamirano >= 0} ? 'amount-positive' : 'amount-negative'"
+                    th:text="'C$ ' + ${#numbers.formatDecimal(balance.cuotaYaderAltamirano, 1, 'COMMA', 2, 'POINT')}">C$
+                    0.00</div>
                 <p class="text-muted-xs">
                     <span th:if="${balance.cuotaYaderAltamirano >= 0}">Cuota de ganancia neta acumulada</span>
-                    <span th:if="${balance.cuotaYaderAltamirano < 0}" class="text-danger-bold">Inversión en curso pendiente de liquidación</span>
+                    <span th:if="${balance.cuotaYaderAltamirano < 0}" class="text-danger-bold">Inversión en curso
+                        pendiente de liquidación</span>
                 </p>
             </div>
         </div>
@@ -52,7 +60,9 @@
                     <i class="fa-solid fa-cow kpi-icon"></i>
                 </div>
                 <div class="kpi-value" th:text="${ganadoEnFinca} + ' Cabezas'">0 Cabezas</div>
-                <div class="kpi-subtext" th:text="'Peso est.: ' + ${#numbers.formatDecimal(balance.totalKilosEnFinca, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</div>
+                <div class="kpi-subtext"
+                    th:text="'Peso est.: ' + ${#numbers.formatDecimal(balance.totalKilosEnFinca, 1, 'COMMA', 1, 'POINT')} + ' kg'">
+                    0 kg</div>
             </div>
 
             <div class="kpi-card">
@@ -78,20 +88,22 @@
                     <span class="kpi-label">Utilidad Neta Total</span>
                     <i class="fa-solid fa-sack-dollar kpi-icon badge badge-success"></i>
                 </div>
-                <div class="kpi-value" 
-                     th:classappend="${balance.utilidadNeta >= 0} ? 'amount-positive' : 'amount-negative'"
-                     th:text="'C$ ' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</div>
-                <div class="kpi-subtext">Liquidaciones menos Egresos (MySQL)</div>
+                <div class="kpi-value"
+                    th:classappend="${balance.utilidadNeta >= 0} ? 'amount-positive' : 'amount-negative'"
+                    th:text="'C$ ' + ${#numbers.formatDecimal(balance.utilidadNeta, 1, 'COMMA', 2, 'POINT')}">C$ 0.00
+                </div>
+                <div class="kpi-subtext">Liquidaciones menos Egresos</div>
             </div>
         </div>
 
         <!-- RESÚMENES OPERATIVOS -->
         <div class="dashboard-grid-two">
-            
+
             <!-- Lotes de Compra Recientes -->
             <div class="table-card">
                 <div class="card-header">
-                    <h2 class="card-title-brand"><i class="fa-solid fa-boxes-stacked"></i> Lotes de Compra Recientes</h2>
+                    <h2 class="card-title-brand"><i class="fa-solid fa-boxes-stacked"></i> Lotes de Compra Recientes
+                    </h2>
                     <a th:href="@{/compras}" class="btn btn-outline btn-sm">Ver todos</a>
                 </div>
                 <div class="table-responsive">
@@ -108,15 +120,19 @@
                         <tbody>
                             <tr th:if="${#lists.isEmpty(ultimosLotes)}">
                                 <td colspan="5" class="empty-table-cell">
-                                    <i class="fa-solid fa-circle-info"></i> No hay lotes registrados en la base de datos.
+                                    <i class="fa-solid fa-circle-info"></i> No hay lotes registrados en la base de
+                                    datos.
                                 </td>
                             </tr>
                             <tr th:each="lote : ${ultimosLotes}">
                                 <td class="text-brand-bold" th:text="'LOTE-' + ${lote.idLote}">LOTE-1</td>
                                 <td th:text="${#temporals.format(lote.fechaCompra, 'dd/MM/yyyy')}">2026-10-01</td>
-                                <td th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">Proveedor</td>
+                                <td th:text="${lote.proveedor != null ? lote.proveedor.nombre : 'Sin proveedor'}">
+                                    Proveedor</td>
                                 <td><span class="badge badge-info" th:text="${lote.totalCabezas}">0</span></td>
-                                <td th:text="${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
+                                <td
+                                    th:text="${#numbers.formatDecimal(lote.totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">
+                                    0 kg</td>
                             </tr>
                         </tbody>
                     </table>
@@ -143,7 +159,8 @@
                         <tbody>
                             <tr th:if="${#lists.isEmpty(ultimasEntregas)}">
                                 <td colspan="5" class="empty-table-cell">
-                                    <i class="fa-solid fa-circle-info"></i> No hay entregas registradas en la base de datos.
+                                    <i class="fa-solid fa-circle-info"></i> No hay entregas registradas en la base de
+                                    datos.
                                 </td>
                             </tr>
                             <tr th:each="ent : ${ultimasEntregas}">
@@ -151,7 +168,9 @@
                                 <td th:text="${#temporals.format(ent.fechaEntrega, 'dd/MM/yyyy')}">2026-10-01</td>
                                 <td th:text="${ent.matadero != null ? ent.matadero.nombreMatadero : 'N/D'}">MACESA</td>
                                 <td><span class="badge badge-info" th:text="${ent.totalCabezas}">0</span></td>
-                                <td th:text="'C$ ' + ${#numbers.formatDecimal(ent.precioAcordado != null ? ent.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                                <td
+                                    th:text="'C$ ' + ${#numbers.formatDecimal(ent.precioAcordado != null ? ent.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">
+                                    C$ 0.00</td>
                             </tr>
                         </tbody>
                     </table>
@@ -162,7 +181,7 @@
 
         <!-- Traslados y Liquidaciones -->
         <div class="dashboard-grid-two mt-md">
-            
+
             <!-- Servicios de Transporte / Fletes -->
             <div class="table-card">
                 <div class="card-header">
@@ -183,21 +202,27 @@
                         <tbody>
                             <tr th:if="${#lists.isEmpty(ultimosViajes)}">
                                 <td colspan="5" class="empty-table-cell">
-                                    <i class="fa-solid fa-circle-info"></i> No hay viajes registrados en la base de datos.
+                                    <i class="fa-solid fa-circle-info"></i> No hay viajes registrados en la base de
+                                    datos.
                                 </td>
                             </tr>
                             <tr th:each="viaje : ${ultimosViajes}">
                                 <td class="text-brand-bold" th:text="'VIAJE-' + ${viaje.idViaje}">VIAJE-1</td>
-                                <td th:text="${viaje.conductor != null ? viaje.conductor.nombre : 'Sin chofer'}">Chofer</td>
+                                <td th:text="${viaje.conductor != null ? viaje.conductor.nombre : 'Sin chofer'}">Chofer
+                                </td>
                                 <td th:text="${viaje.camion != null ? viaje.camion.numPlaca : 'S/P'}">Placa</td>
                                 <td>
-                                    <span th:text="${viaje.ubicacionOrigen != null ? viaje.ubicacionOrigen.nombreLugar : 'Origen'}">Origen</span>
+                                    <span
+                                        th:text="${viaje.ubicacionOrigen != null ? viaje.ubicacionOrigen.nombreLugar : 'Origen'}">Origen</span>
                                     &rarr;
-                                    <span th:text="${viaje.ubicacionDestino != null ? viaje.ubicacionDestino.nombreLugar : 'Destino'}">Destino</span>
+                                    <span
+                                        th:text="${viaje.ubicacionDestino != null ? viaje.ubicacionDestino.nombreLugar : 'Destino'}">Destino</span>
                                 </td>
                                 <td>
-                                    <span th:if="${viaje.estadoPago == 'Pagado'}" class="badge badge-success"><i class="fa-solid fa-check"></i> Pagado</span>
-                                    <span th:if="${viaje.estadoPago != 'Pagado'}" class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>
+                                    <span th:if="${viaje.estadoPago == 'Pagado'}" class="badge badge-success"><i
+                                            class="fa-solid fa-check"></i> Pagado</span>
+                                    <span th:if="${viaje.estadoPago != 'Pagado'}" class="badge badge-warning"><i
+                                            class="fa-solid fa-clock"></i> Pendiente</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -208,7 +233,8 @@
             <!-- Liquidaciones de Mataderos -->
             <div class="table-card">
                 <div class="card-header">
-                    <h2 class="card-title-brand"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones Recientes Emitidas</h2>
+                    <h2 class="card-title-brand"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidaciones Recientes
+                        Emitidas</h2>
                     <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline btn-sm">Ver finanzas</a>
                 </div>
                 <div class="table-responsive">
@@ -224,14 +250,17 @@
                         <tbody>
                             <tr th:if="${#lists.isEmpty(ultimasLiquidaciones)}">
                                 <td colspan="4" class="empty-table-cell">
-                                    <i class="fa-solid fa-circle-info"></i> No hay liquidaciones registradas en la base de datos.
+                                    <i class="fa-solid fa-circle-info"></i> No hay liquidaciones registradas en la base
+                                    de datos.
                                 </td>
                             </tr>
                             <tr th:each="liq : ${ultimasLiquidaciones}">
                                 <td class="font-semibold" th:text="${liq.idNumComprobante}">LIQ-001</td>
                                 <td th:text="${liq.empresa}">MACESA</td>
                                 <td th:text="${#temporals.format(liq.fechaLiquidacion, 'dd/MM/yyyy')}">2026-10-10</td>
-                                <td class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(liq.monto, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</td>
+                                <td class="text-success-bold"
+                                    th:text="'C$ ' + ${#numbers.formatDecimal(liq.monto, 1, 'COMMA', 2, 'POINT')}">C$
+                                    0.00</td>
                             </tr>
                         </tbody>
                     </table>
@@ -246,4 +275,5 @@
 
     <script th:src="@{/js/main.js}"></script>
 </body>
+
 </html>

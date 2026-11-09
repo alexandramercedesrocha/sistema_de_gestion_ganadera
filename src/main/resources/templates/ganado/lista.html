@@ -18,33 +18,34 @@
             </div>
         </div>
 
-        <!-- BARRA DE FILTROS Y SELECTOR DE PROVEEDOR -->
+        <!-- BARRA DE FILTROS Y SELECTORES DE PROVEEDOR Y FECHA -->
         <div class="filter-bar-container">
             <div class="flex-wrap-gap">
-                <a th:href="@{/ganado(vista='activos', idProveedor=${idProveedorSeleccionado})}" 
+                <a th:href="@{/ganado(vista='activos', idProveedor=${idProveedorSeleccionado}, fecha=${fechaSeleccionada})}" 
                    th:classappend="${vistaSeleccionada == 'activos' ? 'btn-primary' : 'btn-outline'}" 
                    class="btn btn-sm"><i class="fa-solid fa-cow"></i> En Inventario Activo (Disponibles)</a>
 
-                <a th:href="@{/ganado(vista='en-finca', idProveedor=${idProveedorSeleccionado})}" 
+                <a th:href="@{/ganado(vista='en-finca', idProveedor=${idProveedorSeleccionado}, fecha=${fechaSeleccionada})}" 
                    th:classappend="${vistaSeleccionada == 'en-finca' ? 'btn-primary' : 'btn-outline'}" 
                    class="btn btn-sm"><i class="fa-solid fa-house-chimney"></i> Solo en Finca (Sin despachar)</a>
 
-                <a th:href="@{/ganado(vista='rechazos', idProveedor=${idProveedorSeleccionado})}" 
+                <a th:href="@{/ganado(vista='rechazos', idProveedor=${idProveedorSeleccionado}, fecha=${fechaSeleccionada})}" 
                    th:classappend="${vistaSeleccionada == 'rechazos' ? 'btn-filter-rechazos-active' : 'btn-outline'}" 
                    class="btn btn-sm text-danger-bold"><i class="fa-solid fa-triangle-exclamation"></i> Rechazos de Matadero</a>
 
-                <a th:href="@{/ganado(vista='vendidos', idProveedor=${idProveedorSeleccionado})}" 
+                <a th:href="@{/ganado(vista='vendidos', idProveedor=${idProveedorSeleccionado}, fecha=${fechaSeleccionada})}" 
                    th:classappend="${vistaSeleccionada == 'vendidos' ? 'btn-primary' : 'btn-outline'}" 
                    class="btn btn-sm"><i class="fa-solid fa-industry"></i> Vendidos / Aceptados en Canal</a>
 
-                <a th:href="@{/ganado(vista='todos', idProveedor=${idProveedorSeleccionado})}" 
+                <a th:href="@{/ganado(vista='todos', idProveedor=${idProveedorSeleccionado}, fecha=${fechaSeleccionada})}" 
                    th:classappend="${vistaSeleccionada == 'todos' ? 'btn-primary' : 'btn-outline'}" 
                    class="btn btn-sm"><i class="fa-solid fa-list"></i> Historial Completo</a>
             </div>
 
-            <!-- FILTRO POR PROVEEDOR EN INVENTARIO ACTIVO -->
-            <form th:action="@{/ganado}" method="get" class="flex-center gap-xs">
+            <!-- FILTRO COMBINADO POR PROVEEDOR Y FECHA EN TODAS LAS OPCIONES DEL INVENTARIO -->
+            <form th:action="@{/ganado}" method="get" class="flex-center gap-xs flex-wrap">
                 <input type="hidden" name="vista" th:value="${vistaSeleccionada}">
+                
                 <label for="idProveedor" class="text-sm font-semibold text-muted"><i class="fa-solid fa-filter"></i> Proveedor:</label>
                 <select name="idProveedor" id="idProveedor" class="filter-provider-select" onchange="this.form.submit()">
                     <option value="">-- Todos los Proveedores --</option>
@@ -53,8 +54,13 @@
                             th:text="${p.nombre}" 
                             th:selected="${p.idProveedor == idProveedorSeleccionado}">Don Chepe</option>
                 </select>
-                <a th:if="${idProveedorSeleccionado != null}" th:href="@{/ganado(vista=${vistaSeleccionada})}" 
-                   class="btn btn-sm btn-outline" title="Quitar filtro de proveedor">✕</a>
+
+                <label for="fecha" class="text-sm font-semibold text-muted ml-sm"><i class="fa-solid fa-calendar"></i> Fecha:</label>
+                <input type="date" name="fecha" id="fecha" class="filter-provider-select" th:value="${fechaSeleccionada}" onchange="this.form.submit()">
+
+                <a th:if="${idProveedorSeleccionado != null or fechaSeleccionada != null}" 
+                   th:href="@{/ganado(vista=${vistaSeleccionada})}" 
+                   class="btn btn-sm btn-outline" title="Quitar todos los filtros">✕ Limpiar</a>
             </form>
         </div>
 
@@ -63,7 +69,8 @@
             <div class="card-header">
                 <div>
                     <strong class="text-brand" th:text="${filtroActivo}">Ganado Activo en Inventario</strong>
-                    <span th:if="${idProveedorSeleccionado != null}" class="badge badge-info">Filtrado por proveedor</span>
+                    <span th:if="${idProveedorSeleccionado != null}" class="badge badge-info">Proveedor filtrado</span>
+                    <span th:if="${fechaSeleccionada != null}" class="badge badge-info" th:text="'Fecha: ' + ${#temporals.format(fechaSeleccionada, 'dd/MM/yyyy')}">Fecha filtrada</span>
                 </div>
                 <div class="text-muted-sm">
                     Cabezas en vista: <strong th:text="${totalCabezas}">0</strong> | 
@@ -96,7 +103,11 @@
                                 <span th:if="${g.lote == null or g.lote.proveedor == null}" class="text-muted">Sin proveedor</span>
                             </td>
                             <td>
-                                <span th:if="${g.lote != null}" class="badge badge-info" th:text="'LOTE-' + ${g.lote.idLote}">LOTE-1</span>
+                                <span th:if="${g.lote != null}">
+                                    <span class="badge badge-info" th:text="'LOTE-' + ${g.lote.idLote}">LOTE-1</span>
+                                    <small th:if="${g.lote.fechaCompra != null}" class="text-muted-xs d-block" 
+                                           th:text="${#temporals.format(g.lote.fechaCompra, 'dd/MM/yyyy')}">01/01/2026</small>
+                                </span>
                                 <span th:if="${g.lote == null}" class="text-muted">&mdash;</span>
                             </td>
                             <td>

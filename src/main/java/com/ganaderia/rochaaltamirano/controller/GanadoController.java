@@ -32,6 +32,7 @@ public class GanadoController {
     @GetMapping
     public String listarGanado(@RequestParam(name = "vista", required = false, defaultValue = "activos") String vista,
                                @RequestParam(name = "idProveedor", required = false) Integer idProveedor,
+                               @RequestParam(name = "fecha", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fecha,
                                Model model) {
         List<Ganado> inventario;
 
@@ -70,11 +71,20 @@ public class GanadoController {
             }
         }
 
+        // Filtro por Proveedor en todas las opciones de inventario
         if (idProveedor != null && idProveedor > 0) {
             inventario = inventario.stream()
                     .filter(g -> g.getLote() != null && g.getLote().getProveedor() != null && idProveedor.equals(g.getLote().getProveedor().getIdProveedor()))
                     .toList();
             model.addAttribute("idProveedorSeleccionado", idProveedor);
+        }
+
+        // Filtro por Fecha de compra en todas las opciones de inventario
+        if (fecha != null) {
+            inventario = inventario.stream()
+                    .filter(g -> g.getLote() != null && fecha.equals(g.getLote().getFechaCompra()))
+                    .toList();
+            model.addAttribute("fechaSeleccionada", fecha);
         }
 
         model.addAttribute("vistaSeleccionada", vista);
