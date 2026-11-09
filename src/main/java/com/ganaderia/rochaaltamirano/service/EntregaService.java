@@ -201,13 +201,19 @@ public class EntregaService {
 
     @Transactional
     public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes) {
+        asociarGanadoAEntrega(idEntrega, aretes, null);
+    }
+
+    @Transactional
+    public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes, java.util.Map<String, BigDecimal> preciosRechazo) {
         if (aretes == null || aretes.isEmpty()) return;
         Entrega entrega = entregaRepository.findById(idEntrega)
                 .orElseThrow(() -> new IllegalArgumentException("Entrega no encontrada: " + idEntrega));
 
         for (String arete : aretes) {
             if (arete == null || arete.isBlank()) continue;
-            Optional<Ganado> optGanado = ganadoRepository.findById(arete.trim().toUpperCase());
+            String areteLimpio = arete.trim().toUpperCase();
+            Optional<Ganado> optGanado = ganadoRepository.findById(areteLimpio);
             if (optGanado.isPresent()) {
                 Ganado ganado = optGanado.get();
                 ganado.setCategoria("Apto");
@@ -219,6 +225,9 @@ public class EntregaService {
                 detalle.setGanado(ganado);
                 detalle.setPesoMataderoKg(ganado.getPesoKg());
                 detalle.setEstadoDictamen("Apto");
+                if (preciosRechazo != null && preciosRechazo.containsKey(areteLimpio)) {
+                    detalle.setPrecioRechazo(preciosRechazo.get(areteLimpio));
+                }
                 detalleEntregaRepository.save(detalle);
             }
         }

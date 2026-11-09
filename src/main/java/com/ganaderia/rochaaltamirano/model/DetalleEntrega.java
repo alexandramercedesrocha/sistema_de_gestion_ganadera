@@ -24,6 +24,9 @@ public class DetalleEntrega {
     @Column(name = "estado_dictamen", length = 50)
     private String estadoDictamen; // ej. Apto, Rechazado
 
+    @Column(name = "precio_rechazo", precision = 10, scale = 2)
+    private BigDecimal precioRechazo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "arete")
     private Ganado ganado;
@@ -68,6 +71,14 @@ public class DetalleEntrega {
 
     public void setEstadoDictamen(String estadoDictamen) {
         this.estadoDictamen = estadoDictamen;
+    }
+
+    public BigDecimal getPrecioRechazo() {
+        return precioRechazo;
+    }
+
+    public void setPrecioRechazo(BigDecimal precioRechazo) {
+        this.precioRechazo = precioRechazo;
     }
 
     public Ganado getGanado() {

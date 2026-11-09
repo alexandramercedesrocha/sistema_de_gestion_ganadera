@@ -70,13 +70,37 @@ public class EntregaController {
                                  @RequestParam(name = "costoFlete", required = false) BigDecimal costoFlete,
                                  @RequestParam(name = "estadoPagoViaje", required = false, defaultValue = "Pendiente") String estadoPagoViaje,
                                  @RequestParam(name = "aretesSeleccionados", required = false) List<String> aretesSeleccionados,
+                                 @RequestParam java.util.Map<String, String> allParams,
                                  RedirectAttributes redirectAttributes) {
+        // El precio de rechazo general se elimina, ahora se asigna de forma individual opcional por res
+        entrega.setPrecioRechazo(null);
+
         Entrega guardada = entregaService.registrarEntregaConViaje(
                 entrega, idMatadero, cedulaConductor, numPlaca,
                 idUbicacionOrigen, idUbicacionDestino, costoFlete, estadoPagoViaje);
 
         if (aretesSeleccionados != null && !aretesSeleccionados.isEmpty()) {
-            entregaService.asociarGanadoAEntrega(guardada.getIdEntrega(), aretesSeleccionados);
+            java.util.Map<String, BigDecimal> preciosRechazoPorArete = new java.util.HashMap<>();
+            for (String arete : aretesSeleccionados) {
+                if (arete == null || arete.isBlank()) continue;
+                String areteLimpio = arete.trim().toUpperCase();
+                String keyDirect = "precioRechazo_" + arete;
+                String keyUnderscore = "precioRechazo_" + arete.replace(" ", "_");
+                String val = allParams.get(keyDirect);
+                if (val == null || val.isBlank()) {
+                    val = allParams.get(keyUnderscore);
+                }
+                if (val != null && !val.isBlank()) {
+                    try {
+                        BigDecimal pRech = new BigDecimal(val.trim());
+                        if (pRech.compareTo(BigDecimal.ZERO) >= 0) {
+                            preciosRechazoPorArete.put(areteLimpio, pRech);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+
+            entregaService.asociarGanadoAEntrega(guardada.getIdEntrega(), aretesSeleccionados, preciosRechazoPorArete);
             redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con " + aretesSeleccionados.size() + " reses cargadas al despacho y viaje logístico asignado.");
         } else {
             redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con viaje logístico asignado exitosamente.");

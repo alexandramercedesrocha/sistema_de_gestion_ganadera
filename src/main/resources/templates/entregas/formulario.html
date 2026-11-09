@@ -114,21 +114,13 @@
                     </div>
                 </div>
 
-                <div class="grid-two-cols mb-xl">
-                    <div class="form-group">
+                <div class="mb-xl">
+                    <div class="form-group max-w-500">
                         <label class="form-label-primary">
                             <i class="fa-solid fa-coins"></i> Precio Acordado (C$ por kg en pie) *:
                         </label>
                         <input type="number" step="0.01" min="0.01" th:field="*{precioAcordado}" class="form-control form-input-control" placeholder="Ej. 125.00" required>
-                        <small class="text-muted-xs">Precio pactado para el animal vivo completo (en pie)</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label-primary">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo (C$ por kg en canal):
-                        </label>
-                        <input type="number" step="0.01" min="0.01" th:field="*{precioRechazo}" class="form-control form-input-control" placeholder="Ej. 95.00">
-                        <small class="text-muted-xs">Precio pactado únicamente para carne de rechazo en canal</small>
+                        <small class="text-muted-xs">Precio general pactado con la planta para el animal en pie (vivo)</small>
                     </div>
                 </div>
 
@@ -137,7 +129,7 @@
                     <div class="card-header flex-between flex-wrap gap-sm">
                         <div>
                             <h3 class="section-subtitle mb-xs"><i class="fa-solid fa-cow"></i> Ganado en Inventario Activo (En Finca)</h3>
-                            <p class="text-muted-xs">Marque las reses que viajan en este despacho (se enviarán como Aptas sin requerir peso de canal previo)</p>
+                            <p class="text-muted-xs">Marque las reses que viajan en este despacho y asigne precio de rechazo individual si aplica</p>
                         </div>
                         <div class="flex-center gap-sm">
                             <button type="button" class="btn btn-sm btn-outline" onclick="toggleSeleccionarTodos(true)">Marcar Todos</button>
@@ -158,11 +150,12 @@
                                     <th>Color</th>
                                     <th>Paletas</th>
                                     <th>Peso Entrada</th>
+                                    <th>Precio Rechazo (C$/kg)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(ganadosDisponibles)}">
-                                    <td colspan="7" class="empty-table-cell">
+                                    <td colspan="8" class="empty-table-cell">
                                         No hay ganado activo en finca en este momento. Puede registrar compras en el módulo de Lotes.
                                     </td>
                                 </tr>
@@ -182,6 +175,13 @@
                                     <td th:text="${g.paletas}">2 Paletas</td>
                                     <td>
                                         <strong th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" min="0" 
+                                               th:name="'precioRechazo_' + ${#strings.replace(g.arete, ' ', '_')}" 
+                                               class="form-control form-input-control" 
+                                               style="max-width: 150px; padding: 0.35rem 0.6rem; font-size: 0.88rem;"
+                                               placeholder="Opcional C$/kg">
                                     </td>
                                 </tr>
                             </tbody>

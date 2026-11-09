@@ -137,7 +137,7 @@ public class Entrega {
             for (DetalleEntrega d : detalles) {
                 BigDecimal peso = d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : BigDecimal.ZERO;
                 if ("Rechazado".equalsIgnoreCase(d.getEstadoDictamen())) {
-                    BigDecimal pRech = precioRechazo != null ? precioRechazo : BigDecimal.ZERO;
+                    BigDecimal pRech = d.getPrecioRechazo() != null ? d.getPrecioRechazo() : (precioRechazo != null ? precioRechazo : BigDecimal.ZERO);
                     total = total.add(peso.multiply(pRech));
                 } else {
                     BigDecimal pApto = precioAcordado != null ? precioAcordado : BigDecimal.ZERO;
