@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Entregas a Matadero')}"></head>
+
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -10,12 +12,16 @@
 
         <div class="header-actions">
             <div>
-                <h1 class="page-title"><i class="fa-solid fa-industry"></i> Control de Entregas y Despacho a Matadero</h1>
-                <p class="page-subtitle">Trazabilidad de pesaje en báscula de matadero, dictámenes sanitarios de canal y liquidación</p>
+                <h1 class="page-title"><i class="fa-solid fa-industry"></i> Control de Entregas y Despacho a Matadero
+                </h1>
+                <p class="page-subtitle">Trazabilidad de pesaje en báscula de matadero, dictámenes sanitarios de canal y
+                    liquidación</p>
             </div>
             <div class="flex-center gap-sm">
-                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
-                <a th:href="@{/entregas/nueva}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nueva Entrega a Matadero</a>
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i
+                        class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
+                <a th:href="@{/entregas/nueva}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nueva Entrega a
+                    Matadero</a>
             </div>
         </div>
 
@@ -35,7 +41,8 @@
                     <span class="kpi-label">Kilos Totales en Báscula</span>
                     <i class="fa-solid fa-weight-hanging kpi-icon badge badge-success"></i>
                 </div>
-                <div class="kpi-value" th:text="${#numbers.formatDecimal(totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">0.0 kg</div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(totalKilos, 1, 'COMMA', 1, 'POINT')} + ' kg'">
+                    0.0 kg</div>
                 <div class="kpi-subtext">Peso oficial registrado en mataderos</div>
             </div>
 
@@ -79,21 +86,35 @@
                             <td class="text-brand-bold" th:text="'ENT-' + ${entrega.idEntrega}">ENT-1</td>
                             <td th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</td>
                             <td>
-                                <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'No especificado'}">MACESA</strong>
+                                <strong
+                                    th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'No especificado'}">MACESA</strong>
                             </td>
                             <td>
-                                <span th:if="${entrega.viaje != null}">
-                                    <span class="badge badge-info"><i class="fa-solid fa-truck"></i> VIAJE-#<span th:text="${entrega.viaje.idViaje}">1</span></span>
-                                    <small class="text-muted-xs" th:if="${entrega.viaje.conductor != null}" th:text="' | ' + ${entrega.viaje.conductor.nombre}"></small>
-                                </span>
-                                <span th:if="${entrega.viaje == null}" class="text-muted">&mdash;</span>
+                                <div th:if="${!#lists.isEmpty(entrega.viajes)}">
+                                    <span th:if="${#lists.size(entrega.viajes) == 1}" class="badge badge-info">
+                                        <i class="fa-solid fa-truck"></i>
+                                        <span th:if="${entrega.viajes[0].camion != null}"
+                                            th:text="${entrega.viajes[0].camion.numPlaca}">Placa</span>
+                                        <small th:if="${entrega.viajes[0].conductor != null}"
+                                            th:text="' (' + ${entrega.viajes[0].conductor.nombre} + ')'"></small>
+                                    </span>
+                                    <span th:if="${#lists.size(entrega.viajes) > 1}" class="badge badge-primary">
+                                        <i class="fa-solid fa-truck-moving"></i> <span
+                                            th:text="${#lists.size(entrega.viajes)} + ' Camiones'">2 Camiones</span>
+                                    </span>
+                                </div>
+                                <span th:if="${#lists.isEmpty(entrega.viajes)}" class="text-muted">&mdash;</span>
                             </td>
                             <td>
-                                <span class="badge badge-info" th:text="${entrega.totalCabezas} + ' cabezas'">0 cabezas</span>
+                                <span class="badge badge-info" th:text="${entrega.totalCabezas} + ' cabezas'">0
+                                    cabezas</span>
                             </td>
-                            <td th:text="${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0 kg</td>
+                            <td th:text="${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0
+                                kg</td>
                             <td>
-                                <strong class="text-success-bold" th:text="'C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</strong>
+                                <strong class="text-success-bold"
+                                    th:text="'C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$
+                                    0.00</strong>
                             </td>
                             <td class="text-center">
                                 <a th:href="@{'/entregas/' + ${entrega.idEntrega}}" class="btn btn-outline btn-sm">
@@ -111,4 +132,5 @@
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
 </body>
+
 </html>

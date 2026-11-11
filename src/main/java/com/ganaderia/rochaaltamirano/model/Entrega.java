@@ -1,6 +1,7 @@
 package com.ganaderia.rochaaltamirano.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,9 +23,11 @@ public class Entrega {
     @Column(name = "fecha_entrega", nullable = false)
     private LocalDate fechaEntrega;
 
+    @DecimalMin(value = "0.01", message = "El precio acordado debe ser mayor a cero")
     @Column(name = "precio_acordado", precision = 10, scale = 2)
     private BigDecimal precioAcordado;
 
+    @DecimalMin(value = "0.0", message = "El precio de rechazo no puede ser negativo")
     @Column(name = "precio_rechazo", precision = 10, scale = 2)
     private BigDecimal precioRechazo;
 
@@ -32,9 +35,8 @@ public class Entrega {
     @JoinColumn(name = "id_matadero")
     private Matadero matadero;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_viaje", nullable = true)
-    private Viaje viaje;
+    @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Viaje> viajes = new ArrayList<>();
 
     @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleEntrega> detalles = new ArrayList<>();
@@ -71,6 +73,9 @@ public class Entrega {
     }
 
     public void setPrecioAcordado(BigDecimal precioAcordado) {
+        if (precioAcordado != null && precioAcordado.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio acordado no puede ser negativo");
+        }
         this.precioAcordado = precioAcordado;
     }
 
@@ -79,6 +84,9 @@ public class Entrega {
     }
 
     public void setPrecioRechazo(BigDecimal precioRechazo) {
+        if (precioRechazo != null && precioRechazo.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de rechazo no puede ser negativo");
+        }
         this.precioRechazo = precioRechazo;
     }
 
@@ -90,12 +98,33 @@ public class Entrega {
         this.matadero = matadero;
     }
 
+    public List<Viaje> getViajes() {
+        return viajes;
+    }
+
+    public void setViajes(List<Viaje> viajes) {
+        this.viajes = viajes;
+    }
+
+    // Compatibilidad para vistas o llamadas a getViaje()
     public Viaje getViaje() {
-        return viaje;
+        return (viajes != null && !viajes.isEmpty()) ? viajes.get(0) : null;
     }
 
     public void setViaje(Viaje viaje) {
-        this.viaje = viaje;
+        if (this.viajes == null) {
+            this.viajes = new ArrayList<>();
+        }
+        if (viaje != null) {
+            viaje.setEntrega(this);
+            if (!this.viajes.contains(viaje)) {
+                this.viajes.add(viaje);
+            }
+        }
+    }
+
+    public int getTotalViajes() {
+        return viajes != null ? viajes.size() : 0;
     }
 
     public List<DetalleEntrega> getDetalles() {
@@ -120,7 +149,7 @@ public class Entrega {
                 return BigDecimal.ZERO;
             }
             return detalles.stream()
-                    .map(DetalleEntrega::getPesoMataderoKg)
+                    .map(d -> d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : (d.getGanado() != null ? d.getGanado().getPesoKg() : BigDecimal.ZERO))
                     .filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } catch (Exception e) {
@@ -135,7 +164,7 @@ public class Entrega {
             }
             BigDecimal total = BigDecimal.ZERO;
             for (DetalleEntrega d : detalles) {
-                BigDecimal peso = d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : BigDecimal.ZERO;
+                BigDecimal peso = d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : (d.getGanado() != null && d.getGanado().getPesoKg() != null ? d.getGanado().getPesoKg() : BigDecimal.ZERO);
                 if ("Rechazado".equalsIgnoreCase(d.getEstadoDictamen())) {
                     BigDecimal pRech = d.getPrecioRechazo() != null ? d.getPrecioRechazo() : (precioRechazo != null ? precioRechazo : BigDecimal.ZERO);
                     total = total.add(peso.multiply(pRech));

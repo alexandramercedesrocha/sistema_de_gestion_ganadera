@@ -48,7 +48,32 @@ public class FinanzasService {
 
     @Transactional
     public Liquidacion registrarLiquidacion(Liquidacion liquidacion) {
+        if (liquidacion.getIdNumComprobante() == null || !liquidacion.getIdNumComprobante().matches("^[0-9]{9,15}$")) {
+            throw new IllegalArgumentException("El número de comprobante debe contener únicamente entre 9 y 15 dígitos numéricos");
+        }
+        if (liquidacion.getMonto() != null && liquidacion.getMonto().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El monto liquidado no puede ser negativo");
+        }
+        if (liquidacion.getEntrega() != null && liquidacion.getEntrega().getIdEntrega() != null) {
+            Integer idEnt = liquidacion.getEntrega().getIdEntrega();
+            if (liquidacionRepository.existsByEntregaIdEntrega(idEnt)) {
+                throw new IllegalStateException("La entrega #" + idEnt + " ya cuenta con una liquidación registrada.");
+            }
+        }
         return liquidacionRepository.save(liquidacion);
+    }
+
+    public boolean existeLiquidacionParaEntrega(Integer idEntrega) {
+        if (idEntrega == null) return false;
+        return liquidacionRepository.existsByEntregaIdEntrega(idEntrega);
+    }
+
+    public java.util.Set<Integer> obtenerIdsEntregasLiquidadas() {
+        return liquidacionRepository.findAll().stream()
+                .map(Liquidacion::getEntrega)
+                .filter(java.util.Objects::nonNull)
+                .map(com.ganaderia.rochaaltamirano.model.Entrega::getIdEntrega)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     public BigDecimal calcularTotalIngresosLiquidaciones() {
@@ -64,6 +89,9 @@ public class FinanzasService {
 
     @Transactional
     public Gasto registrarGasto(Gasto gasto) {
+        if (gasto.getMonto() != null && gasto.getMonto().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El monto del gasto no puede ser negativo");
+        }
         return gastoRepository.save(gasto);
     }
 

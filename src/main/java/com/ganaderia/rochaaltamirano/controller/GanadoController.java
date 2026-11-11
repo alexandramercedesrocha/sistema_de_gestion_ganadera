@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -109,6 +110,10 @@ public class GanadoController {
     public String guardarGanado(@ModelAttribute("ganado") Ganado ganado,
                                 @RequestParam(name = "idLote", required = false) Integer idLote,
                                 RedirectAttributes redirectAttributes) {
+        if (ganado.getPesoKg() == null || ganado.getPesoKg().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El peso de la res debe ser un número positivo mayor que cero.");
+            return "redirect:/ganado/nuevo";
+        }
         if (idLote != null) {
             loteService.buscarPorId(idLote).ifPresent(ganado::setLote);
         }
@@ -133,6 +138,14 @@ public class GanadoController {
 
     @PostMapping("/guardar-rechazo")
     public String guardarRechazo(@ModelAttribute("ganadoRechazo") GanadoRechazo rechazo, RedirectAttributes redirectAttributes) {
+        if (rechazo.getPesoEntradaKg() == null || rechazo.getPesoEntradaKg().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El peso de entrada debe ser un número positivo mayor que cero.");
+            return "redirect:/ganado/nuevo-rechazo";
+        }
+        if (rechazo.getPesoMatadero() != null && rechazo.getPesoMatadero().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El peso de báscula de matadero debe ser un número positivo mayor que cero.");
+            return "redirect:/ganado/nuevo-rechazo";
+        }
         ganadoService.registrarRechazo(rechazo);
         redirectAttributes.addFlashAttribute("mensajeExito", "Registro de ganado de rechazo " + rechazo.getArete() + " guardado con su dictamen.");
         return "redirect:/ganado/rechazos";

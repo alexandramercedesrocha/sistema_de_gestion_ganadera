@@ -73,14 +73,31 @@
                     </div>
                 </div>
 
-                <div class="form-group mb-xl">
-                    <label class="form-label-primary">
-                        <i class="fa-solid fa-clock"></i> Estado de Pago del Flete:
-                    </label>
-                    <select th:field="*{estadoPago}"class="form-control form-input-control">
-                        <option value="Pendiente">Pendiente de Pago</option>
-                        <option value="Pagado">Pagado</option>
-                    </select>
+                <div class="grid-two-cols mb-xl">
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-clock"></i> Estado de Pago del Flete:
+                        </label>
+                        <select th:field="*{estadoPago}" class="form-control form-input-control">
+                            <option value="Pendiente">Pendiente de Pago</option>
+                            <option value="Pagado">Pagado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label-primary">
+                            <i class="fa-solid fa-truck-ramp-box"></i> Vincular a Entrega (Opcional):
+                        </label>
+                        <select name="idEntrega" class="form-control form-input-control">
+                            <option value="">-- Viaje Independiente / Sin Entrega --</option>
+                            <option th:each="ent : ${entregas}" 
+                                    th:value="${ent.idEntrega}" 
+                                    th:text="'Entrega #' + ${ent.idEntrega} + ' - ' + (${ent.matadero != null} ? ${ent.matadero.nombreMatadero} : 'Matadero') + ' (' + ${#temporals.format(ent.fechaEntrega, 'dd/MM/yyyy')} + ')'">
+                                Entrega #1 - MACESA (01/01/2026)
+                            </option>
+                        </select>
+                        <small class="text-muted-xs">Si el traslado es un despacho a matadero, puede asociarlo aquí</small>
+                    </div>
                 </div>
 
                 <div class="form-footer-actions">

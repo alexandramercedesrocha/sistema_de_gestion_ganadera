@@ -12,6 +12,8 @@ public interface LiquidacionRepository extends JpaRepository<Liquidacion, String
 
     List<Liquidacion> findByMataderoIdMatadero(Integer idMatadero);
     List<Liquidacion> findByArqueoIdArqueo(Integer idArqueo);
+    boolean existsByEntregaIdEntrega(Integer idEntrega);
+    Optional<Liquidacion> findByEntregaIdEntrega(Integer idEntrega);
 
     default List<Liquidacion> listarTodas() {
         return findAll();

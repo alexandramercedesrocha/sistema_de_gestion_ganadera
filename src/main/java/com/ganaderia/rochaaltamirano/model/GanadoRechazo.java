@@ -1,5 +1,6 @@
 package com.ganaderia.rochaaltamirano.model;
 
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -18,6 +19,7 @@ public class GanadoRechazo extends Ganado {
     private LocalDate fechaRechazo;
 
     // Peso oficial registrado en la báscula del matadero al momento del rechazo
+    @DecimalMin(value = "0.01", message = "El peso del matadero debe ser mayor a cero")
     private BigDecimal pesoMatadero;
 
     public GanadoRechazo() {
@@ -56,6 +58,9 @@ public class GanadoRechazo extends Ganado {
     }
 
     public void setPesoMatadero(BigDecimal pesoMatadero) {
+        if (pesoMatadero != null && pesoMatadero.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El peso de matadero no puede ser negativo");
+        }
         this.pesoMatadero = pesoMatadero;
     }
 

@@ -9,14 +9,17 @@ echo.
 set MYSQL_BIN=C:\xampp\mysql\bin\mysql.exe
 
 if not exist "%MYSQL_BIN%" (
-    where mysql >nul 2>nul
-    if %errorlevel% equ 0 (
-        set MYSQL_BIN=mysql
+    if exist "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" (
+        set "MYSQL_BIN=C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
     ) else (
-        echo [ERROR] No se encontro mysql.exe en C:\xampp\mysql\bin ni en el PATH.
-        echo Asegurese de que XAMPP este instalado en C:\xampp.
-        pause
-        exit /b 1
+        where mysql >nul 2>nul
+        if %errorlevel% equ 0 (
+            set MYSQL_BIN=mysql
+        ) else (
+            echo [ERROR] No se encontro mysql.exe en C:\xampp\mysql\bin, ni en Program Files\MySQL, ni en el PATH.
+            pause
+            exit /b 1
+        )
     )
 )
 

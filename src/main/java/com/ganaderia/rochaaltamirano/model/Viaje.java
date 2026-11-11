@@ -38,6 +38,10 @@ public class Viaje {
     @JoinColumn(name = "num_placa")
     private Camion camion;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_entrega", nullable = true)
+    private Entrega entrega;
+
     public Viaje() {
     }
 
@@ -107,6 +111,14 @@ public class Viaje {
 
     public void setCamion(Camion camion) {
         this.camion = camion;
+    }
+
+    public Entrega getEntrega() {
+        return entrega;
+    }
+
+    public void setEntrega(Entrega entrega) {
+        this.entrega = entrega;
     }
 }
 

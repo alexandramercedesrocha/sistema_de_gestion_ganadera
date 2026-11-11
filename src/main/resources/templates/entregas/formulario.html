@@ -42,74 +42,90 @@
                     </div>
                 </div>
 
-                <!-- CONFORMACIÓN DINÁMICA DEL VIAJE LOGÍSTICO (EER: VIAJE -> CONDUCTOR, CAMIÓN, ORIGEN, FLETE) -->
-                <div class="logistica-card">
-                    <div class="mb-md">
-                        <h3 class="section-subtitle mb-xs">
-                            <i class="fa-solid fa-truck"></i> Conformación del Viaje de Despacho (Transporte)
-                        </h3>
-                        <p class="text-muted-xs">
-                            Cada entrega conforma un viaje logístico específico asociando chofer, camión, origen y flete operativo.
-                        </p>
+                <!-- CONFORMACIÓN DE VIAJES LOGÍSTICOS (1 O MÁS CAMIONES POR ENTREGA) -->
+                <div class="mb-lg">
+                    <div class="flex-between flex-wrap gap-xs mb-sm">
+                        <div>
+                            <h3 class="section-subtitle mb-xs">
+                                <i class="fa-solid fa-truck-moving"></i> Logística de Despacho (Transporte y Camiones)
+                            </h3>
+                            <p class="text-muted-xs">
+                                Toda entrega requiere como mínimo un viaje con camión y chofer. Si la entrega se divide en varios camiones, presione <strong>+ Agregar otro Camión / Viaje</strong>.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-brand" onclick="agregarViaje()">
+                            <i class="fa-solid fa-plus-circle"></i> + Agregar otro Camión / Viaje
+                        </button>
                     </div>
 
-                    <div class="grid-three-cols mb-md">
-                        <div class="form-group">
-                            <label class="form-label-primary">
-                                <i class="fa-solid fa-id-card"></i> Conductor / Chofer *:
-                            </label>
-                            <select name="cedulaConductor" class="form-control form-input-control" required>
-                                <option value="" disabled selected>-- Seleccione el chofer --</option>
-                                <option th:each="c : ${conductores}" 
-                                        th:value="${c.cedula}" 
-                                        th:text="${c.nombre} + ' (Céd: ' + ${c.cedula} + ')'">Marvin Rivera</option>
-                            </select>
-                        </div>
+                    <div id="contenedorViajes" class="flex-col gap-md">
+                        <!-- VIAJE #1 (OBLIGATORIO) -->
+                        <div class="logistica-card viaje-item" data-index="1">
+                            <div class="flex-between flex-wrap gap-xs mb-sm">
+                                <strong class="text-brand font-semibold titulo-viaje">
+                                    <i class="fa-solid fa-truck"></i> Camión / Viaje #1 <span class="badge badge-info ml-xs">Principal</span>
+                                </strong>
+                            </div>
 
-                        <div class="form-group">
-                            <label class="form-label-primary">
-                                <i class="fa-solid fa-truck-moving"></i> Camión de Carga *:
-                            </label>
-                            <select name="numPlaca" class="form-control form-input-control" required>
-                                <option value="" disabled selected>-- Seleccione el camión --</option>
-                                <option th:each="cam : ${camiones}" 
-                                        th:value="${cam.numPlaca}" 
-                                        th:text="'Placa: ' + ${cam.numPlaca}">Placa: M 234-567</option>
-                            </select>
-                        </div>
+                            <div class="grid-three-cols mb-md">
+                                <div class="form-group">
+                                    <label class="form-label-primary">
+                                        <i class="fa-solid fa-id-card"></i> Conductor / Chofer *:
+                                    </label>
+                                    <select name="cedulaConductor" class="form-control form-input-control" required>
+                                        <option value="" disabled selected>-- Seleccione el chofer --</option>
+                                        <option th:each="c : ${conductores}" 
+                                                th:value="${c.cedula}" 
+                                                th:text="${c.nombre} + ' (Céd: ' + ${c.cedula} + ')'">Marvin Rivera</option>
+                                    </select>
+                                </div>
 
-                        <div class="form-group">
-                            <label class="form-label-primary">
-                                <i class="fa-solid fa-map-pin"></i> Ubicación de Origen (Embarque):
-                            </label>
-                            <select name="idUbicacionOrigen" class="form-control form-input-control">
-                                <option value="">-- Seleccione Finca o Lugar de Origen --</option>
-                                <option th:each="ubi : ${ubicaciones}" 
-                                        th:value="${ubi.idUbicacion}" 
-                                        th:text="${ubi.nombreLugar} + (${ubi.tipoLugar != null} ? ' (' + ${ubi.tipoLugar} + ')' : '')">Finca El Carmen</option>
-                            </select>
-                            <small class="text-muted-xs">Lugar de partida del ganado</small>
-                        </div>
-                    </div>
+                                <div class="form-group">
+                                    <label class="form-label-primary">
+                                        <i class="fa-solid fa-truck-moving"></i> Camión de Carga *:
+                                    </label>
+                                    <select name="numPlaca" class="form-control form-input-control" required>
+                                        <option value="" disabled selected>-- Seleccione el camión --</option>
+                                        <option th:each="cam : ${camiones}" 
+                                                th:value="${cam.numPlaca}" 
+                                                th:text="'Placa: ' + ${cam.numPlaca}">Placa: M 234-567</option>
+                                    </select>
+                                </div>
 
-                    <div class="grid-two-cols">
-                        <div class="form-group">
-                            <label class="form-label-primary">
-                                <i class="fa-solid fa-file-invoice-dollar"></i> Costo del Flete (C$) (Opcional):
-                            </label>
-                            <input type="number" step="0.01" min="0" name="costoFlete" class="form-control form-input-control" placeholder="Ej. 3500.00 (Puede definirse después)">
-                            <small class="text-muted-xs">Opcional. Si el costo se define posteriormente, puede dejarse vacío</small>
-                        </div>
+                                <div class="form-group">
+                                    <label class="form-label-primary">
+                                        <i class="fa-solid fa-map-pin"></i> Ubicación de Origen (Embarque):
+                                    </label>
+                                    <select name="idUbicacionOrigen" class="form-control form-input-control">
+                                        <option value="">-- Seleccione Finca o Lugar de Origen --</option>
+                                        <option th:each="ubi : ${ubicaciones}" 
+                                                th:value="${ubi.idUbicacion}" 
+                                                th:text="${ubi.nombreLugar} + (${ubi.tipoLugar != null} ? ' (' + ${ubi.tipoLugar} + ')' : '')">Finca El Carmen</option>
+                                    </select>
+                                    <small class="text-muted-xs">Lugar de partida del ganado</small>
+                                </div>
+                            </div>
 
-                        <div class="form-group">
-                            <label class="form-label-primary">
-                                <i class="fa-solid fa-clock-rotate-left"></i> Estado del Pago del Flete:
-                            </label>
-                            <select name="estadoPagoViaje" class="form-control form-input-control">
-                                <option value="Pendiente" selected>Pendiente de Pago</option>
-                                <option value="Pagado">Pagado</option>
-                            </select>
-                            <small class="text-muted-xs">Control contable del servicio de transporte</small>
+                            <div class="grid-two-cols">
+                                <div class="form-group">
+                                    <label class="form-label-primary">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i> Costo del Flete (C$) (Opcional):
+                                    </label>
+                                    <input type="number" step="0.01" min="0" name="costoFlete" class="form-control form-input-control" placeholder="Ej. 3500.00">
+                                    <small class="text-muted-xs">Opcional. Registra el gasto contable de este viaje</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label-primary">
+                                        <i class="fa-solid fa-clock-rotate-left"></i> Estado del Pago del Flete:
+                                    </label>
+                                    <select name="estadoPagoViaje" class="form-control form-input-control">
+                                        <option value="Pendiente" selected>Pendiente de Pago</option>
+                                        <option value="Pagado">Pagado</option>
+                                    </select>
+                                    <small class="text-muted-xs">Control contable de este servicio</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +145,7 @@
                     <div class="card-header flex-between flex-wrap gap-sm">
                         <div>
                             <h3 class="section-subtitle mb-xs"><i class="fa-solid fa-cow"></i> Ganado en Inventario Activo (En Finca)</h3>
-                            <p class="text-muted-xs">Marque las reses que viajan en este despacho y asigne precio de rechazo individual si aplica</p>
+                            <p class="text-muted-xs">Busque reses por arete, marque las que viajan y ajuste el peso de despacho si el animal engordó</p>
                         </div>
                         <div class="flex-center gap-sm">
                             <button type="button" class="btn btn-sm btn-outline" onclick="toggleSeleccionarTodos(true)">Marcar Todos</button>
@@ -137,7 +153,28 @@
                             <span class="badge badge-info" id="contadorSeleccionados">0 reses marcadas</span>
                         </div>
                     </div>
-                    <div class="table-responsive">
+
+                    <!-- BARRA DE BÚSQUEDA DE ARETE EN FORMULARIO DE ENTREGA -->
+                    <div class="search-bar-lote-container">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                            <input type="text" id="filtroAreteEntrega" class="form-control search-input-lote"
+                                placeholder="Buscar res por arete para marcar (ej. 21455 o 6685)..."
+                                oninput="filtrarResesEntrega()" autocomplete="off">
+                            <button type="button" class="btn-clear-search d-none" id="btnLimpiarFiltroEntrega"
+                                onclick="limpiarFiltroResesEntrega()" title="Limpiar búsqueda">&times;</button>
+                        </div>
+                        <div class="search-meta-info">
+                            <span class="text-muted-xs" id="textoContadorFiltroEntrega">
+                                Mostrando <strong id="conteoVisiblesEntrega" th:text="${#lists.size(ganadosDisponibles)}">0</strong> de <span th:text="${#lists.size(ganadosDisponibles)}">0</span> reses disponibles
+                            </span>
+                            <span class="badge badge-subtle-order" id="badgeResesMarcadas">
+                                <i class="fa-solid fa-check-double"></i> 0 marcadas
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive max-h-500">
                         <table>
                             <thead>
                                 <tr>
@@ -149,23 +186,24 @@
                                     <th>Lote</th>
                                     <th>Color</th>
                                     <th>Paletas</th>
-                                    <th>Peso Entrada</th>
+                                    <th>Peso Compra</th>
+                                    <th>Peso Despacho (kg) <small class="text-muted d-block">(Ajuste por engorde)</small></th>
                                     <th>Precio Rechazo (C$/kg)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(ganadosDisponibles)}">
-                                    <td colspan="8" class="empty-table-cell">
+                                    <td colspan="9" class="empty-table-cell">
                                         No hay ganado activo en finca en este momento. Puede registrar compras en el módulo de Lotes.
                                     </td>
                                 </tr>
-                                <tr th:each="g : ${ganadosDisponibles}">
+                                <tr th:each="g : ${ganadosDisponibles}" class="fila-res-disponible">
                                     <td class="text-center">
                                         <input type="checkbox" name="aretesSeleccionados" th:value="${g.arete}" 
                                                class="checkbox-res-entrega" onchange="actualizarContadorReses()">
                                     </td>
                                     <td>
-                                        <strong class="text-code-brand" th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455 6685</strong>
+                                        <strong class="text-code-brand arete-buscable" th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455 6685</strong>
                                     </td>
                                     <td th:text="${g.lote != null and g.lote.proveedor != null ? g.lote.proveedor.nombre : 'Sin proveedor'}">Don Chepe</td>
                                     <td>
@@ -174,14 +212,27 @@
                                     <td th:text="${g.color}">Hosco</td>
                                     <td th:text="${g.paletas}">2 Paletas</td>
                                     <td>
-                                        <strong th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
+                                        <span class="text-muted" th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</span>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" min="0.01" 
+                                               th:name="'pesoSalida_' + ${#strings.replace(g.arete, ' ', '_')}" 
+                                               th:value="${g.pesoKg}" 
+                                               class="form-control form-input-control" 
+                                               style="max-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.88rem; font-weight: 600;"
+                                               placeholder="Ej. 410.00" title="Ajuste el peso si la res ganó kilos en finca antes de salir">
                                     </td>
                                     <td>
                                         <input type="number" step="0.01" min="0" 
                                                th:name="'precioRechazo_' + ${#strings.replace(g.arete, ' ', '_')}" 
                                                class="form-control form-input-control" 
-                                               style="max-width: 150px; padding: 0.35rem 0.6rem; font-size: 0.88rem;"
+                                               style="max-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.88rem;"
                                                placeholder="Opcional C$/kg">
+                                    </td>
+                                </tr>
+                                <tr id="filaSinResesCoincidentes" class="d-none" style="display: none;">
+                                    <td colspan="9" class="empty-table-cell py-lg">
+                                        <i class="fa-solid fa-magnifying-glass text-muted"></i> No se encontraron reses con el arete buscado.
                                     </td>
                                 </tr>
                             </tbody>
@@ -199,22 +250,219 @@
         </div>
     </main>
 
+    <!-- PLANTILLA OCULTA PARA CLONAR MÚLTIPLES VIAJES DINÁMICAMENTE -->
+    <template id="templateViaje">
+        <div class="logistica-card viaje-item mt-sm">
+            <div class="flex-between flex-wrap gap-xs mb-sm">
+                <strong class="text-brand font-semibold titulo-viaje">
+                    <i class="fa-solid fa-truck"></i> Camión / Viaje #__NUM__
+                </strong>
+                <button type="button" class="btn btn-sm btn-outline text-danger" onclick="eliminarViaje(this)">
+                    <i class="fa-solid fa-trash-can"></i> Quitar este Viaje
+                </button>
+            </div>
+
+            <div class="grid-three-cols mb-md">
+                <div class="form-group">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-id-card"></i> Conductor / Chofer *:
+                    </label>
+                    <select name="cedulaConductor" class="form-control form-input-control" required>
+                        <option value="" disabled selected>-- Seleccione el chofer --</option>
+                        <option th:each="c : ${conductores}" 
+                                th:value="${c.cedula}" 
+                                th:text="${c.nombre} + ' (Céd: ' + ${c.cedula} + ')'">Marvin Rivera</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-truck-moving"></i> Camión de Carga *:
+                    </label>
+                    <select name="numPlaca" class="form-control form-input-control" required>
+                        <option value="" disabled selected>-- Seleccione el camión --</option>
+                        <option th:each="cam : ${camiones}" 
+                                th:value="${cam.numPlaca}" 
+                                th:text="'Placa: ' + ${cam.numPlaca}">Placa: M 234-567</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-map-pin"></i> Ubicación de Origen (Embarque):
+                    </label>
+                    <select name="idUbicacionOrigen" class="form-control form-input-control">
+                        <option value="">-- Seleccione Finca o Lugar de Origen --</option>
+                        <option th:each="ubi : ${ubicaciones}" 
+                                th:value="${ubi.idUbicacion}" 
+                                th:text="${ubi.nombreLugar} + (${ubi.tipoLugar != null} ? ' (' + ${ubi.tipoLugar} + ')' : '')">Finca El Carmen</option>
+                    </select>
+                    <small class="text-muted-xs">Lugar de partida del ganado</small>
+                </div>
+            </div>
+
+            <div class="grid-two-cols">
+                <div class="form-group">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Costo del Flete (C$) (Opcional):
+                    </label>
+                    <input type="number" step="0.01" min="0" name="costoFlete" class="form-control form-input-control" placeholder="Ej. 3500.00">
+                    <small class="text-muted-xs">Opcional. Registra el gasto contable de este viaje</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-primary">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Estado del Pago del Flete:
+                    </label>
+                    <select name="estadoPagoViaje" class="form-control form-input-control">
+                        <option value="Pendiente" selected>Pendiente de Pago</option>
+                        <option value="Pagado">Pagado</option>
+                    </select>
+                    <small class="text-muted-xs">Control contable de este servicio</small>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
     <script>
+        function agregarViaje() {
+            const contenedor = document.getElementById('contenedorViajes');
+            const items = contenedor.querySelectorAll('.viaje-item');
+            const nuevoNumero = items.length + 1;
+
+            const template = document.getElementById('templateViaje');
+            const clone = template.content.cloneNode(true);
+
+            const titulo = clone.querySelector('.titulo-viaje');
+            if (titulo) {
+                titulo.innerHTML = `<i class="fa-solid fa-truck"></i> Camión / Viaje #${nuevoNumero}`;
+            }
+
+            contenedor.appendChild(clone);
+            renumerarViajes();
+        }
+
+        function eliminarViaje(btn) {
+            const item = btn.closest('.viaje-item');
+            if (item) {
+                item.remove();
+                renumerarViajes();
+            }
+        }
+
+        function renumerarViajes() {
+            const contenedor = document.getElementById('contenedorViajes');
+            const items = contenedor.querySelectorAll('.viaje-item');
+            items.forEach((item, index) => {
+                const titulo = item.querySelector('.titulo-viaje');
+                if (titulo) {
+                    if (index === 0) {
+                        titulo.innerHTML = `<i class="fa-solid fa-truck"></i> Camión / Viaje #1 <span class="badge badge-info ml-xs">Principal</span>`;
+                    } else {
+                        titulo.innerHTML = `<i class="fa-solid fa-truck"></i> Camión / Viaje #${index + 1}`;
+                    }
+                }
+            });
+        }
+
+        function filtrarResesEntrega() {
+            const input = document.getElementById('filtroAreteEntrega');
+            const btnLimpiar = document.getElementById('btnLimpiarFiltroEntrega');
+            const spanConteo = document.getElementById('conteoVisiblesEntrega');
+            const filaVacia = document.getElementById('filaSinResesCoincidentes');
+            if (!input) return;
+
+            const filtroRaw = input.value.trim().toUpperCase();
+            const filtroLimpio = filtroRaw.replace(/\s+/g, '');
+
+            if (btnLimpiar) {
+                if (filtroRaw.length > 0) {
+                    btnLimpiar.classList.remove('d-none');
+                    btnLimpiar.style.display = 'inline-flex';
+                } else {
+                    btnLimpiar.classList.add('d-none');
+                    btnLimpiar.style.display = 'none';
+                }
+            }
+
+            const filas = document.querySelectorAll('.fila-res-disponible');
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                const areteEl = fila.querySelector('.arete-buscable');
+                if (!areteEl) return;
+                const textoArete = areteEl.textContent.trim().toUpperCase();
+                const areteNormalizado = textoArete.replace(/\s+/g, '');
+
+                if (!filtroRaw || areteNormalizado.includes(filtroLimpio) || textoArete.includes(filtroRaw)) {
+                    fila.style.display = '';
+                    visibles++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            if (spanConteo) {
+                spanConteo.textContent = visibles;
+            }
+
+            if (filaVacia) {
+                if (visibles === 0 && filas.length > 0) {
+                    filaVacia.style.display = '';
+                    filaVacia.classList.remove('d-none');
+                } else {
+                    filaVacia.style.display = 'none';
+                    filaVacia.classList.add('d-none');
+                }
+            }
+        }
+
+        function limpiarFiltroResesEntrega() {
+            const input = document.getElementById('filtroAreteEntrega');
+            if (input) {
+                input.value = '';
+                filtrarResesEntrega();
+                input.focus();
+            }
+        }
+
+        // Limpiar búsqueda al presionar Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const input = document.getElementById('filtroAreteEntrega');
+                if (input && document.activeElement === input) {
+                    limpiarFiltroResesEntrega();
+                }
+            }
+        });
+
         function toggleSeleccionarTodos(marcar) {
+            const input = document.getElementById('filtroAreteEntrega');
+            const filtroActivo = input && input.value.trim().length > 0;
+            
             const checkboxes = document.querySelectorAll('.checkbox-res-entrega');
-            checkboxes.forEach(cb => cb.checked = marcar);
+            checkboxes.forEach(cb => {
+                const fila = cb.closest('.fila-res-disponible');
+                if (!filtroActivo || (fila && fila.style.display !== 'none')) {
+                    cb.checked = marcar;
+                }
+            });
             const master = document.getElementById('checkMaster');
-            if (master) master.checked = marcar;
+            if (master && !filtroActivo) master.checked = marcar;
             actualizarContadorReses();
         }
 
         function actualizarContadorReses() {
             const marcados = document.querySelectorAll('.checkbox-res-entrega:checked').length;
             const badge = document.getElementById('contadorSeleccionados');
+            const badgeMeta = document.getElementById('badgeResesMarcadas');
             if (badge) {
                 badge.textContent = marcados + ' reses marcadas';
+            }
+            if (badgeMeta) {
+                badgeMeta.innerHTML = `<i class="fa-solid fa-check-double"></i> ${marcados} marcadas`;
             }
         }
     </script>

@@ -66,6 +66,10 @@ public class CompraController {
     public String guardarLote(@ModelAttribute("lote") Lote lote,
                               @RequestParam(name = "idProveedor", required = false) Integer idProveedor,
                               RedirectAttributes redirectAttributes) {
+        if (lote.getPrecioEstandar() != null && lote.getPrecioEstandar().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El precio estándar debe ser un número positivo mayor que cero.");
+            return "redirect:/compras/nueva";
+        }
         Lote guardado = loteService.registrarLote(lote, idProveedor);
         redirectAttributes.addFlashAttribute("mensajeExito", "Lote de compra #" + guardado.getIdLote() + " registrado. Ahora puedes registrar los aretes que vienen en este lote.");
         return "redirect:/compras/lote/" + guardado.getIdLote();

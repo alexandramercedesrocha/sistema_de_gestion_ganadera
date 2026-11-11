@@ -44,7 +44,7 @@
 
                     <div class="form-group">
                         <label for="monto">Monto Desembolsado (C$) *</label>
-                        <input type="number" step="0.01" id="monto" th:field="*{monto}" placeholder="Ej. 350.00" required>
+                        <input type="number" step="0.01" min="0.01" id="monto" th:field="*{monto}" placeholder="Ej. 350.00" required>
                     </div>
 
                     <div class="form-group full-width">

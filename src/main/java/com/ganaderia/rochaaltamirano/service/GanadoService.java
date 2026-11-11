@@ -40,6 +40,9 @@ public class GanadoService {
 
     @Transactional
     public Ganado registrarGanado(Ganado ganado) {
+        if (ganado.getPesoKg() != null && ganado.getPesoKg().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso de la res debe ser mayor a cero");
+        }
         if (ganado.getCategoria() == null || ganado.getCategoria().isBlank()) {
             ganado.setCategoria("Apto");
         }
@@ -51,6 +54,12 @@ public class GanadoService {
 
     @Transactional
     public GanadoRechazo registrarRechazo(GanadoRechazo rechazo) {
+        if (rechazo.getPesoEntradaKg() != null && rechazo.getPesoEntradaKg().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso de entrada debe ser mayor a cero");
+        }
+        if (rechazo.getPesoMatadero() != null && rechazo.getPesoMatadero().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso de matadero debe ser mayor a cero");
+        }
         rechazo.setCategoria("Rechazo");
         if (rechazo.getEstado() == null || rechazo.getEstado().isBlank()) {
             rechazo.setEstado("En Finca");

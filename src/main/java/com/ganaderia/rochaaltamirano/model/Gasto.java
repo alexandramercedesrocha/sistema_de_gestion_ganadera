@@ -1,6 +1,7 @@
 package com.ganaderia.rochaaltamirano.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,6 +24,7 @@ public class Gasto {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    @DecimalMin(value = "0.01", message = "El monto del gasto debe ser mayor a cero")
     @Column(name = "monto", precision = 10, scale = 2)
     private BigDecimal monto;
 
@@ -82,6 +84,9 @@ public class Gasto {
     }
 
     public void setMonto(BigDecimal monto) {
+        if (monto != null && monto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El monto del gasto no puede ser negativo");
+        }
         this.monto = monto;
     }
 

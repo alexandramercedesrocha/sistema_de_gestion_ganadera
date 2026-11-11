@@ -84,7 +84,7 @@
                                     <option value="Pardo">Pardo</option>
                                     <option value="Choto">Choto</option>
                                     <option value="Negro">Negro</option>
-                                    <option value="Pinto">Pintado</option>
+                                    <option value="Pinto">Pinto</option>
                                     <option value="Blanco">Blanco</option>
                                 </select>
                             </div>
@@ -163,15 +163,15 @@
 
                         <div class="form-group mb-md" id="grupoVoucher">
                             <label id="lblVoucher" class="catalog-form-label">
-                                Nº Comprobante Bancario * (9 a 16 dígitos):
+                                Nº Comprobante Bancario:
                             </label>
                             <input type="text" name="comprobanteVoucher" id="comprobanteVoucherInput"
                                 class="form-control catalog-control"
-                                placeholder="Ej. 109283746123 (9 a 16 dígitos banco BAC/Lafise/Banpro)"
-                                pattern="[0-9]{9,16}" minlength="9" maxlength="16"
-                                title="Debe contener entre 9 y 16 dígitos numéricos" required>
+                                placeholder="Ej. 109283746123 (banco BAC/Lafise/Banpro)" pattern="[0-9]{9,15}"
+                                minlength="9" maxlength="16" title="Debe contener entre 9 y 15 dígitos numéricos"
+                                required>
                             <small id="ayudaVoucher" class="text-muted-xs">
-                                Formato: Generalmente de 9 a 16 dígitos, dependiendo del banco (BAC, Lafise, Banpro).
+                                (BAC, Lafise, Banpro).
                             </small>
                         </div>
 
@@ -198,10 +198,33 @@
                                 0.00</span>
                         </div>
                     </div>
+
+                    <!-- BARRA DE BÚSQUEDA DE ARETE EN LOTE -->
+                    <div class="search-bar-lote-container">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                            <input type="text" id="filtroAreteLote" class="form-control search-input-lote"
+                                placeholder="Buscar arete en este lote (ej. 21455 o 6685)..."
+                                oninput="filtrarAretesLote()" autocomplete="off">
+                            <button type="button" class="btn-clear-search d-none" id="btnLimpiarFiltroArete"
+                                onclick="limpiarFiltroAretesLote()" title="Limpiar búsqueda">&times;</button>
+                        </div>
+                        <div class="search-meta-info">
+                            <span class="text-muted-xs" id="textoContadorFiltro">
+                                Mostrando <strong id="conteoVisibles" th:text="${lote.totalCabezas}">0</strong> de <span
+                                    th:text="${lote.totalCabezas}">0</span> reses
+                            </span>
+                            <span class="badge badge-subtle-order">
+                                <i class="fa-solid fa-arrow-down-1-9"></i> Orden de ingreso
+                            </span>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
+                                    <th class="w-10 text-center">#</th>
                                     <th>Arete Actual</th>
                                     <th>Color</th>
                                     <th>Paletas</th>
@@ -213,11 +236,12 @@
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(lote.animales)}">
-                                    <td colspan="7" class="empty-table-cell">
+                                    <td colspan="8" class="empty-table-cell">
                                         No has añadido animales a este lote todavía. Usa el formulario de la izquierda.
                                     </td>
                                 </tr>
-                                <tr th:each="a : ${lote.animales}">
+                                <tr th:each="a, stat : ${lote.animales}" class="fila-animal-lote">
+                                    <td class="text-center font-bold text-muted-xs" th:text="${stat.count}">1</td>
                                     <td class="text-brand-bold arete-en-tabla" th:text="${a.arete}">21455 6685</td>
                                     <td th:text="${a.color}">Hosco</td>
                                     <td th:text="${a.paletas}">2 Paletas</td>
@@ -241,6 +265,12 @@
                                         <strong class="text-brand"
                                             th:text="'C$ ' + ${#numbers.formatDecimal(a.subtotalCompra, 1, 'COMMA', 2, 'POINT')}">C$
                                             0.00</strong>
+                                    </td>
+                                </tr>
+                                <tr id="filaSinCoincidencias" class="d-none" style="display: none;">
+                                    <td colspan="8" class="empty-table-cell py-lg">
+                                        <i class="fa-solid fa-magnifying-glass text-muted"></i> No se encontraron reses
+                                        con el arete buscado en este lote.
                                     </td>
                                 </tr>
                             </tbody>
@@ -494,6 +524,78 @@
                 ayuda.innerText = 'Formato: Generalmente de 9 a 16 dígitos numéricos según el comprobante bancario.';
             }
         }
+
+        // Búsqueda y filtrado en tiempo real de aretes en este lote
+        function filtrarAretesLote() {
+            const input = document.getElementById('filtroAreteLote');
+            const btnLimpiar = document.getElementById('btnLimpiarFiltroArete');
+            const spanConteo = document.getElementById('conteoVisibles');
+            const filaVacia = document.getElementById('filaSinCoincidencias');
+            if (!input) return;
+
+            const filtroRaw = input.value.trim().toUpperCase();
+            const filtroLimpio = filtroRaw.replace(/\s+/g, '');
+
+            if (btnLimpiar) {
+                if (filtroRaw.length > 0) {
+                    btnLimpiar.classList.remove('d-none');
+                    btnLimpiar.style.display = 'inline-flex';
+                } else {
+                    btnLimpiar.classList.add('d-none');
+                    btnLimpiar.style.display = 'none';
+                }
+            }
+
+            const filas = document.querySelectorAll('.fila-animal-lote');
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                const areteEl = fila.querySelector('.arete-en-tabla');
+                if (!areteEl) return;
+                const textoArete = areteEl.textContent.trim().toUpperCase();
+                const areteNormalizado = textoArete.replace(/\s+/g, '');
+
+                if (!filtroRaw || areteNormalizado.includes(filtroLimpio) || textoArete.includes(filtroRaw)) {
+                    fila.style.display = '';
+                    visibles++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            if (spanConteo) {
+                spanConteo.textContent = visibles;
+            }
+
+            if (filaVacia) {
+                if (visibles === 0 && filas.length > 0) {
+                    filaVacia.style.display = '';
+                    filaVacia.classList.remove('d-none');
+                } else {
+                    filaVacia.style.display = 'none';
+                    filaVacia.classList.add('d-none');
+                }
+            }
+        }
+
+        function limpiarFiltroAretesLote() {
+            const input = document.getElementById('filtroAreteLote');
+            if (input) {
+                input.value = '';
+                filtrarAretesLote();
+                input.focus();
+            }
+        }
+
+        // Permitir limpiar búsqueda con la tecla Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const input = document.getElementById('filtroAreteLote');
+                if (input && document.activeElement === input) {
+                    limpiarFiltroAretesLote();
+                }
+            }
+        });
     </script>
 
 </body>

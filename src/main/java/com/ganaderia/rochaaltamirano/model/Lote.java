@@ -1,6 +1,7 @@
 package com.ganaderia.rochaaltamirano.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,9 +23,11 @@ public class Lote {
     @Column(name = "fecha_compra", nullable = false)
     private LocalDate fechaCompra;
 
+    @DecimalMin(value = "0.0", message = "El precio de rechazo no puede ser negativo")
     @Column(name = "precio_de_rechazo", precision = 10, scale = 2)
     private BigDecimal precioDeRechazo;
 
+    @DecimalMin(value = "0.01", message = "El precio estándar debe ser mayor a cero")
     @Column(name = "precio_estandar", precision = 10, scale = 2)
     private BigDecimal precioEstandar;
 
@@ -33,6 +36,7 @@ public class Lote {
     private Proveedor proveedor;
 
     @OneToMany(mappedBy = "lote", cascade = CascadeType.ALL)
+    @OrderBy("fechaIngreso ASC, arete ASC")
     private List<Ganado> animales = new ArrayList<>();
 
     @OneToMany(mappedBy = "lote", cascade = CascadeType.ALL)
@@ -70,6 +74,9 @@ public class Lote {
     }
 
     public void setPrecioDeRechazo(BigDecimal precioDeRechazo) {
+        if (precioDeRechazo != null && precioDeRechazo.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de rechazo no puede ser negativo");
+        }
         this.precioDeRechazo = precioDeRechazo;
     }
 
@@ -78,6 +85,9 @@ public class Lote {
     }
 
     public void setPrecioEstandar(BigDecimal precioEstandar) {
+        if (precioEstandar != null && precioEstandar.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio estándar no puede ser negativo");
+        }
         this.precioEstandar = precioEstandar;
     }
 

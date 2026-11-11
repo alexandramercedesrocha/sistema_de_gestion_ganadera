@@ -20,15 +20,18 @@ public class ViajeService {
     private final CamionRepository camionRepository;
     private final ConductorRepository conductorRepository;
     private final UbicacionRepository ubicacionRepository;
+    private final EntregaRepository entregaRepository;
 
     public ViajeService(ViajeRepository viajeRepository,
                         CamionRepository camionRepository,
                         ConductorRepository conductorRepository,
-                        UbicacionRepository ubicacionRepository) {
+                        UbicacionRepository ubicacionRepository,
+                        EntregaRepository entregaRepository) {
         this.viajeRepository = viajeRepository;
         this.camionRepository = camionRepository;
         this.conductorRepository = conductorRepository;
         this.ubicacionRepository = ubicacionRepository;
+        this.entregaRepository = entregaRepository;
     }
 
     public List<Viaje> listarTodos() {
@@ -41,6 +44,11 @@ public class ViajeService {
 
     @Transactional
     public Viaje registrarViaje(Viaje viaje, Integer idOrigen, Integer idDestino, String cedulaConductor, String numPlaca) {
+        return registrarViaje(viaje, idOrigen, idDestino, cedulaConductor, numPlaca, null);
+    }
+
+    @Transactional
+    public Viaje registrarViaje(Viaje viaje, Integer idOrigen, Integer idDestino, String cedulaConductor, String numPlaca, Integer idEntrega) {
         if (idOrigen != null) {
             ubicacionRepository.findById(idOrigen).ifPresent(viaje::setUbicacionOrigen);
         }
@@ -52,6 +60,9 @@ public class ViajeService {
         }
         if (numPlaca != null && !numPlaca.isBlank()) {
             camionRepository.findById(numPlaca).ifPresent(viaje::setCamion);
+        }
+        if (idEntrega != null) {
+            entregaRepository.findById(idEntrega).ifPresent(viaje::setEntrega);
         }
         if (viaje.getEstadoPago() == null || viaje.getEstadoPago().isBlank()) {
             viaje.setEstadoPago("Pendiente");

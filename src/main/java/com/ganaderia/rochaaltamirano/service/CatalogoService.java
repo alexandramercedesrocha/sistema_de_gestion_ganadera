@@ -50,7 +50,7 @@ public class CatalogoService {
     }
 
     @Transactional
-    public Proveedor registrarProveedorCompleto(String nombre, String telefono, String compania, String nombreLugar, String urlMaps) {
+    public Proveedor registrarProveedorCompleto(String nombre, String telefono, String compania, String nombreLugar) {
         Proveedor proveedor = new Proveedor();
         proveedor.setNombre(nombre.trim());
         Proveedor guardado = proveedorRepository.save(proveedor);
@@ -67,7 +67,7 @@ public class CatalogoService {
             Ubicacion ubi = new Ubicacion();
             ubi.setProveedor(guardado);
             ubi.setNombreLugar(nombreLugar.trim());
-            ubi.setUrl(urlMaps != null ? urlMaps.trim() : null);
+            ubi.setUrl(null); // Las coordenadas se asignan desde la pestaña "Ubicaciones" con el mapa interactivo
             ubi.setTipoLugar("Finca Ganadera");
             ubicacionRepository.save(ubi);
         }
@@ -95,7 +95,7 @@ public class CatalogoService {
     }
 
     @Transactional
-    public Matadero registrarMataderoCompleto(String nombre, String telefono, String compania, String nombreLugar, String urlMaps) {
+    public Matadero registrarMataderoCompleto(String nombre, String telefono, String compania, String nombreLugar) {
         Matadero matadero = new Matadero();
         matadero.setNombreMatadero(nombre.trim());
         Matadero guardado = mataderoRepository.save(matadero);
@@ -112,7 +112,7 @@ public class CatalogoService {
             Ubicacion ubi = new Ubicacion();
             ubi.setMatadero(guardado);
             ubi.setNombreLugar(nombreLugar.trim());
-            ubi.setUrl(urlMaps != null ? urlMaps.trim() : null);
+            ubi.setUrl(null); // Las coordenadas se asignan desde la pestaña "Ubicaciones" con el mapa interactivo
             ubi.setTipoLugar("Planta Matadero");
             ubicacionRepository.save(ubi);
         }

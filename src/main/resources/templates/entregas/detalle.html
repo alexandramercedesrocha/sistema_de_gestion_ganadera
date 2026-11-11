@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Pesajes de Entrega #' + ${entrega.idEntrega})}"></head>
+
 <body>
 
     <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -12,41 +14,127 @@
         <div class="header-actions">
             <div>
                 <h1 class="page-title">
-                    <i class="fa-solid fa-weight-scale"></i> Pesajes y Dictamen: Entrega #<span th:text="${entrega.idEntrega}">1</span>
+                    <i class="fa-solid fa-weight-scale"></i> Pesajes y Dictamen: Entrega #<span
+                        th:text="${entrega.idEntrega}">1</span>
                 </h1>
                 <p class="page-subtitle">
-                    Planta: <strong th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'N/D'}">MACESA</strong> &mdash; 
-                    Fecha: <span th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</span> &mdash;
-                    Precio Apto: <strong>C$ <span th:text="${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
+                    Planta: <strong
+                        th:text="${entrega.matadero != null ? entrega.matadero.nombreMatadero : 'N/D'}">MACESA</strong>
+                    &mdash;
+                    Fecha: <span th:text="${#temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy')}">01/01/2026</span>
+                    &mdash;
+                    Precio Apto: <strong>C$ <span
+                            th:text="${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
                     <span th:if="${entrega.precioRechazo != null}">
-                        &mdash; Precio Rechazo: <strong>C$ <span th:text="${#numbers.formatDecimal(entrega.precioRechazo, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
+                        &mdash; Precio Rechazo: <strong>C$ <span
+                                th:text="${#numbers.formatDecimal(entrega.precioRechazo, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
                     </span>
-                    <span th:if="${entrega.viaje != null}">
-                        &mdash; <span class="badge badge-info"><i class="fa-solid fa-truck"></i> Chofer: <strong th:text="${entrega.viaje.conductor != null ? entrega.viaje.conductor.nombre : 'S/C'}">Marvin</strong> | Camión: <strong th:text="${entrega.viaje.camion != null ? entrega.viaje.camion.numPlaca : 'S/P'}">M-12345</strong></span>
+                    <span th:if="${!#lists.isEmpty(entrega.viajes)}">
+                        &mdash; <span class="badge badge-info"><i class="fa-solid fa-truck-moving"></i> <strong
+                                th:text="${#lists.size(entrega.viajes)} + ' Camiones / Viajes'">1 Camión</strong></span>
                     </span>
                 </p>
             </div>
             <div class="flex-center gap-sm">
-                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
-                <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Entregas</a>
+                <a th:href="@{/finanzas/liquidaciones}" class="btn btn-outline-success"><i
+                        class="fa-solid fa-file-invoice-dollar"></i> Ir a Liquidaciones</a>
+                <a th:href="@{/entregas}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a
+                    Entregas</a>
+            </div>
+        </div>
+
+        <!-- TARJETA CONSOLIDADA DE VIAJES / CAMIONES ASOCIADOS A ESTA ENTREGA -->
+        <div class="table-card mb-lg">
+            <div class="card-header flex-between flex-wrap gap-xs">
+                <div>
+                    <h3 class="section-subtitle mb-xs">
+                        <i class="fa-solid fa-truck-moving"></i> Camiones y Viajes de Transporte (<span
+                            th:text="${#lists.size(entrega.viajes)}">0</span>)
+                    </h3>
+                    <p class="text-muted-xs">Camiones asignados para transportar el ganado de esta entrega al matadero
+                    </p>
+                </div>
+                <a th:href="@{/transporte}" class="btn btn-sm btn-outline"><i
+                        class="fa-solid fa-arrow-up-right-from-square"></i> Ver Módulo de Transporte</a>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº Viaje</th>
+                            <th>Conductor / Chofer</th>
+                            <th>Camión / Placa</th>
+                            <th>Lugar de Embarque (Origen)</th>
+                            <th>Destino</th>
+                            <th>Estado Pago Flete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(entrega.viajes)}">
+                            <td colspan="6" class="empty-table-cell">No hay viajes de transporte asociados a esta
+                                entrega.</td>
+                        </tr>
+                        <tr th:each="v : ${entrega.viajes}">
+                            <td class="text-brand-bold">
+                                <i class="fa-solid fa-truck"></i> VIAJE-#<span th:text="${v.idViaje}">1</span>
+                            </td>
+                            <td>
+                                <strong th:text="${v.conductor != null ? v.conductor.nombre : 'Sin chofer'}">Marvin
+                                    Rivera</strong>
+                                <small th:if="${v.conductor != null}" class="text-muted-xs"
+                                    th:text="' (' + ${v.conductor.cedula} + ')'"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-info"
+                                    th:text="${v.camion != null ? v.camion.numPlaca : 'S/P'}">M 234-567</span>
+                            </td>
+                            <td>
+                                <span
+                                    th:text="${v.ubicacionOrigen != null ? v.ubicacionOrigen.nombreLugar : 'No especificado'}">Finca
+                                    Santa Elena</span>
+                            </td>
+                            <td>
+                                <span
+                                    th:text="${v.ubicacionDestino != null ? v.ubicacionDestino.nombreLugar : (entrega.matadero != null ? entrega.matadero.nombreMatadero : 'Matadero')}">MACESA</span>
+                            </td>
+                            <td>
+                                <span th:if="${v.estadoPago == 'Pagado'}" class="badge badge-success"><i
+                                        class="fa-solid fa-check"></i> Pagado</span>
+                                <span th:if="${v.estadoPago != 'Pagado'}" class="badge badge-warning"><i
+                                        class="fa-solid fa-clock"></i> Pendiente</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <div class="grid-split">
-            
-            <!-- SELECCIÓN RÁPIDA DE GANADO POR CHECKBOXES (SIN ESCRIBIR NADA) -->
+
+            <!-- PANEL IZQUIERDO: SELECCIÓN RÁPIDA DE GANADO DISPONIBLE EN FINCA -->
             <div class="form-card catalog-card">
-                <div class="card-header flex-between flex-wrap gap-xs mb-md">
+                <div class="card-header flex-between flex-wrap gap-xs mb-sm">
                     <div>
                         <h2 class="section-subtitle mb-xs">
-                            <i class="fa-solid fa-cow"></i> Ganado Disponible en Finca
+                            <i class="fa-solid fa-cow"></i> Ganado en Finca (<span
+                                th:text="${#lists.size(ganadosDisponibles)}">0</span>)
                         </h2>
-                        <p class="text-muted-xs">Marque las reses que desea sumar al despacho (se envían como Aptas)</p>
+                        <p class="text-muted-xs">Marque reses pendientes para agregarlas a este despacho</p>
                     </div>
                     <div class="flex-center gap-xs">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="toggleTodosDetalle(true)">Todos</button>
-                        <button type="button" class="btn btn-sm btn-outline" onclick="toggleTodosDetalle(false)">Ninguno</button>
+                        <button type="button" class="btn btn-sm btn-outline"
+                            onclick="toggleTodosDetalle(true)">Todos</button>
+                        <button type="button" class="btn btn-sm btn-outline"
+                            onclick="toggleTodosDetalle(false)">Ninguno</button>
                     </div>
+                </div>
+
+                <!-- BUSCADOR RÁPIDO DE ARETES DISPONIBLES EN FINCA -->
+                <div class="search-input-wrapper mb-sm">
+                    <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                    <input type="text" id="filtroFincaDetalle" class="form-control search-input-lote"
+                        placeholder="Buscar arete en finca (ej. 21455)..." oninput="filtrarGanadoFincaDetalle()"
+                        autocomplete="off">
                 </div>
 
                 <form th:action="@{'/entregas/' + ${entrega.idEntrega} + '/cargar-ganado-masivo'}" method="post">
@@ -55,12 +143,13 @@
                             <thead>
                                 <tr>
                                     <th class="text-center w-10">
-                                        <input type="checkbox" id="checkMasterDetalle" onchange="toggleTodosDetalle(this.checked)">
+                                        <input type="checkbox" id="checkMasterDetalle"
+                                            onchange="toggleTodosDetalle(this.checked)">
                                     </th>
                                     <th>Arete</th>
                                     <th>Color</th>
                                     <th>Paletas</th>
-                                    <th>Peso Entrada</th>
+                                    <th>Peso Finca</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -69,72 +158,115 @@
                                         No hay más ganado en finca disponible para cargar.
                                     </td>
                                 </tr>
-                                <tr th:each="g : ${ganadosDisponibles}">
+                                <tr th:each="g : ${ganadosDisponibles}" class="fila-finca-detalle">
                                     <td class="text-center">
-                                        <input type="checkbox" name="aretesSeleccionados" th:value="${g.arete}" 
-                                               class="checkbox-detalle-entrega" onchange="actualizarContadorDetalle()">
+                                        <input type="checkbox" name="aretesSeleccionados" th:value="${g.arete}"
+                                            class="checkbox-detalle-entrega" onchange="actualizarContadorDetalle()">
                                     </td>
                                     <td>
-                                        <strong class="text-code-brand" th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455 6685</strong>
+                                        <strong class="text-code-brand arete-finca-buscable"
+                                            th:text="${g.areteFormateado != null ? g.areteFormateado : g.arete}">21455
+                                            6685</strong>
                                     </td>
                                     <td th:text="${g.color}">Hosco</td>
                                     <td th:text="${g.paletas}">2</td>
                                     <td>
-                                        <strong th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00 kg</strong>
+                                        <strong
+                                            th:text="${#numbers.formatDecimal(g.pesoKg != null ? g.pesoKg : 0, 1, 'COMMA', 2, 'POINT')} + ' kg'">0.00
+                                            kg</strong>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-full justify-center" th:disabled="${#lists.isEmpty(ganadosDisponibles)}">
-                        <i class="fa-solid fa-plus-circle"></i> Cargar Seleccionadas a la Entrega (<span id="spanContadorDetalle">0</span>)
+                    <button type="submit" class="btn btn-primary w-full justify-center"
+                        th:disabled="${#lists.isEmpty(ganadosDisponibles)}">
+                        <i class="fa-solid fa-plus-circle"></i> Cargar Seleccionadas a la Entrega (<span
+                            id="spanContadorDetalle">0</span>)
                     </button>
                 </form>
             </div>
 
-            <!-- TABLA DE DETALLES DE ANIMALES ENTREGADOS CON % DE MERMA -->
+            <!-- PANEL DERECHO: TABLA DE DETALLES DE ANIMALES ENTREGADOS CON PESAJE Y % DE MERMA -->
             <div class="table-card">
                 <div class="card-header flex-between flex-wrap gap-xs">
-                    <h2><i class="fa-solid fa-list-check"></i> Reses Entregadas (<span th:text="${#lists.size(detalles)}">0</span>)</h2>
-                    <span class="badge badge-success" th:text="'Total Estimado: C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$ 0.00</span>
+                    <div>
+                        <h2><i class="fa-solid fa-list-check"></i> Reses Entregadas (<span
+                                th:text="${#lists.size(detalles)}" id="spanTotalEntregadas">0</span>)</h2>
+                        <small class="text-muted-xs">Registro de pesaje en báscula de matadero y control de merma en
+                            transporte</small>
+                    </div>
+                    <div class="flex-center gap-xs">
+                        <span class="badge badge-info"
+                            th:text="'Peso Total: ' + ${#numbers.formatDecimal(entrega.pesoTotal, 1, 'COMMA', 1, 'POINT')} + ' kg'">0
+                            kg</span>
+                        <span class="badge badge-success"
+                            th:text="'Total Estimado: C$ ' + ${#numbers.formatDecimal(entrega.montoTotalEstimado, 1, 'COMMA', 2, 'POINT')}">C$
+                            0.00</span>
+                    </div>
                 </div>
+
+                <!-- BARRA DE BÚSQUEDA DE ARETE EN RESES ENTREGADAS -->
+                <div class="search-bar-lote-container">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                        <input type="text" id="filtroAreteEntregadas" class="form-control search-input-lote"
+                            placeholder="Buscar res entregada por arete (ej. 21455 o 6685)..."
+                            oninput="filtrarResesEntregadas()" autocomplete="off">
+                        <button type="button" class="btn-clear-search d-none" id="btnLimpiarFiltroEntregadas"
+                            onclick="limpiarFiltroResesEntregadas()" title="Limpiar búsqueda">&times;</button>
+                    </div>
+                    <div class="search-meta-info">
+                        <span class="text-muted-xs">
+                            Mostrando <strong id="conteoVisiblesEntregadas"
+                                th:text="${#lists.size(detalles)}">0</strong> de <span
+                                th:text="${#lists.size(detalles)}">0</span> reses despachadas
+                        </span>
+                        <span class="badge badge-subtle-order">
+                            <i class="fa-solid fa-arrow-down-1-9"></i> Orden correlativo
+                        </span>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
+                                <th class="w-10 text-center">#</th>
                                 <th>Arete</th>
                                 <th>Color</th>
                                 <th>Paletas</th>
-                                <th>Peso Entrada</th>
-                                <th>Peso Matadero</th>
-                                <th>% de Merma</th>
+                                <th>Peso Venta</th>
                                 <th>Dictamen</th>
-                                <th>Motivo Rechazo</th>
                                 <th class="text-center">Actualizar</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:if="${#lists.isEmpty(detalles)}">
-                                <td colspan="9" class="empty-table-cell">
-                                    Aún no has agregado reses a este despacho. Selecciona las reses en la tabla de la izquierda.
+                                <td colspan="7" class="empty-table-cell py-xl">
+                                    <i class="fa-solid fa-cow icon-empty-lg text-muted"></i>
+                                    <p class="mt-sm font-semibold">Aún no has agregado reses a este despacho.</p>
+                                    <p class="text-muted-xs">Selecciona y marca las reses en el panel izquierdo para
+                                        cargarlas a la entrega.</p>
                                 </td>
                             </tr>
-                            <tr th:each="det : ${detalles}">
+                            <tr th:each="det, stat : ${detalles}" class="fila-res-entregada"
+                                th:data-arete="${det.areteCodigo}" th:data-arete-display="${det.areteDisplay}">
+                                <td class="text-center text-muted font-bold" th:text="${stat.count}">1</td>
                                 <td>
-                                    <strong class="text-code-brand" 
-                                            th:text="${det.ganado != null and det.ganado.areteFormateado != null ? det.ganado.areteFormateado : (det.ganado != null ? det.ganado.arete : 'S/A')}">21455 6685</strong>
+                                    <strong class="text-code-brand arete-entregado-buscable"
+                                        th:text="${det.areteDisplay}">21455 6685</strong>
                                 </td>
                                 <td th:text="${det.ganado != null ? det.ganado.color : 'N/D'}">Hosco</td>
                                 <td th:text="${det.ganado != null ? det.ganado.paletas : 'N/D'}">2</td>
-                                <td th:text="${det.ganado != null && det.ganado.pesoKg != null ? #numbers.formatDecimal(det.ganado.pesoKg, 1, 'COMMA', 2, 'POINT') + ' kg' : 'N/D'}">380.00 kg</td>
-                                <td class="font-semibold" 
-                                    th:text="${det.pesoMataderoKg != null ? #numbers.formatDecimal(det.pesoMataderoKg, 1, 'COMMA', 2, 'POINT') + ' kg' : 'Pendiente'}">375.00 kg</td>
                                 <td>
-                                    <span th:if="${det.porcentajeMerma != null}" 
-                                          th:class="${det.porcentajeMerma > 12 ? 'text-danger-bold' : 'text-brand-bold'}"
-                                          th:text="${#numbers.formatDecimal(det.porcentajeMerma, 1, 'COMMA', 2, 'POINT')} + '%'">3.50%</span>
-                                    <span th:if="${det.porcentajeMerma == null}" class="text-muted">&mdash;</span>
+                                    <span th:if="${det.pesoMataderoKg != null}" class="font-bold text-dark"
+                                        th:text="${#numbers.formatDecimal(det.pesoMataderoKg, 1, 'COMMA', 2, 'POINT')} + ' kg'">375.00
+                                        kg</span>
+                                    <span th:if="${det.pesoMataderoKg == null}" class="badge badge-warning">
+                                        <i class="fa-solid fa-clock"></i> Pendiente
+                                    </span>
                                 </td>
                                 <td>
                                     <span th:if="${det.estadoDictamen == 'Apto'}" class="badge badge-success">
@@ -143,18 +275,27 @@
                                     <span th:if="${det.estadoDictamen == 'Rechazado'}" class="badge badge-danger">
                                         <i class="fa-solid fa-triangle-exclamation"></i> Rechazado
                                     </span>
-                                </td>
-                                <td>
-                                    <span th:if="${!#lists.isEmpty(det.rechazos)}" class="text-danger" 
-                                          th:text="${det.rechazos[0].motivoRechazo}">Golpes en canal</span>
-                                    <span th:if="${#lists.isEmpty(det.rechazos)}" class="text-muted">&mdash;</span>
+                                    <span th:if="${det.estadoDictamen != 'Apto' and det.estadoDictamen != 'Rechazado'}"
+                                        class="badge badge-secondary"
+                                        th:text="${det.estadoDictamen != null ? det.estadoDictamen : 'Pendiente'}">Apto</span>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline" 
-                                            th:onclick="'abrirModalPesaje(' + ${det.idDetalleEntrega} + ', \'' + (${det.ganado != null ? det.ganado.arete : ''}) + '\', ' + (${det.pesoMataderoKg != null ? det.pesoMataderoKg : 0}) + ', \'' + ${det.estadoDictamen} + '\')'"
-                                            title="Editar pesaje oficial o dictamen de matadero">
-                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-brand"
+                                        th:data-id="${det.idDetalleEntrega}" th:data-arete="${det.areteDisplay}"
+                                        th:data-finca="${det.ganado != null && det.ganado.pesoKg != null ? det.ganado.pesoKg : ''}"
+                                        th:data-matadero="${det.pesoMataderoKg != null ? det.pesoMataderoKg : ''}"
+                                        th:data-dictamen="${det.estadoDictamen != null ? det.estadoDictamen : 'Apto'}"
+                                        th:data-motivo="${det.primerMotivoRechazo}"
+                                        onclick="abrirModalPesajeDesdeBoton(this)"
+                                        title="Actualizar pesaje de venta o dictamen">
+                                        <i class="fa-solid fa-scale-balanced"></i> Actualizar
                                     </button>
+                                </td>
+                            </tr>
+                            <tr id="filaSinResesEntregadas" class="d-none" style="display: none;">
+                                <td colspan="7" class="empty-table-cell py-lg">
+                                    <i class="fa-solid fa-magnifying-glass text-muted"></i> No se encontraron reses
+                                    entregadas con ese arete.
                                 </td>
                             </tr>
                         </tbody>
@@ -164,42 +305,74 @@
 
         </div>
 
-        <!-- MODAL / FORMULARIO RÁPIDO PARA ACTUALIZAR RESULTADO OFICIAL DE MATADERO -->
+        <!-- MODAL RÁPIDO PARA ACTUALIZAR RESULTADO OFICIAL DE MATADERO Y PESO FINCA -->
         <div id="modalPesaje" class="modal-overlay d-none">
             <div class="modal-card">
                 <div class="modal-header">
-                    <h3 class="section-subtitle"><i class="fa-solid fa-weight-scale"></i> Actualizar Pesaje / Dictamen de Planta</h3>
+                    <h3 class="section-subtitle"><i class="fa-solid fa-scale-balanced"></i> Actualizar Pesaje de Venta y
+                        Dictamen</h3>
                     <button type="button" class="btn-close" onclick="cerrarModalPesaje()">&times;</button>
                 </div>
                 <form th:action="@{'/entregas/' + ${entrega.idEntrega} + '/actualizar-pesaje-res'}" method="post">
                     <input type="hidden" name="idDetalle" id="modalIdDetalle">
-                    
-                    <div class="form-group mb-md">
-                        <label class="form-label-primary">Arete:</label>
-                        <input type="text" id="modalAreteDisplay" class="form-control form-input-control" readonly>
-                    </div>
 
                     <div class="form-group mb-md">
-                        <label class="form-label-primary">Peso Oficial en Matadero (kg canal):</label>
-                        <input type="number" step="0.01" min="0.01" name="pesoMataderoKg" id="modalPesoMatadero" class="form-control form-input-control" placeholder="Ej. 395.50" required>
+                        <label class="form-label-primary">Arete de la Res:</label>
+                        <input type="text" id="modalAreteDisplay"
+                            class="form-control form-input-control input-bold text-brand" readonly>
+                    </div>
+
+                    <div class="grid-two-cols mb-md">
+                        <div class="form-group">
+                            <label class="form-label-primary modal-label-balanced">
+                                <i class="fa-solid fa-cow text-muted-xs"></i> Peso Finca (kg) *:
+                            </label>
+                            <input type="number" step="0.01" min="0.01" name="pesoFincaKg" id="modalPesoFinca"
+                                class="form-control form-input-control font-semibold" placeholder="Ej. 385.00"
+                                oninput="recalcularMermaModal()" required>
+                            <small class="text-muted-xs modal-help-balanced">Peso de despacho en finca</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-primary modal-label-balanced">
+                                <i class="fa-solid fa-scale-balanced text-muted-xs"></i> Peso Venta (kg) *:
+                            </label>
+                            <input type="number" step="0.01" min="0.01" name="pesoMataderoKg" id="modalPesoMatadero"
+                                class="form-control form-input-control font-semibold" placeholder="Ej. 378.50"
+                                oninput="recalcularMermaModal()" required>
+                            <small class="text-muted-xs modal-help-balanced">Peso oficial registrado en venta</small>
+                        </div>
+                    </div>
+
+                    <!-- RECUADRO INTERACTIVO DE MERMA CALCULADA -->
+                    <div id="cajaCalculoMermaModal"
+                        class="p-sm bg-light-soft border-radius-sm mb-md text-center border">
+                        <span class="text-muted-xs font-semibold">Cálculo de Merma en Transporte:</span>
+                        <div id="textoCalculoMermaModal" class="font-bold text-brand mt-xs">
+                            Ingrese los pesos para calcular la merma automáticamente
+                        </div>
                     </div>
 
                     <div class="form-group mb-md">
                         <label class="form-label-primary">Dictamen Veterinario:</label>
-                        <select name="estadoDictamen" id="modalEstadoDictamen" class="form-control form-input-control" onchange="toggleMotivoModal(this.value)">
-                            <option value="Apto">Apto para Consumo</option>
-                            <option value="Rechazado">Rechazado (Decomiso / Daño)</option>
+                        <select name="estadoDictamen" id="modalEstadoDictamen" class="form-control form-input-control"
+                            onchange="toggleMotivoModal(this.value)">
+                            <option value="Apto">Apto para Consumo (Aceptado por Planta)</option>
+                            <option value="Rechazado">Rechazado (Decomiso Sanitario / Golpes)</option>
                         </select>
                     </div>
 
                     <div class="form-group mb-lg d-none" id="modalDivMotivo">
-                        <label class="form-label-primary text-danger">Motivo de Rechazo:</label>
-                        <input type="text" name="motivoRechazo" id="modalMotivoRechazo" class="form-control form-input-control input-alert" placeholder="Ej. Hematoma severo, fiebre...">
+                        <label class="form-label-primary text-danger">Motivo del Rechazo Sanitario:</label>
+                        <input type="text" name="motivoRechazo" id="modalMotivoRechazo"
+                            class="form-control form-input-control input-alert"
+                            placeholder="Ej. Hematoma severo en lomo, absceso...">
                     </div>
 
                     <div class="flex-end-gap">
                         <button type="button" class="btn btn-outline" onclick="cerrarModalPesaje()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Resultado</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar
+                            Pesaje y Dictamen</button>
                     </div>
                 </form>
             </div>
@@ -211,10 +384,17 @@
 
     <script>
         function toggleTodosDetalle(marcar) {
+            const input = document.getElementById('filtroFincaDetalle');
+            const filtroActivo = input && input.value.trim().length > 0;
             const checkboxes = document.querySelectorAll('.checkbox-detalle-entrega');
-            checkboxes.forEach(cb => cb.checked = marcar);
+            checkboxes.forEach(cb => {
+                const fila = cb.closest('.fila-finca-detalle');
+                if (!filtroActivo || (fila && fila.style.display !== 'none')) {
+                    cb.checked = marcar;
+                }
+            });
             const master = document.getElementById('checkMasterDetalle');
-            if (master) master.checked = marcar;
+            if (master && !filtroActivo) master.checked = marcar;
             actualizarContadorDetalle();
         }
 
@@ -226,16 +406,175 @@
             }
         }
 
-        function abrirModalPesaje(idDetalle, arete, pesoActual, dictamenActual) {
+        // Búsqueda en panel izquierdo (Ganado en finca)
+        function filtrarGanadoFincaDetalle() {
+            const input = document.getElementById('filtroFincaDetalle');
+            if (!input) return;
+            const filtroRaw = input.value.trim().toUpperCase();
+            const filtroLimpio = filtroRaw.replace(/\s+/g, '');
+            const filas = document.querySelectorAll('.fila-finca-detalle');
+
+            filas.forEach(fila => {
+                const areteEl = fila.querySelector('.arete-finca-buscable');
+                if (!areteEl) return;
+                const txt = areteEl.textContent.trim().toUpperCase();
+                const normalizado = txt.replace(/\s+/g, '');
+                if (!filtroRaw || normalizado.includes(filtroLimpio) || txt.includes(filtroRaw)) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        }
+
+        // Búsqueda en panel derecho (Reses Entregadas)
+        function filtrarResesEntregadas() {
+            const input = document.getElementById('filtroAreteEntregadas');
+            const btnLimpiar = document.getElementById('btnLimpiarFiltroEntregadas');
+            const spanConteo = document.getElementById('conteoVisiblesEntregadas');
+            const filaVacia = document.getElementById('filaSinResesEntregadas');
+            if (!input) return;
+
+            const q = input.value.trim().toUpperCase();
+            const qSinEspacios = q.replace(/\s+/g, '');
+            const qSoloDigitos = q.replace(/\D/g, '');
+
+            if (btnLimpiar) {
+                if (q.length > 0) {
+                    btnLimpiar.classList.remove('d-none');
+                    btnLimpiar.style.display = 'inline-flex';
+                } else {
+                    btnLimpiar.classList.add('d-none');
+                    btnLimpiar.style.display = 'none';
+                }
+            }
+
+            const filas = document.querySelectorAll('.fila-res-entregada');
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                if (!q) {
+                    fila.style.display = '';
+                    visibles++;
+                    return;
+                }
+
+                const dataArete = (fila.getAttribute('data-arete') || '').toUpperCase();
+                const dataDisplay = (fila.getAttribute('data-arete-display') || '').toUpperCase();
+                const areteEl = fila.querySelector('.arete-entregado-buscable');
+                const txtVisual = areteEl ? areteEl.textContent.trim().toUpperCase() : '';
+
+                const dataSinEspacios = dataArete.replace(/\s+/g, '');
+                const displaySinEspacios = dataDisplay.replace(/\s+/g, '');
+                const visualSinEspacios = txtVisual.replace(/\s+/g, '');
+
+                const digitosData = dataArete.replace(/\D/g, '');
+                const digitosVisual = txtVisual.replace(/\D/g, '');
+
+                const coincide =
+                    txtVisual.includes(q) ||
+                    dataArete.includes(q) ||
+                    dataDisplay.includes(q) ||
+                    (qSinEspacios.length > 0 && (
+                        visualSinEspacios.includes(qSinEspacios) ||
+                        dataSinEspacios.includes(qSinEspacios) ||
+                        displaySinEspacios.includes(qSinEspacios)
+                    )) ||
+                    (qSoloDigitos.length > 0 && (
+                        digitosVisual.includes(qSoloDigitos) ||
+                        digitosData.includes(qSoloDigitos)
+                    ));
+
+                if (coincide) {
+                    fila.style.display = '';
+                    visibles++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            if (spanConteo) spanConteo.textContent = visibles;
+            if (filaVacia) {
+                if (visibles === 0 && filas.length > 0) {
+                    filaVacia.style.display = '';
+                    filaVacia.classList.remove('d-none');
+                } else {
+                    filaVacia.style.display = 'none';
+                    filaVacia.classList.add('d-none');
+                }
+            }
+        }
+
+        function limpiarFiltroResesEntregadas() {
+            const input = document.getElementById('filtroAreteEntregadas');
+            if (input) {
+                input.value = '';
+                filtrarResesEntregadas();
+                input.focus();
+            }
+        }
+
+        // Modal de Pesaje Oficial disparado desde botón de tabla con data-*
+        function abrirModalPesajeDesdeBoton(btn) {
+            if (!btn) return;
+            const idDetalle = btn.getAttribute('data-id');
+            const arete = btn.getAttribute('data-arete') || '';
+            const pesoFinca = btn.getAttribute('data-finca') || '';
+            const pesoMatadero = btn.getAttribute('data-matadero') || '';
+            const dictamen = btn.getAttribute('data-dictamen') || 'Apto';
+            const motivo = btn.getAttribute('data-motivo') || '';
+            abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamen, motivo);
+        }
+
+        // Modal de Pesaje Oficial
+        function abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamenActual, motivoActual) {
             document.getElementById('modalIdDetalle').value = idDetalle;
             document.getElementById('modalAreteDisplay').value = arete;
-            document.getElementById('modalPesoMatadero').value = (pesoActual && pesoActual > 0) ? pesoActual : '';
+            document.getElementById('modalPesoFinca').value = (pesoFinca && pesoFinca > 0) ? pesoFinca : '';
+            document.getElementById('modalPesoMatadero').value = (pesoMatadero && pesoMatadero > 0) ? pesoMatadero : '';
+
             const selectDict = document.getElementById('modalEstadoDictamen');
             if (selectDict) {
                 selectDict.value = dictamenActual || 'Apto';
                 toggleMotivoModal(selectDict.value);
             }
+            const inputMotivo = document.getElementById('modalMotivoRechazo');
+            if (inputMotivo) {
+                inputMotivo.value = motivoActual || '';
+            }
+
+            recalcularMermaModal();
             document.getElementById('modalPesaje').classList.remove('d-none');
+            const inputMatadero = document.getElementById('modalPesoMatadero');
+            if (inputMatadero) inputMatadero.focus();
+        }
+
+        function recalcularMermaModal() {
+            const fincaInput = document.getElementById('modalPesoFinca');
+            const mataderoInput = document.getElementById('modalPesoMatadero');
+            const textoCaja = document.getElementById('textoCalculoMermaModal');
+            if (!fincaInput || !mataderoInput || !textoCaja) return;
+
+            const finca = parseFloat(fincaInput.value) || 0;
+            const matadero = parseFloat(mataderoInput.value) || 0;
+
+            if (finca > 0 && matadero > 0) {
+                const diffKilos = (finca - matadero).toFixed(2);
+                const pctMerma = ((finca - matadero) / finca * 100).toFixed(2);
+
+                if (diffKilos >= 0) {
+                    const colorClase = pctMerma > 12 ? 'text-danger' : 'text-brand';
+                    const aviso = pctMerma > 12 ? ' <span class="badge badge-danger ml-xs">¡Merma alta > 12%!</span>' : '';
+                    textoCaja.innerHTML = `<span class="${colorClase} font-bold"><i class="fa-solid fa-arrow-trend-down"></i> Pérdida: ${diffKilos} kg (${pctMerma}% merma)</span>${aviso}`;
+                } else {
+                    const ganancia = Math.abs(diffKilos).toFixed(2);
+                    textoCaja.innerHTML = `<span class="text-success font-bold"><i class="fa-solid fa-arrow-trend-up"></i> Incremento: +${ganancia} kg</span>`;
+                }
+            } else if (finca > 0 && matadero === 0) {
+                textoCaja.innerHTML = '<span class="text-warning font-semibold"><i class="fa-solid fa-clock"></i> Pendiente peso de venta...</span>';
+            } else {
+                textoCaja.innerHTML = '<span class="text-muted">Ingrese los pesos para calcular la merma automáticamente</span>';
+            }
         }
 
         function cerrarModalPesaje() {
@@ -244,13 +583,31 @@
 
         function toggleMotivoModal(val) {
             const div = document.getElementById('modalDivMotivo');
-            if (val === 'Rechazado') {
-                div.classList.remove('d-none');
-            } else {
-                div.classList.add('d-none');
+            if (div) {
+                if (val === 'Rechazado') {
+                    div.classList.remove('d-none');
+                } else {
+                    div.classList.add('d-none');
+                }
             }
         }
+
+        // Tecla Escape para cerrar modal o limpiar filtros
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modalPesaje');
+                if (modal && !modal.classList.contains('d-none')) {
+                    cerrarModalPesaje();
+                } else {
+                    const inputEntregadas = document.getElementById('filtroAreteEntregadas');
+                    if (inputEntregadas && document.activeElement === inputEntregadas) {
+                        limpiarFiltroResesEntregadas();
+                    }
+                }
+            }
+        });
     </script>
 
 </body>
+
 </html>

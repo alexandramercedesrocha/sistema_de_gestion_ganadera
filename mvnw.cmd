@@ -25,8 +25,8 @@ IF %ERRORLEVEL% EQU 0 (
     EXIT /B %ERRORLEVEL%
 )
 
-IF EXIST "C:\Users\Benja\.gemini\antigravity\scratch\apache-maven\apache-maven-3.9.9\bin\mvn.cmd" (
-    "C:\Users\Benja\.gemini\antigravity\scratch\apache-maven\apache-maven-3.9.9\bin\mvn.cmd" %*
+IF EXIST "%USERPROFILE%\.gemini\antigravity\scratch\apache-maven\apache-maven-3.9.9\bin\mvn.cmd" (
+    "%USERPROFILE%\.gemini\antigravity\scratch\apache-maven\apache-maven-3.9.9\bin\mvn.cmd" %*
     EXIT /B %ERRORLEVEL%
 )
 

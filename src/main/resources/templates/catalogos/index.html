@@ -62,7 +62,7 @@
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Inicial:</label>
                                 <input type="text" name="telefono" class="form-control catalog-control"
-                                    placeholder="Ej. 8888-9999">
+                                    placeholder="Ej. 88889999" pattern="[0-9]{8}" maxlength="8">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
@@ -72,20 +72,6 @@
                                     <option value="Convencional">Fijo</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="form-group mb-md">
-                            <label class="catalog-form-label">Nombre de la Finca / Acopio:</label>
-                            <input type="text" name="nombreLugar" class="form-control catalog-control"
-                                placeholder="Ej. Finca El Madroño (Boaco)">
-                        </div>
-
-                        <div class="form-group mb-lg">
-                            <label class="catalog-form-label">
-                                <i class="fa-brands fa-google"></i> Enlace Google Maps de la Finca:
-                            </label>
-                            <input type="url" name="urlGoogleMaps" class="form-control catalog-control"
-                                placeholder="https://maps.app.goo.gl/...">
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full justify-center">
@@ -170,7 +156,7 @@
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Planta:</label>
                                 <input type="text" name="telefono" class="form-control catalog-control"
-                                    placeholder="Ej. 2512-2240">
+                                    placeholder="Ej. 25122240" pattern="[0-9]{8}" maxlength="8">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
@@ -180,20 +166,6 @@
                                     <option value="Tigo">Tigo</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="form-group mb-md">
-                            <label class="catalog-form-label">Ubicación / Dirección Planta:</label>
-                            <input type="text" name="nombreLugar" class="form-control catalog-control"
-                                placeholder="Ej. Planta Juigalpa, Km 142 Carr. Rama">
-                        </div>
-
-                        <div class="form-group mb-lg">
-                            <label class="catalog-form-label">
-                                <i class="fa-brands fa-google"></i> Enlace Google Maps:
-                            </label>
-                            <input type="url" name="urlGoogleMaps" class="form-control catalog-control"
-                                placeholder="https://maps.app.goo.gl/...">
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full justify-center">
@@ -358,7 +330,11 @@
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">Número de Cédula *:</label>
                             <input type="text" name="cedula" class="form-control catalog-control"
-                                placeholder="Ej. 121-140285-0001B" required>
+                                placeholder="Ej. 121-140285-0001B"
+                                pattern="[0-9]{3}-[0-9]{6}-[0-9]{4}[A-Z]"
+                                maxlength="16"
+                                oninput="this.value = this.value.toUpperCase()"
+                                title="Formato requerido: 000-000000-0000X" required>
                         </div>
 
                         <div class="form-group mb-md">
@@ -371,7 +347,7 @@
                             <div class="form-group">
                                 <label class="catalog-form-label">Teléfono Celular:</label>
                                 <input type="text" name="telefono" class="form-control catalog-control"
-                                    placeholder="Ej. 8899-7766">
+                                    placeholder="Ej. 88997766" pattern="[0-9]{8}" maxlength="8">
                             </div>
                             <div class="form-group">
                                 <label class="catalog-form-label">Operador:</label>
@@ -488,12 +464,45 @@
                             </select>
                         </div>
 
+                        <!-- SELECTOR INTERACTIVO EN MAPA (LEAFLET + COORDENADAS PARA GOOGLE MAPS) -->
                         <div class="form-group mb-md">
-                            <label class="catalog-form-label">
-                                <i class="fa-brands fa-google"></i> Enlace Google Maps (URL):
-                            </label>
-                            <input type="url" name="url" class="form-control catalog-control"
-                                placeholder="https://maps.app.goo.gl/...">
+                            <div class="flex-between flex-wrap gap-xs mb-xs">
+                                <label class="catalog-form-label mb-none font-semibold text-brand">
+                                    <i class="fa-solid fa-map-location-dot"></i> Seleccionar Ubicación en el Mapa:
+                                </label>
+                                <button type="button" class="btn btn-xs btn-outline text-brand font-semibold" onclick="obtenerUbicacionGPS()" title="Usar ubicación GPS del dispositivo actual">
+                                    <i class="fa-solid fa-crosshairs"></i> Mi GPS Actual
+                                </button>
+                            </div>
+                            <small class="text-muted-xs mb-xs d-block">
+                                Haga clic en el mapa para colocar el pin o elija una zona ganadera rápida:
+                            </small>
+
+                            <!-- ACCESO RÁPIDO A MUNICIPIOS/REGIONES GANADERAS -->
+                            <div class="flex-wrap gap-xs mb-xs">
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.4674, -85.6586, 12)">📍 Boaco</button>
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.1000, -85.3667, 12)">📍 Juigalpa</button>
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.4167, -85.8000, 13)">📍 Teustepe</button>
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.3833, -85.5167, 12)">📍 Camoapa</button>
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.8667, -85.9167, 12)">📍 Matagalpa</button>
+                                <button type="button" class="btn btn-xs btn-outline" onclick="centrarMapa(12.1364, -86.2514, 11)">📍 Managua</button>
+                            </div>
+
+                            <!-- CONTENEDOR DEL MAPA LEAFLET -->
+                            <div id="mapaUbicacion" style="height: 270px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; z-index: 1;"></div>
+
+                            <!-- INFORMACIÓN DE COORDENADAS SELECCIONADAS -->
+                            <div class="mt-xs flex-between flex-wrap gap-xs text-xs">
+                                <span id="coordenadasTexto" class="text-muted font-mono">
+                                    <i class="fa-solid fa-hand-pointer"></i> Coordenadas: <span class="text-brand font-bold">Haga clic en el mapa</span>
+                                </span>
+                                <a id="linkGoogleMapsPreview" href="#" target="_blank" rel="noopener noreferrer" class="d-none text-brand font-bold">
+                                    <i class="fa-brands fa-google text-danger"></i> <i class="fa-solid fa-arrow-up-right-from-square"></i> Probar en Google Maps
+                                </a>
+                            </div>
+
+                            <!-- INPUT CON LA URL DE GOOGLE MAPS GENERADA -->
+                            <input type="hidden" name="url" id="inputUrlMaps" value="">
                         </div>
 
                         <div class="form-group mb-md">
@@ -556,11 +565,10 @@
                                     </td>
                                     <td>
                                         <a th:if="${u.url != null and !u.url.isBlank()}" th:href="${u.url}"
-                                            target="_blank" class="btn btn-outline btn-sm">
-                                            <i class="fa-solid fa-map-pin"></i> Abrir en Maps
+                                            target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand btn-sm">
+                                            <i class="fa-brands fa-google text-danger"></i> <i class="fa-solid fa-map-location-dot"></i> Abrir en Maps
                                         </a>
-                                        <span th:if="${u.url == null or u.url.isBlank()}" class="text-muted">Sin
-                                            enlace</span>
+                                        <span th:if="${u.url == null or u.url.isBlank()}" class="text-muted">Sin coordenadas</span>
                                     </td>
                                     <td>
                                         <form th:action="@{'/catalogos/ubicaciones/' + ${u.idUbicacion} + '/eliminar'}"
@@ -590,7 +598,7 @@
                         <div class="form-group mb-md">
                             <label class="catalog-form-label">Número de Teléfono *:</label>
                             <input type="text" name="telefono" class="form-control catalog-control"
-                                placeholder="Ej. 8899-1122" required>
+                                placeholder="Ej. 88991122" pattern="[0-9]{8}" maxlength="8" required>
                         </div>
 
                         <div class="form-group mb-md">
@@ -696,6 +704,104 @@
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- LIBRERÍA Y SCRIPT LEAFLET PARA EL SELECTOR DE UBICACIONES CON GOOGLE MAPS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script th:if="${tabActiva == 'ubicaciones'}">
+        let mapUbicacion = null;
+        let markerUbicacion = null;
+
+        function inicializarMapaUbicacion() {
+            const mapDiv = document.getElementById('mapaUbicacion');
+            if (!mapDiv || mapUbicacion) return;
+
+            // Centro inicial: Boaco / Zona central ganadera de Nicaragua
+            const latInicial = 12.4674;
+            const lngInicial = -85.6586;
+
+            mapUbicacion = L.map('mapaUbicacion').setView([latInicial, lngInicial], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(mapUbicacion);
+
+            mapUbicacion.on('click', function (e) {
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                fijarPuntoMapa(lat, lng);
+            });
+
+            // Evitar mosaicos grises reajustando tamaño del mapa
+            setTimeout(function () {
+                mapUbicacion.invalidateSize();
+            }, 300);
+        }
+
+        function fijarPuntoMapa(lat, lng) {
+            if (!mapUbicacion) return;
+
+            if (markerUbicacion) {
+                markerUbicacion.setLatLng([lat, lng]);
+            } else {
+                markerUbicacion = L.marker([lat, lng], { draggable: true }).addTo(mapUbicacion);
+                markerUbicacion.on('dragend', function () {
+                    const pos = markerUbicacion.getLatLng();
+                    fijarPuntoMapa(pos.lat.toFixed(6), pos.lng.toFixed(6));
+                });
+            }
+
+            // Generar URL estándar directa a Google Maps con el pin en esas coordenadas
+            const urlMaps = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+            const inputUrl = document.getElementById('inputUrlMaps');
+            if (inputUrl) inputUrl.value = urlMaps;
+
+            const coordSpan = document.getElementById('coordenadasTexto');
+            if (coordSpan) {
+                coordSpan.innerHTML = `<i class="fa-solid fa-location-dot text-brand"></i> Lat: <strong>${lat}</strong>, Lng: <strong>${lng}</strong>`;
+            }
+
+            const linkPreview = document.getElementById('linkGoogleMapsPreview');
+            if (linkPreview) {
+                linkPreview.href = urlMaps;
+                linkPreview.classList.remove('d-none');
+            }
+        }
+
+        function centrarMapa(lat, lng, zoom) {
+            if (!mapUbicacion) inicializarMapaUbicacion();
+            if (mapUbicacion) {
+                mapUbicacion.setView([lat, lng], zoom || 13);
+                fijarPuntoMapa(lat.toFixed(6), lng.toFixed(6));
+            }
+        }
+
+        function obtenerUbicacionGPS() {
+            if (!navigator.geolocation) {
+                alert('La geolocalización no está soportada en este navegador.');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
+                    centrarMapa(parseFloat(lat), parseFloat(lng), 15);
+                },
+                function () {
+                    alert('No se pudo acceder a la ubicación GPS. Por favor permita el permiso de ubicación o marque haciendo clic en el mapa.');
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarMapaUbicacion);
+        } else {
+            inicializarMapaUbicacion();
+        }
+    </script>
 
 </body>
 

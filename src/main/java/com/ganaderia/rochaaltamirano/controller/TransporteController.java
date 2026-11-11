@@ -19,10 +19,14 @@ public class TransporteController {
 
     private final ViajeService viajeService;
     private final CatalogoService catalogoService;
+    private final com.ganaderia.rochaaltamirano.service.EntregaService entregaService;
 
-    public TransporteController(ViajeService viajeService, CatalogoService catalogoService) {
+    public TransporteController(ViajeService viajeService,
+                                CatalogoService catalogoService,
+                                com.ganaderia.rochaaltamirano.service.EntregaService entregaService) {
         this.viajeService = viajeService;
         this.catalogoService = catalogoService;
+        this.entregaService = entregaService;
     }
 
     @GetMapping
@@ -42,6 +46,7 @@ public class TransporteController {
         model.addAttribute("camiones", catalogoService.listarCamiones());
         model.addAttribute("conductores", catalogoService.listarConductores());
         model.addAttribute("ubicaciones", catalogoService.listarUbicaciones());
+        model.addAttribute("entregas", entregaService.listarTodas());
         return "transporte/formulario";
     }
 
@@ -51,8 +56,9 @@ public class TransporteController {
                                     @RequestParam(name = "idDestino", required = false) Integer idDestino,
                                     @RequestParam(name = "cedulaConductor", required = false) String cedulaConductor,
                                     @RequestParam(name = "numPlaca", required = false) String numPlaca,
+                                    @RequestParam(name = "idEntrega", required = false) Integer idEntrega,
                                     RedirectAttributes redirectAttributes) {
-        viajeService.registrarViaje(viaje, idOrigen, idDestino, cedulaConductor, numPlaca);
+        viajeService.registrarViaje(viaje, idOrigen, idDestino, cedulaConductor, numPlaca, idEntrega);
         redirectAttributes.addFlashAttribute("mensajeExito", "Viaje de transporte registrado correctamente.");
         return "redirect:/transporte";
     }

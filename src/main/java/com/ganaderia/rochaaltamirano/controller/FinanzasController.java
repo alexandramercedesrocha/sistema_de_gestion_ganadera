@@ -2,6 +2,7 @@ package com.ganaderia.rochaaltamirano.controller;
 
 import com.ganaderia.rochaaltamirano.dto.BalanceSociedadDTO;
 import com.ganaderia.rochaaltamirano.model.ArqueoMensual;
+import com.ganaderia.rochaaltamirano.model.Entrega;
 import com.ganaderia.rochaaltamirano.model.Gasto;
 import com.ganaderia.rochaaltamirano.model.Liquidacion;
 import com.ganaderia.rochaaltamirano.service.CatalogoService;
@@ -12,7 +13,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Controlador Web para el Módulo Financiero, Liquidaciones de Mataderos
@@ -44,16 +48,30 @@ public class FinanzasController {
     }
 
     @GetMapping("/liquidaciones")
-    public String listarLiquidaciones(Model model) {
-        model.addAttribute("liquidaciones", finanzasService.listarLiquidaciones());
+    public String listarLiquidaciones(@RequestParam(name = "verTodas", defaultValue = "false") boolean verTodas, Model model) {
+        List<Liquidacion> liquidaciones = finanzasService.listarLiquidaciones();
+        Set<Integer> idsLiquidadas = finanzasService.obtenerIdsEntregasLiquidadas();
+        List<Entrega> todasEntregas = entregaService.listarTodas();
+
+        List<Entrega> entregasPendientes = todasEntregas.stream()
+                .filter(e -> !idsLiquidadas.contains(e.getIdEntrega()))
+                .toList();
+
+        model.addAttribute("liquidaciones", liquidaciones);
         model.addAttribute("totalLiquidado", finanzasService.calcularTotalIngresosLiquidaciones());
-        model.addAttribute("entregas", entregaService.listarTodas());
+        model.addAttribute("idsEntregasLiquidadas", idsLiquidadas);
+        model.addAttribute("entregasPendientes", entregasPendientes);
+        model.addAttribute("todasEntregas", todasEntregas);
+        model.addAttribute("entregas", verTodas ? todasEntregas : entregasPendientes);
+        model.addAttribute("verTodas", verTodas);
+        model.addAttribute("totalPendientes", entregasPendientes.size());
+        model.addAttribute("totalEntregas", todasEntregas.size());
         model.addAttribute("mataderos", catalogoService.listarMataderos());
-        
+
         Liquidacion nuevaLiq = new Liquidacion();
         nuevaLiq.setFechaLiquidacion(LocalDate.now());
         model.addAttribute("nuevaLiquidacion", nuevaLiq);
-        
+
         return "finanzas/liquidaciones";
     }
 
@@ -62,7 +80,25 @@ public class FinanzasController {
                                      @RequestParam(name = "idEntrega", required = false) Integer idEntrega,
                                      @RequestParam(name = "idMatadero", required = false) Integer idMatadero,
                                      RedirectAttributes redirectAttributes) {
+        String comprobante = liquidacion.getIdNumComprobante() != null ? liquidacion.getIdNumComprobante().trim() : "";
+        if (!comprobante.matches("^[0-9]{9,15}$")) {
+            redirectAttributes.addFlashAttribute("mensajeError", 
+                "El número de comprobante debe contener únicamente entre 9 y 15 dígitos numéricos (sin letras, texto extra, guiones ni números negativos).");
+            return "redirect:/finanzas/liquidaciones";
+        }
+        liquidacion.setIdNumComprobante(comprobante);
+
+        if (liquidacion.getMonto() == null || liquidacion.getMonto().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El monto de la liquidación debe ser un número positivo mayor que cero.");
+            return "redirect:/finanzas/liquidaciones";
+        }
+
         if (idEntrega != null) {
+            if (finanzasService.existeLiquidacionParaEntrega(idEntrega)) {
+                redirectAttributes.addFlashAttribute("mensajeError",
+                    "Error: La Entrega #" + idEntrega + " ya ha sido liquidada previamente y cuenta con un comprobante registrado.");
+                return "redirect:/finanzas/liquidaciones";
+            }
             entregaService.buscarPorId(idEntrega).ifPresent(e -> {
                 liquidacion.setEntrega(e);
                 if (e.getMatadero() != null) {
@@ -93,6 +129,10 @@ public class FinanzasController {
 
     @PostMapping("/gastos/guardar")
     public String guardarGasto(@ModelAttribute("nuevoGasto") Gasto gasto, RedirectAttributes redirectAttributes) {
+        if (gasto.getMonto() == null || gasto.getMonto().compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El monto del gasto debe ser un número positivo mayor que cero.");
+            return "redirect:/finanzas/gastos";
+        }
         finanzasService.registrarGasto(gasto);
         redirectAttributes.addFlashAttribute("mensajeExito", "Gasto registrado en el sistema contable.");
         return "redirect:/finanzas/gastos";

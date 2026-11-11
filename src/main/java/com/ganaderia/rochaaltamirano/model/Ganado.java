@@ -1,6 +1,7 @@
 package com.ganaderia.rochaaltamirano.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 
 /**
@@ -22,12 +23,14 @@ public class Ganado {
     @Column(name = "color", length = 50)
     private String color;
 
+    @DecimalMin(value = "0.01", message = "El peso en kilogramos debe ser mayor a cero")
     @Column(name = "peso_kg", precision = 8, scale = 2)
     private BigDecimal pesoKg;
 
     @Column(name = "condicion_compra", length = 50)
     private String condicionCompra; // ej. Regular, Bueno, Excelente
 
+    @DecimalMin(value = "0.0", message = "El precio de compra no puede ser negativo")
     @Column(name = "precio_compra", precision = 10, scale = 2)
     private BigDecimal precioCompra;
 
@@ -38,6 +41,16 @@ public class Ganado {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_lote")
     private Lote lote;
+
+    @Column(name = "fecha_ingreso")
+    private java.time.LocalDateTime fechaIngreso;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaIngreso == null) {
+            this.fechaIngreso = java.time.LocalDateTime.now();
+        }
+    }
 
     @Transient
     private String estado = "En Finca"; // En Finca / Entregado a Matadero
@@ -95,6 +108,9 @@ public class Ganado {
     }
 
     public void setPesoKg(BigDecimal pesoKg) {
+        if (pesoKg != null && pesoKg.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El peso no puede ser negativo");
+        }
         this.pesoKg = pesoKg;
     }
 
@@ -104,6 +120,9 @@ public class Ganado {
     }
 
     public void setPesoEntradaKg(BigDecimal pesoEntradaKg) {
+        if (pesoEntradaKg != null && pesoEntradaKg.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El peso no puede ser negativo");
+        }
         this.pesoKg = pesoEntradaKg;
     }
 
@@ -120,6 +139,9 @@ public class Ganado {
     }
 
     public void setPrecioCompra(BigDecimal precioCompra) {
+        if (precioCompra != null && precioCompra.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de compra no puede ser negativo");
+        }
         this.precioCompra = precioCompra;
     }
 
@@ -168,6 +190,14 @@ public class Ganado {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public java.time.LocalDateTime getFechaIngreso() {
+        return fechaIngreso;
+    }
+
+    public void setFechaIngreso(java.time.LocalDateTime fechaIngreso) {
+        this.fechaIngreso = fechaIngreso;
     }
 
     public boolean isEnFinca() {

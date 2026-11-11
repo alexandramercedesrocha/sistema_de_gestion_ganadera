@@ -1,6 +1,8 @@
 package com.ganaderia.rochaaltamirano.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -13,12 +15,14 @@ import java.time.LocalDate;
 public class Liquidacion {
 
     @Id
+    @Pattern(regexp = "^[0-9]{9,15}$", message = "El número de comprobante debe contener únicamente entre 9 y 15 dígitos numéricos")
     @Column(name = "id_num_comprobante", length = 50)
     private String idNumComprobante;
 
     @Column(name = "fecha_liquidacion", nullable = false)
     private LocalDate fechaLiquidacion;
 
+    @DecimalMin(value = "0.01", message = "El monto liquidado debe ser mayor a cero")
     @Column(name = "monto", precision = 10, scale = 2)
     private BigDecimal monto;
 
@@ -49,7 +53,11 @@ public class Liquidacion {
     }
 
     public void setIdNumComprobante(String idNumComprobante) {
-        this.idNumComprobante = idNumComprobante;
+        if (idNumComprobante != null) {
+            this.idNumComprobante = idNumComprobante.trim();
+        } else {
+            this.idNumComprobante = null;
+        }
     }
 
     public LocalDate getFechaLiquidacion() {
@@ -65,6 +73,9 @@ public class Liquidacion {
     }
 
     public void setMonto(BigDecimal monto) {
+        if (monto != null && monto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El monto liquidado no puede ser negativo");
+        }
         this.monto = monto;
     }
 

@@ -47,6 +47,7 @@
                     <thead>
                         <tr>
                             <th>Nº Viaje</th>
+                            <th>Entrega Asociada</th>
                             <th>Origen</th>
                             <th>Destino</th>
                             <th>Conductor</th>
@@ -58,12 +59,21 @@
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(viajes)}">
-                            <td colspan="8" class="empty-table-cell">
+                            <td colspan="9" class="empty-table-cell">
                                 No hay viajes registrados en la base de datos.
                             </td>
                         </tr>
                         <tr th:each="v : ${viajes}">
                             <td class="text-brand-bold" th:text="'VIAJE-' + ${v.idViaje}">VIAJE-1</td>
+                            <td>
+                                <a th:if="${v.entrega != null}" th:href="@{'/entregas/' + ${v.entrega.idEntrega}}" class="badge badge-primary font-bold">
+                                    <i class="fa-solid fa-truck-ramp-box"></i> Entrega #<span th:text="${v.entrega.idEntrega}">1</span>
+                                    <span th:if="${v.entrega.matadero != null}" th:text="' (' + ${v.entrega.matadero.nombreMatadero} + ')'"></span>
+                                </a>
+                                <span th:if="${v.entrega == null}" class="badge badge-info">
+                                    <i class="fa-solid fa-arrows-split-up-and-left"></i> Viaje Interno
+                                </span>
+                            </td>
                             <td>
                                 <strong th:text="${v.ubicacionOrigen != null ? v.ubicacionOrigen.nombreLugar : 'No especificado'}">Origen</strong>
                                 <a th:if="${v.ubicacionOrigen != null and v.ubicacionOrigen.url != null and !v.ubicacionOrigen.url.isBlank()}" 

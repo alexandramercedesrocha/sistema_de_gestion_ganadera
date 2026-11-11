@@ -44,9 +44,8 @@ public class CatalogoController {
                                    @RequestParam(name = "telefono", required = false) String telefono,
                                    @RequestParam(name = "compania", required = false, defaultValue = "Claro") String compania,
                                    @RequestParam(name = "nombreLugar", required = false) String nombreLugar,
-                                   @RequestParam(name = "urlGoogleMaps", required = false) String urlGoogleMaps,
                                    RedirectAttributes ra) {
-        catalogoService.registrarProveedorCompleto(nombre, telefono, compania, nombreLugar, urlGoogleMaps);
+        catalogoService.registrarProveedorCompleto(nombre, telefono, compania, nombreLugar);
         ra.addFlashAttribute("mensajeExito", "Proveedor '" + nombre + "' registrado con su información de contacto y ubicación.");
         return "redirect:/catalogos?tab=proveedores";
     }
@@ -64,9 +63,8 @@ public class CatalogoController {
                                   @RequestParam(name = "telefono", required = false) String telefono,
                                   @RequestParam(name = "compania", required = false, defaultValue = "Claro") String compania,
                                   @RequestParam(name = "nombreLugar", required = false) String nombreLugar,
-                                  @RequestParam(name = "urlGoogleMaps", required = false) String urlGoogleMaps,
                                   RedirectAttributes ra) {
-        catalogoService.registrarMataderoCompleto(nombreMatadero, telefono, compania, nombreLugar, urlGoogleMaps);
+        catalogoService.registrarMataderoCompleto(nombreMatadero, telefono, compania, nombreLugar);
         ra.addFlashAttribute("mensajeExito", "Planta Matadero '" + nombreMatadero + "' registrada correctamente.");
         return "redirect:/catalogos?tab=mataderos";
     }

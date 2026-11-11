@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,9 +62,51 @@ public class EntregaService {
         return entregaRepository.findById(idEntrega);
     }
 
+    public static class DatosViajeDto {
+        private String cedulaConductor;
+        private String numPlaca;
+        private Integer idUbicacionOrigen;
+        private Integer idUbicacionDestino;
+        private BigDecimal costoFlete;
+        private String estadoPago;
+
+        public DatosViajeDto() {}
+
+        public DatosViajeDto(String cedulaConductor, String numPlaca, Integer idUbicacionOrigen,
+                             Integer idUbicacionDestino, BigDecimal costoFlete, String estadoPago) {
+            this.cedulaConductor = cedulaConductor;
+            this.numPlaca = numPlaca;
+            this.idUbicacionOrigen = idUbicacionOrigen;
+            this.idUbicacionDestino = idUbicacionDestino;
+            this.costoFlete = costoFlete;
+            this.estadoPago = estadoPago;
+        }
+
+        public String getCedulaConductor() { return cedulaConductor; }
+        public void setCedulaConductor(String cedulaConductor) { this.cedulaConductor = cedulaConductor; }
+
+        public String getNumPlaca() { return numPlaca; }
+        public void setNumPlaca(String numPlaca) { this.numPlaca = numPlaca; }
+
+        public Integer getIdUbicacionOrigen() { return idUbicacionOrigen; }
+        public void setIdUbicacionOrigen(Integer idUbicacionOrigen) { this.idUbicacionOrigen = idUbicacionOrigen; }
+
+        public Integer getIdUbicacionDestino() { return idUbicacionDestino; }
+        public void setIdUbicacionDestino(Integer idUbicacionDestino) { this.idUbicacionDestino = idUbicacionDestino; }
+
+        public BigDecimal getCostoFlete() { return costoFlete; }
+        public void setCostoFlete(BigDecimal costoFlete) { this.costoFlete = costoFlete; }
+
+        public String getEstadoPago() { return estadoPago; }
+        public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
+    }
+
     @Transactional
     public Entrega registrarEntrega(Entrega entrega, Integer idMatadero) {
-        return registrarEntrega(entrega, idMatadero, null);
+        if (idMatadero != null) {
+            mataderoRepository.findById(idMatadero).ifPresent(entrega::setMatadero);
+        }
+        return entregaRepository.save(entrega);
     }
 
     @Transactional
@@ -71,90 +114,126 @@ public class EntregaService {
         if (idMatadero != null) {
             mataderoRepository.findById(idMatadero).ifPresent(entrega::setMatadero);
         }
+        Entrega guardada = entregaRepository.save(entrega);
         if (idViaje != null) {
-            viajeRepository.findById(idViaje).ifPresent(entrega::setViaje);
+            viajeRepository.findById(idViaje).ifPresent(v -> {
+                v.setEntrega(guardada);
+                viajeRepository.save(v);
+                guardada.getViajes().add(v);
+            });
         }
-        return entregaRepository.save(entrega);
+        return guardada;
     }
 
     /**
-     * Registra una Entrega a Matadero conformando dinámicamente el Viaje logístico asociado
-     * según los componentes: Conductor, Camión, Origen, Destino y Costo/Pago de Flete (Gasto).
+     * Sobrecarga para registrar una entrega con un solo viaje.
      */
     @Transactional
     public Entrega registrarEntregaConViaje(Entrega entrega, Integer idMatadero,
                                             String cedulaConductor, String numPlaca,
                                             Integer idUbicacionOrigen, Integer idUbicacionDestino,
                                             BigDecimal costoFlete, String estadoPagoViaje) {
+        List<DatosViajeDto> lista = new ArrayList<>();
+        lista.add(new DatosViajeDto(cedulaConductor, numPlaca, idUbicacionOrigen, idUbicacionDestino, costoFlete, estadoPagoViaje));
+        return registrarEntregaConViajes(entrega, idMatadero, lista);
+    }
+
+    /**
+     * Registra una Entrega a Matadero conformando dinámicamente uno o MÚLTIPLES Viajes logísticos asociados
+     * según los componentes: Conductor, Camión, Origen, Destino y Costo/Pago de Flete (Gasto).
+     */
+    @Transactional
+    public Entrega registrarEntregaConViajes(Entrega entrega, Integer idMatadero, List<DatosViajeDto> listaViajes) {
+        if (entrega.getPrecioAcordado() != null && entrega.getPrecioAcordado().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El precio acordado debe ser mayor a cero");
+        }
+
         Matadero matadero = null;
         if (idMatadero != null) {
             matadero = mataderoRepository.findById(idMatadero).orElse(null);
             entrega.setMatadero(matadero);
         }
 
-        // Si se especificó conductor, camión, o alguna ubicación, se conforma y crea el Viaje
-        boolean tieneLogisticaViaje = (cedulaConductor != null && !cedulaConductor.isBlank())
-                || (numPlaca != null && !numPlaca.isBlank())
-                || idUbicacionOrigen != null
-                || idUbicacionDestino != null
-                || (costoFlete != null && costoFlete.compareTo(BigDecimal.ZERO) > 0);
+        // Guardar la Entrega primero para que tenga su ID autogenerado
+        Entrega entregaGuardada = entregaRepository.save(entrega);
 
-        if (tieneLogisticaViaje) {
-            Viaje viaje = new Viaje();
-            viaje.setEstadoPago(estadoPagoViaje != null && !estadoPagoViaje.isBlank() ? estadoPagoViaje : "Pendiente");
-            if ("Pagado".equalsIgnoreCase(viaje.getEstadoPago())) {
-                viaje.setFechaPago(entrega.getFechaEntrega() != null ? entrega.getFechaEntrega() : LocalDate.now());
-            }
+        if (listaViajes != null && !listaViajes.isEmpty()) {
+            for (DatosViajeDto dto : listaViajes) {
+                if (dto == null) continue;
+                if (dto.getCostoFlete() != null && dto.getCostoFlete().compareTo(BigDecimal.ZERO) < 0) {
+                    throw new IllegalArgumentException("El costo de flete no puede ser negativo");
+                }
+                String cedula = dto.getCedulaConductor();
+                String placa = dto.getNumPlaca();
 
-            if (cedulaConductor != null && !cedulaConductor.isBlank()) {
-                conductorRepository.findById(cedulaConductor.trim().toUpperCase()).ifPresent(viaje::setConductor);
-            }
-            if (numPlaca != null && !numPlaca.isBlank()) {
-                camionRepository.findById(numPlaca.trim().toUpperCase()).ifPresent(viaje::setCamion);
-            }
-            if (idUbicacionOrigen != null) {
-                ubicacionRepository.findById(idUbicacionOrigen).ifPresent(viaje::setUbicacionOrigen);
-            }
-            if (idUbicacionDestino != null) {
-                ubicacionRepository.findById(idUbicacionDestino).ifPresent(viaje::setUbicacionDestino);
-            } else if (matadero != null && matadero.getUbicaciones() != null && !matadero.getUbicaciones().isEmpty()) {
-                viaje.setUbicacionDestino(matadero.getUbicaciones().get(0));
-            }
+                // Un viaje válido requiere al menos chofer o camión
+                boolean tieneDatos = (cedula != null && !cedula.isBlank())
+                        || (placa != null && !placa.isBlank())
+                        || dto.getIdUbicacionOrigen() != null
+                        || (dto.getCostoFlete() != null && dto.getCostoFlete().compareTo(BigDecimal.ZERO) > 0);
 
-            Viaje viajeGuardado = viajeRepository.save(viaje);
-            entrega.setViaje(viajeGuardado);
+                if (!tieneDatos) continue;
 
-            // Si se ingresó costo de flete, se genera el registro contable de GASTOS asociado al viaje (jerarquía ISA EER)
-            if (costoFlete != null && costoFlete.compareTo(BigDecimal.ZERO) > 0) {
-                Gasto gasto = new Gasto();
-                gasto.setFechaGasto(entrega.getFechaEntrega() != null ? entrega.getFechaEntrega() : LocalDate.now());
-                gasto.setMonto(costoFlete);
+                Viaje viaje = new Viaje();
+                viaje.setEntrega(entregaGuardada);
+                viaje.setEstadoPago(dto.getEstadoPago() != null && !dto.getEstadoPago().isBlank() ? dto.getEstadoPago() : "Pendiente");
+                if ("Pagado".equalsIgnoreCase(viaje.getEstadoPago())) {
+                    viaje.setFechaPago(entregaGuardada.getFechaEntrega() != null ? entregaGuardada.getFechaEntrega() : LocalDate.now());
+                }
 
-                String choferTxt = viajeGuardado.getConductor() != null ? viajeGuardado.getConductor().getNombre() : "S/C";
-                String camionTxt = viajeGuardado.getCamion() != null ? viajeGuardado.getCamion().getNumPlaca() : "S/P";
-                String plantaTxt = matadero != null ? matadero.getNombreMatadero() : "Matadero";
-                gasto.setDescripcion("Flete de transporte a " + plantaTxt + " (Camión: " + camionTxt + ", Chofer: " + choferTxt + ")");
-                gasto.setViaje(viajeGuardado);
+                if (cedula != null && !cedula.isBlank()) {
+                    conductorRepository.findById(cedula.trim().toUpperCase()).ifPresent(viaje::setConductor);
+                }
+                if (placa != null && !placa.isBlank()) {
+                    camionRepository.findById(placa.trim().toUpperCase()).ifPresent(viaje::setCamion);
+                }
+                if (dto.getIdUbicacionOrigen() != null) {
+                    ubicacionRepository.findById(dto.getIdUbicacionOrigen()).ifPresent(viaje::setUbicacionOrigen);
+                }
+                if (dto.getIdUbicacionDestino() != null) {
+                    ubicacionRepository.findById(dto.getIdUbicacionDestino()).ifPresent(viaje::setUbicacionDestino);
+                } else if (matadero != null && matadero.getUbicaciones() != null && !matadero.getUbicaciones().isEmpty()) {
+                    viaje.setUbicacionDestino(matadero.getUbicaciones().get(0));
+                }
 
-                CategoriaGasto catTransporte = categoriaGastoRepository.findAll().stream()
-                        .filter(c -> c.getNombreCategoria() != null && c.getNombreCategoria().toLowerCase().contains("transporte"))
-                        .findFirst()
-                        .orElseGet(() -> {
-                            CategoriaGasto nueva = new CategoriaGasto();
-                            nueva.setNombreCategoria("Transporte / Flete");
-                            return categoriaGastoRepository.save(nueva);
-                        });
-                gasto.setCategoria(catTransporte);
-                gastoRepository.save(gasto);
+                Viaje viajeGuardado = viajeRepository.save(viaje);
+                entregaGuardada.getViajes().add(viajeGuardado);
+
+                // Si se especificó costo de flete, se genera el registro contable de GASTOS asociado a este viaje
+                if (dto.getCostoFlete() != null && dto.getCostoFlete().compareTo(BigDecimal.ZERO) > 0) {
+                    Gasto gasto = new Gasto();
+                    gasto.setFechaGasto(entregaGuardada.getFechaEntrega() != null ? entregaGuardada.getFechaEntrega() : LocalDate.now());
+                    gasto.setMonto(dto.getCostoFlete());
+
+                    String choferTxt = viajeGuardado.getConductor() != null ? viajeGuardado.getConductor().getNombre() : "S/C";
+                    String camionTxt = viajeGuardado.getCamion() != null ? viajeGuardado.getCamion().getNumPlaca() : "S/P";
+                    String plantaTxt = matadero != null ? matadero.getNombreMatadero() : "Matadero";
+                    gasto.setDescripcion("Flete de transporte a " + plantaTxt + " (Camión: " + camionTxt + ", Chofer: " + choferTxt + ")");
+                    gasto.setViaje(viajeGuardado);
+
+                    CategoriaGasto catTransporte = categoriaGastoRepository.findAll().stream()
+                            .filter(c -> c.getNombreCategoria() != null && c.getNombreCategoria().toLowerCase().contains("transporte"))
+                            .findFirst()
+                            .orElseGet(() -> {
+                                CategoriaGasto nueva = new CategoriaGasto();
+                                nueva.setNombreCategoria("Transporte / Flete");
+                                return categoriaGastoRepository.save(nueva);
+                            });
+                    gasto.setCategoria(catTransporte);
+                    gastoRepository.save(gasto);
+                }
             }
         }
 
-        return entregaRepository.save(entrega);
+        return entregaGuardada;
     }
 
     @Transactional
     public DetalleEntrega registrarDetallePesaje(Integer idEntrega, String arete, BigDecimal pesoMataderoKg,
                                                  String estadoDictamen, String motivoRechazo) {
+        if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso de matadero debe ser mayor a cero");
+        }
         Entrega entrega = entregaRepository.findById(idEntrega)
                 .orElseThrow(() -> new IllegalArgumentException("Entrega no encontrada: " + idEntrega));
 
@@ -201,21 +280,64 @@ public class EntregaService {
 
     @Transactional
     public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes) {
-        asociarGanadoAEntrega(idEntrega, aretes, null);
+        asociarGanadoAEntrega(idEntrega, aretes, null, null);
     }
 
     @Transactional
     public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes, java.util.Map<String, BigDecimal> preciosRechazo) {
+        asociarGanadoAEntrega(idEntrega, aretes, preciosRechazo, null);
+    }
+
+    @Transactional
+    public void asociarGanadoAEntrega(Integer idEntrega, List<String> aretes, 
+                                      java.util.Map<String, BigDecimal> preciosRechazo,
+                                      java.util.Map<String, BigDecimal> pesosSalida) {
         if (aretes == null || aretes.isEmpty()) return;
         Entrega entrega = entregaRepository.findById(idEntrega)
                 .orElseThrow(() -> new IllegalArgumentException("Entrega no encontrada: " + idEntrega));
 
+        // Obtener detalles ya existentes para evitar duplicados en la misma entrega
+        List<DetalleEntrega> existentes = detalleEntregaRepository.findByEntregaIdEntrega(idEntrega);
+        java.util.Set<String> aretesYaAsociados = new java.util.HashSet<>();
+        for (DetalleEntrega d : existentes) {
+            if (d.getGanado() != null && d.getGanado().getArete() != null) {
+                aretesYaAsociados.add(d.getGanado().getArete().trim().toUpperCase());
+                aretesYaAsociados.add(d.getGanado().getArete().replaceAll("\\s+", "").toUpperCase());
+            }
+        }
+
         for (String arete : aretes) {
             if (arete == null || arete.isBlank()) continue;
             String areteLimpio = arete.trim().toUpperCase();
+            String areteSinEspacios = areteLimpio.replaceAll("\\s+", "");
+
+            if (aretesYaAsociados.contains(areteLimpio) || aretesYaAsociados.contains(areteSinEspacios)) {
+                continue; // Ya está asociado a esta entrega
+            }
+
+            // Búsqueda flexible de la res en la base de datos (con o sin espacio)
             Optional<Ganado> optGanado = ganadoRepository.findById(areteLimpio);
+            if (optGanado.isEmpty()) {
+                List<Ganado> flex = ganadoRepository.buscarPorAreteFlexible(areteSinEspacios, areteLimpio);
+                if (!flex.isEmpty()) {
+                    optGanado = Optional.of(flex.get(0));
+                }
+            }
+
             if (optGanado.isPresent()) {
                 Ganado ganado = optGanado.get();
+
+                // Actualizar nuevo peso de salida si el animal incrementó de peso por engorde antes de entregarse
+                if (pesosSalida != null) {
+                    BigDecimal nuevoPeso = pesosSalida.get(areteLimpio);
+                    if (nuevoPeso == null) {
+                        nuevoPeso = pesosSalida.get(areteSinEspacios);
+                    }
+                    if (nuevoPeso != null && nuevoPeso.compareTo(BigDecimal.ZERO) > 0) {
+                        ganado.setPesoKg(nuevoPeso);
+                    }
+                }
+
                 ganado.setCategoria("Apto");
                 ganado.setEstado("Entregado a Matadero");
                 ganadoRepository.save(ganado);
@@ -223,20 +345,44 @@ public class EntregaService {
                 DetalleEntrega detalle = new DetalleEntrega();
                 detalle.setEntrega(entrega);
                 detalle.setGanado(ganado);
-                detalle.setPesoMataderoKg(ganado.getPesoKg());
+                // Inicialmente el peso de matadero queda pendiente hasta que la planta registre su pesaje oficial
+                detalle.setPesoMataderoKg(null);
                 detalle.setEstadoDictamen("Apto");
-                if (preciosRechazo != null && preciosRechazo.containsKey(areteLimpio)) {
-                    detalle.setPrecioRechazo(preciosRechazo.get(areteLimpio));
+                if (preciosRechazo != null) {
+                    BigDecimal pRech = preciosRechazo.get(areteLimpio);
+                    if (pRech == null) pRech = preciosRechazo.get(areteSinEspacios);
+                    if (pRech != null) {
+                        detalle.setPrecioRechazo(pRech);
+                    }
                 }
                 detalleEntregaRepository.save(detalle);
+
+                aretesYaAsociados.add(areteLimpio);
+                aretesYaAsociados.add(areteSinEspacios);
             }
         }
     }
 
     @Transactional
     public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, String estadoDictamen, String motivoRechazo) {
+        actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, null, estadoDictamen, motivoRechazo);
+    }
+
+    @Transactional
+    public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, BigDecimal pesoFincaKg, String estadoDictamen, String motivoRechazo) {
+        if (pesoFincaKg != null && pesoFincaKg.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso en finca debe ser mayor a cero");
+        }
+        if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso en matadero debe ser mayor a cero");
+        }
         DetalleEntrega detalle = detalleEntregaRepository.findById(idDetalle)
                 .orElseThrow(() -> new IllegalArgumentException("Detalle no encontrado: " + idDetalle));
+
+        if (pesoFincaKg != null && pesoFincaKg.compareTo(BigDecimal.ZERO) > 0 && detalle.getGanado() != null) {
+            detalle.getGanado().setPesoKg(pesoFincaKg);
+            ganadoRepository.save(detalle.getGanado());
+        }
 
         if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) > 0) {
             detalle.setPesoMataderoKg(pesoMataderoKg);
@@ -261,7 +407,22 @@ public class EntregaService {
                     rechazo.setDetalleEntrega(detalle);
                     rechazo.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
                             ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
-                    ganadoRechazadoRepository.save(rechazo);
+                    GanadoRechazado guardado = ganadoRechazadoRepository.save(rechazo);
+                    if (detalle.getRechazos() != null) {
+                        detalle.getRechazos().add(guardado);
+                    }
+                } else {
+                    GanadoRechazado existente = detalle.getRechazos().get(0);
+                    if (existente != null) {
+                        existente.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
+                                ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
+                        ganadoRechazadoRepository.save(existente);
+                    }
+                }
+            } else if ("Apto".equalsIgnoreCase(estadoDictamen)) {
+                if (detalle.getRechazos() != null && !detalle.getRechazos().isEmpty()) {
+                    ganadoRechazadoRepository.deleteAll(detalle.getRechazos());
+                    detalle.getRechazos().clear();
                 }
             }
         }

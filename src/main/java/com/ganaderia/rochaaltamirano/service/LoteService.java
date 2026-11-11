@@ -67,6 +67,12 @@ public class LoteService {
 
     @Transactional
     public Lote registrarLote(Lote lote, Integer idProveedor) {
+        if (lote.getPrecioEstandar() != null && lote.getPrecioEstandar().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El precio estándar del lote debe ser mayor a cero");
+        }
+        if (lote.getPrecioDeRechazo() != null && lote.getPrecioDeRechazo().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de rechazo del lote no puede ser negativo");
+        }
         if (idProveedor != null) {
             proveedorRepository.findById(idProveedor).ifPresent(lote::setProveedor);
         }
@@ -75,6 +81,12 @@ public class LoteService {
 
     @Transactional
     public Ganado registrarAnimalEnLote(Integer idLote, Ganado animal, String areteAnteriorCodigo) {
+        if (animal.getPesoKg() != null && animal.getPesoKg().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El peso de la res debe ser mayor a cero");
+        }
+        if (animal.getPrecioCompra() != null && animal.getPrecioCompra().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de compra no puede ser negativo");
+        }
         Lote lote = loteRepository.findById(idLote)
                 .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + idLote));
         animal.setLote(lote);
