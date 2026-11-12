@@ -25,9 +25,12 @@
                     &mdash;
                     Precio Apto: <strong>C$ <span
                             th:text="${#numbers.formatDecimal(entrega.precioAcordado != null ? entrega.precioAcordado : 0, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
-                    <span th:if="${entrega.precioRechazo != null}">
-                        &mdash; Precio Rechazo: <strong>C$ <span
+                    <span th:if="${entrega.precioRechazo != null and entrega.precioRechazo > 0}">
+                        &mdash; Precio Rechazo: <strong class="text-danger">C$ <span
                                 th:text="${#numbers.formatDecimal(entrega.precioRechazo, 1, 'COMMA', 2, 'POINT')}">0.00</span>/kg</strong>
+                    </span>
+                    <span th:if="${entrega.precioRechazo == null or entrega.precioRechazo <= 0}">
+                        &mdash; Precio Rechazo: <span class="badge badge-warning">Sin definir</span>
                     </span>
                     <span th:if="${!#lists.isEmpty(entrega.viajes)}">
                         &mdash; <span class="badge badge-info"><i class="fa-solid fa-truck-moving"></i> <strong
@@ -111,8 +114,11 @@
 
         <div class="grid-split">
 
-            <!-- PANEL IZQUIERDO: SELECCIÓN RÁPIDA DE GANADO DISPONIBLE EN FINCA -->
-            <div class="form-card catalog-card">
+            <!-- COLUMNA IZQUIERDA: GANADO EN FINCA Y FORMULARIO DE PRECIO DE RECHAZO -->
+            <div class="flex-col gap-md">
+
+                <!-- PANEL IZQUIERDO: SELECCIÓN RÁPIDA DE GANADO DISPONIBLE EN FINCA -->
+                <div class="form-card catalog-card">
                 <div class="card-header flex-between flex-wrap gap-xs mb-sm">
                     <div>
                         <h2 class="section-subtitle mb-xs">
@@ -187,6 +193,35 @@
                     </button>
                 </form>
             </div>
+
+            <!-- FORMULARIO: PRECIO DE RECHAZO DE LA ENTREGA (ABAJO DE GANADO EN FINCA) -->
+            <div class="form-card catalog-card">
+                <div class="card-header mb-sm">
+                    <h2 class="section-subtitle mb-xs">
+                        <i class="fa-solid fa-coins text-danger"></i> Precio de Rechazo de la Entrega
+                    </h2>
+                    <p class="text-muted-xs">Defina o actualice el precio por kilo pactado con el matadero si se dictaminan animales como rechazo</p>
+                </div>
+                <form th:action="@{'/entregas/' + ${entrega.idEntrega} + '/actualizar-precio-rechazo'}" method="post">
+                    <div class="form-group mb-md">
+                        <label class="catalog-form-label">
+                            <i class="fa-solid fa-tag"></i> Precio Rechazo Base (C$/kg) *:
+                        </label>
+                        <input type="number" step="0.01" min="0.01" name="precioRechazo" 
+                               class="form-control catalog-control font-semibold text-danger"
+                               th:value="${entrega.precioRechazo}" 
+                               placeholder="Ej. 65.00" required>
+                        <small class="text-muted-xs">
+                            Precio de venta por kilogramo aplicado a las reses rechazadas de esta entrega.
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-full justify-center">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Precio de Rechazo
+                    </button>
+                </form>
+            </div>
+
+        </div>
 
             <!-- PANEL DERECHO: TABLA DE DETALLES DE ANIMALES ENTREGADOS CON PESAJE Y % DE MERMA -->
             <div class="table-card">
@@ -272,10 +307,19 @@
                                     <span th:if="${det.estadoDictamen == 'Apto'}" class="badge badge-success">
                                         <i class="fa-solid fa-check"></i> Apto
                                     </span>
-                                    <span th:if="${det.estadoDictamen == 'Rechazado'}" class="badge badge-danger">
+                                    <span th:if="${det.estadoDictamen == 'Rechazado - Devuelto'}" class="badge badge-danger">
+                                        <i class="fa-solid fa-rotate-left"></i> Rechazado (Devuelto a Finca)
+                                    </span>
+                                    <span th:if="${det.estadoDictamen == 'Rechazado - Comprado' or (det.estadoDictamen == 'Rechazado' and (det.precioRechazo != null or entrega.precioRechazo != null))}" class="badge badge-warning">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Rechazado (Comprado en Planta)
+                                        <small th:if="${det.precioRechazo != null or entrega.precioRechazo != null}"
+                                               class="d-block text-dark font-semibold"
+                                               th:text="'C$ ' + ${#numbers.formatDecimal(det.precioRechazo != null ? det.precioRechazo : entrega.precioRechazo, 1, 'COMMA', 2, 'POINT')} + '/kg'"></small>
+                                    </span>
+                                    <span th:if="${det.estadoDictamen == 'Rechazado' and det.precioRechazo == null and entrega.precioRechazo == null}" class="badge badge-danger">
                                         <i class="fa-solid fa-triangle-exclamation"></i> Rechazado
                                     </span>
-                                    <span th:if="${det.estadoDictamen != 'Apto' and det.estadoDictamen != 'Rechazado'}"
+                                    <span th:if="${det.estadoDictamen != 'Apto' and det.estadoDictamen != 'Rechazado' and det.estadoDictamen != 'Rechazado - Comprado' and det.estadoDictamen != 'Rechazado - Devuelto'}"
                                         class="badge badge-secondary"
                                         th:text="${det.estadoDictamen != null ? det.estadoDictamen : 'Pendiente'}">Apto</span>
                                 </td>
@@ -286,6 +330,7 @@
                                         th:data-matadero="${det.pesoMataderoKg != null ? det.pesoMataderoKg : ''}"
                                         th:data-dictamen="${det.estadoDictamen != null ? det.estadoDictamen : 'Apto'}"
                                         th:data-motivo="${det.primerMotivoRechazo}"
+                                        th:data-precio-rechazo="${det.precioRechazo != null ? det.precioRechazo : (entrega.precioRechazo != null ? entrega.precioRechazo : '')}"
                                         onclick="abrirModalPesajeDesdeBoton(this)"
                                         title="Actualizar pesaje de venta o dictamen">
                                         <i class="fa-solid fa-scale-balanced"></i> Actualizar
@@ -354,19 +399,41 @@
                     </div>
 
                     <div class="form-group mb-md">
-                        <label class="form-label-primary">Dictamen Veterinario:</label>
+                        <label class="form-label-primary">Dictamen Oficial en Planta:</label>
                         <select name="estadoDictamen" id="modalEstadoDictamen" class="form-control form-input-control"
                             onchange="toggleMotivoModal(this.value)">
                             <option value="Apto">Apto para Consumo (Aceptado por Planta)</option>
-                            <option value="Rechazado">Rechazado (Decomiso Sanitario / Golpes)</option>
+                            <option value="Rechazado - Comprado">Rechazado - Comprado en Planta (Penalizado en Liquidación)</option>
+                            <option value="Rechazado - Devuelto">Rechazado - Devuelto a Finca (Retorno Vivo para Recuperación)</option>
                         </select>
                     </div>
 
-                    <div class="form-group mb-lg d-none" id="modalDivMotivo">
-                        <label class="form-label-primary text-danger">Motivo del Rechazo Sanitario:</label>
+                    <!-- NOTA INFORMATIVA DINÁMICA DEL TIPO DE RECHAZO -->
+                    <div id="notaRechazoDevuelto" class="p-xs bg-light-soft border-radius-sm mb-md text-sm text-danger font-semibold border d-none">
+                        <i class="fa-solid fa-rotate-left"></i> <strong>Retorno Vivo:</strong> La planta matadero no compró esta res y la devuelve viva a finca. 
+                        No se sumará al cobro de liquidación y reaparecerá en el inventario como rechazo para ser recuperada y re-aretada con un nuevo arete.
+                    </div>
+
+                    <div id="notaRechazoComprado" class="p-xs bg-light-soft border-radius-sm mb-md text-sm text-warning font-semibold border d-none">
+                        <i class="fa-solid fa-coins"></i> <strong>Comprado con Castigo:</strong> La planta retiene y procesa la res, pero aplica un precio de compra penalizado. Se incluirá en la liquidación a dicho precio.
+                    </div>
+
+                    <div class="form-group mb-md d-none" id="modalDivMotivo">
+                        <label class="form-label-primary text-danger">Motivo Técnico del Rechazo:</label>
                         <input type="text" name="motivoRechazo" id="modalMotivoRechazo"
                             class="form-control form-input-control input-alert"
-                            placeholder="Ej. Hematoma severo en lomo, absceso...">
+                            placeholder="Ej. Hematoma severo en lomo, absceso, fractura en viaje...">
+                    </div>
+
+                    <div class="form-group mb-lg d-none" id="modalDivPrecioRechazo">
+                        <label class="form-label-primary text-danger modal-label-balanced">
+                            <i class="fa-solid fa-coins text-danger"></i> Precio de Rechazo (C$/kg) *:
+                        </label>
+                        <input type="number" step="0.01" min="0.01" name="precioRechazo" id="modalPrecioRechazo"
+                            class="form-control form-input-control input-alert font-semibold text-danger"
+                            placeholder="Ej. 65.00"
+                            th:data-precio-entrega="${entrega.precioRechazo != null ? entrega.precioRechazo : ''}">
+                        <small class="text-muted-xs modal-help-balanced">Precio por kilo pactado con la planta para esta res en condición de rechazo</small>
                     </div>
 
                     <div class="flex-end-gap">
@@ -523,19 +590,34 @@
             const pesoMatadero = btn.getAttribute('data-matadero') || '';
             const dictamen = btn.getAttribute('data-dictamen') || 'Apto';
             const motivo = btn.getAttribute('data-motivo') || '';
-            abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamen, motivo);
+            const precioRechazo = btn.getAttribute('data-precio-rechazo') || '';
+            abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamen, motivo, precioRechazo);
         }
 
         // Modal de Pesaje Oficial
-        function abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamenActual, motivoActual) {
+        function abrirModalPesaje(idDetalle, arete, pesoFinca, pesoMatadero, dictamenActual, motivoActual, precioRechazoActual) {
             document.getElementById('modalIdDetalle').value = idDetalle;
             document.getElementById('modalAreteDisplay').value = arete;
             document.getElementById('modalPesoFinca').value = (pesoFinca && pesoFinca > 0) ? pesoFinca : '';
             document.getElementById('modalPesoMatadero').value = (pesoMatadero && pesoMatadero > 0) ? pesoMatadero : '';
 
+            const inputPrecioRech = document.getElementById('modalPrecioRechazo');
+            const precioEntrega = inputPrecioRech ? inputPrecioRech.getAttribute('data-precio-entrega') : '';
+            if (inputPrecioRech) {
+                inputPrecioRech.value = (precioRechazoActual && parseFloat(precioRechazoActual) > 0) 
+                    ? precioRechazoActual 
+                    : (precioEntrega || '');
+            }
+
             const selectDict = document.getElementById('modalEstadoDictamen');
             if (selectDict) {
-                selectDict.value = dictamenActual || 'Apto';
+                let dictamenVal = dictamenActual || 'Apto';
+                if (dictamenVal === 'Rechazado') {
+                    dictamenVal = (precioRechazoActual && parseFloat(precioRechazoActual) > 0) 
+                        ? 'Rechazado - Comprado' 
+                        : 'Rechazado - Devuelto';
+                }
+                selectDict.value = dictamenVal;
                 toggleMotivoModal(selectDict.value);
             }
             const inputMotivo = document.getElementById('modalMotivoRechazo');
@@ -582,12 +664,51 @@
         }
 
         function toggleMotivoModal(val) {
-            const div = document.getElementById('modalDivMotivo');
-            if (div) {
-                if (val === 'Rechazado') {
-                    div.classList.remove('d-none');
+            const divMotivo = document.getElementById('modalDivMotivo');
+            const divPrecio = document.getElementById('modalDivPrecioRechazo');
+            const inputPrecio = document.getElementById('modalPrecioRechazo');
+            const notaDevuelto = document.getElementById('notaRechazoDevuelto');
+            const notaComprado = document.getElementById('notaRechazoComprado');
+
+            const esRechazo = val && val.toLowerCase().startsWith('rechazado');
+            const esDevuelto = val && val.toLowerCase().includes('devuelto');
+            const esComprado = val && (val.toLowerCase().includes('comprado') || val === 'Rechazado');
+
+            if (divMotivo) {
+                if (esRechazo) {
+                    divMotivo.classList.remove('d-none');
                 } else {
-                    div.classList.add('d-none');
+                    divMotivo.classList.add('d-none');
+                }
+            }
+
+            if (divPrecio) {
+                if (esComprado) {
+                    divPrecio.classList.remove('d-none');
+                    if (inputPrecio && (!inputPrecio.value || parseFloat(inputPrecio.value) <= 0)) {
+                        inputPrecio.value = inputPrecio.getAttribute('data-precio-entrega') || '';
+                    }
+                } else {
+                    divPrecio.classList.add('d-none');
+                    if (esDevuelto && inputPrecio) {
+                        inputPrecio.value = '';
+                    }
+                }
+            }
+
+            if (notaDevuelto) {
+                if (esDevuelto) {
+                    notaDevuelto.classList.remove('d-none');
+                } else {
+                    notaDevuelto.classList.add('d-none');
+                }
+            }
+
+            if (notaComprado) {
+                if (esComprado) {
+                    notaComprado.classList.remove('d-none');
+                } else {
+                    notaComprado.classList.add('d-none');
                 }
             }
         }

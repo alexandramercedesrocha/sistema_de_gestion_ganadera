@@ -129,7 +129,25 @@ public class DetalleEntrega {
      * Indica si la res cuenta con al menos un registro de rechazo.
      */
     public boolean isTieneRechazo() {
-        return rechazos != null && !rechazos.isEmpty();
+        return (rechazos != null && !rechazos.isEmpty()) || isRechazado();
+    }
+
+    public boolean isApto() {
+        return "Apto".equalsIgnoreCase(estadoDictamen);
+    }
+
+    public boolean isRechazado() {
+        return estadoDictamen != null && estadoDictamen.toLowerCase().startsWith("rechazado");
+    }
+
+    public boolean isRechazadoDevuelto() {
+        return estadoDictamen != null && estadoDictamen.toLowerCase().contains("devuelto");
+    }
+
+    public boolean isRechazadoComprado() {
+        if (estadoDictamen == null) return false;
+        String ed = estadoDictamen.toLowerCase();
+        return ed.contains("comprado") || ("rechazado".equalsIgnoreCase(ed) && precioRechazo != null);
     }
 
     /**

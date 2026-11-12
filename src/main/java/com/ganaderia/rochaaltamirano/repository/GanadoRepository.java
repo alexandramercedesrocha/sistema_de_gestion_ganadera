@@ -27,38 +27,64 @@ public interface GanadoRepository extends JpaRepository<Ganado, String> {
     @Query("SELECT COUNT(g) > 0 FROM Ganado g WHERE REPLACE(g.arete, ' ', '') = :areteLimpio OR g.arete = :areteOriginal")
     boolean existeAreteEnBaseDatos(@Param("areteLimpio") String areteLimpio, @Param("areteOriginal") String areteOriginal);
 
+    Optional<Ganado> findFirstByAreteAnterior(Ganado areteAnterior);
+
+    Optional<Ganado> findFirstByAreteAnteriorArete(String arete);
+
+    boolean existsByAreteAnteriorArete(String arete);
+
     /**
      * Regla de Negocio: Animales activos en inventario.
-     * Incluye todo el ganado comprado que NO tenga entrega asociada con dictamen 'Apto'
-     * (permite reses que hayan ido a matadero pero fueron rechazadas, volviendo al inventario).
+     * Incluye todo el ganado que NO haya sido comprado/aceptado por matadero
+     * y que NO haya sido ya reemplazado por re-aretado.
      */
-    @Query("SELECT g FROM Ganado g WHERE NOT EXISTS (" +
-           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND LOWER(d.estadoDictamen) = 'apto'" +
+    @Query("SELECT g FROM Ganado g WHERE " +
+           "NOT EXISTS (SELECT nuevo FROM Ganado nuevo WHERE nuevo.areteAnterior = g) AND " +
+           "NOT EXISTS (" +
+           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND (" +
+           "    LOWER(d.estadoDictamen) = 'apto' OR " +
+           "    LOWER(d.estadoDictamen) LIKE '%comprado%' OR " +
+           "    (LOWER(d.estadoDictamen) = 'rechazado' AND d.precioRechazo IS NOT NULL)" +
+           "  )" +
            ")")
     List<Ganado> findGanadoActivoInventario();
 
     /**
-     * Reses que ya fueron entregadas y ACEPTADAS por la planta matadero (venta consumada).
+     * Reses que ya fueron entregadas y compradas/aceptadas por la planta matadero (venta consumada).
      */
-    @Query("SELECT g FROM Ganado g WHERE EXISTS (" +
-           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND LOWER(d.estadoDictamen) = 'apto'" +
+    @Query("SELECT DISTINCT g FROM Ganado g WHERE EXISTS (" +
+           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND (" +
+           "    LOWER(d.estadoDictamen) = 'apto' OR " +
+           "    LOWER(d.estadoDictamen) LIKE '%comprado%' OR " +
+           "    (LOWER(d.estadoDictamen) = 'rechazado' AND d.precioRechazo IS NOT NULL)" +
+           "  )" +
            ")")
     List<Ganado> findGanadoVendidosAceptados();
 
     /**
-     * Reses que fueron despachadas a matadero pero sufrieron rechazo técnico/sanitario.
+     * Reses que fueron despachadas a matadero pero sufrieron rechazo técnico/sanitario
+     * y fueron devueltas a la finca, pendientes de ser re-aretadas / recuperadas.
      */
-    @Query("SELECT DISTINCT g FROM Ganado g WHERE EXISTS (" +
-           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND LOWER(d.estadoDictamen) = 'rechazado'" +
+    @Query("SELECT DISTINCT g FROM Ganado g WHERE " +
+           "NOT EXISTS (SELECT nuevo FROM Ganado nuevo WHERE nuevo.areteAnterior = g) AND " +
+           "EXISTS (" +
+           "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g AND (" +
+           "    LOWER(d.estadoDictamen) LIKE '%devuelto%' OR " +
+           "    (LOWER(d.estadoDictamen) = 'rechazado' AND d.precioRechazo IS NULL)" +
+           "  )" +
            ") AND NOT EXISTS (" +
-           "  SELECT d2 FROM DetalleEntrega d2 WHERE d2.ganado = g AND LOWER(d2.estadoDictamen) = 'apto'" +
+           "  SELECT d2 FROM DetalleEntrega d2 WHERE d2.ganado = g AND (" +
+           "    LOWER(d2.estadoDictamen) = 'apto' OR LOWER(d2.estadoDictamen) LIKE '%comprado%'" +
+           "  )" +
            ")")
     List<Ganado> findGanadoRechazosMatadero();
 
     /**
-     * Reses en finca que nunca han tenido despacho a matadero.
+     * Reses en finca que nunca han tenido despacho a matadero y no han sido reemplazadas por re-aretado.
      */
-    @Query("SELECT g FROM Ganado g WHERE NOT EXISTS (" +
+    @Query("SELECT g FROM Ganado g WHERE " +
+           "NOT EXISTS (SELECT nuevo FROM Ganado nuevo WHERE nuevo.areteAnterior = g) AND " +
+           "NOT EXISTS (" +
            "  SELECT d FROM DetalleEntrega d WHERE d.ganado = g" +
            ")")
     List<Ganado> findGanadoEnFincaSinDespacho();

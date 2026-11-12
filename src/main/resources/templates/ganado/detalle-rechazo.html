@@ -15,7 +15,6 @@
             </div>
             <div class="flex-center gap-sm">
                 <a th:href="@{/ganado}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Inventario Completo</a>
-                <a th:href="@{/ganado/nuevo-rechazo}" class="btn btn-danger"><i class="fa-solid fa-plus"></i> Registrar Rechazo</a>
             </div>
         </div>
 
@@ -39,8 +38,8 @@
                             <th>Motivo del Rechazo</th>
                             <th>Peso Entrada</th>
                             <th>Peso Matadero</th>
-                            <th>Merma (kg)</th>
                             <th>Estado</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,17 +50,42 @@
                             <td th:text="${r.color != null ? r.color : 'No esp.'}">Bermejo</td>
                             <td th:text="${r.paletas != null ? r.paletas + ' Paletas' : 'S/D'}">4 Paletas</td>
                             <td th:text="${r.fechaRechazo != null ? #temporals.format(r.fechaRechazo, 'dd/MM/yyyy') : '&mdash;'}">2026-10-15</td>
-                            <td class="text-danger" th:text="${r.motivoRechazo != null ? r.motivoRechazo : 'Sin dictamen'}">Hematoma severo</td>
+                            <td class="text-danger font-semibold" th:text="${r.motivoRechazo != null ? r.motivoRechazo : 'Sin dictamen'}">Hematoma severo</td>
                             <td th:text="${r.pesoEntradaKg != null ? #numbers.formatDecimal(r.pesoEntradaKg, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">430.00 kg</td>
                             <td>
                                 <strong th:text="${r.pesoMatadero != null ? #numbers.formatDecimal(r.pesoMatadero, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">410.50 kg</strong>
                             </td>
                             <td>
-                                <span class="badge badge-pendiente" th:text="${r.mermaKg != null ? #numbers.formatDecimal(r.mermaKg, 1, 'COMMA', 2, 'POINT') + ' kg' : '0.00 kg'}">-19.50 kg</span>
-                            </td>
-                            <td>
-                                <span th:class="'badge ' + (${r.estado == 'En Finca'} ? 'badge-finca' : 'badge-matadero')"
+                                <span th:class="'badge ' + (${r.estado == 'En Finca'} ? 'badge-danger' : 'badge-matadero')"
                                       th:text="${r.estado != null ? r.estado : 'En Finca'}">En Finca</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="flex-center gap-xs flex-wrap justify-center">
+                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                            th:data-arete="${r.arete}"
+                                            onclick="abrirHistorialBovino(this.getAttribute('data-arete'))" 
+                                            title="Ver aparato de trazabilidad e historial">
+                                        <i class="fa-solid fa-clock-rotate-left" style="pointer-events: none;"></i> Historial
+                                    </button>
+
+                                    <button th:if="${r.estado == 'En Finca' or r.estado == 'Rechazo en Matadero' or r.estado == 'Rechazo'}" 
+                                            type="button" class="btn btn-sm btn-warning text-dark font-semibold" 
+                                            th:data-arete="${r.arete}"
+                                            th:data-peso="${r.pesoMatadero != null && r.pesoMatadero > 0 ? r.pesoMatadero : (r.pesoEntradaKg != null ? r.pesoEntradaKg : '')}"
+                                            th:data-lote="${r.lote != null ? r.lote.idLote : ''}"
+                                            onclick="abrirModalRearetarDesdeBoton(this)" 
+                                            title="Cambiar arete y habilitar como apto para nueva entrega">
+                                        <i class="fa-solid fa-tag" style="pointer-events: none;"></i> Re-aretar
+                                    </button>
+
+                                    <span th:if="${r.estado == 'Re-aretado (Histórico)'}" class="badge badge-secondary" title="Este animal ya fue re-aretado y recuperado">
+                                        <i class="fa-solid fa-check"></i> Re-aretado
+                                    </span>
+
+                                    <span th:if="${r.estado == 'Entregado a Matadero'}" class="badge badge-primary badge-indigo-soft" title="Comprado y liquidado por la planta">
+                                        <i class="fa-solid fa-industry"></i> Comprado en Planta
+                                    </span>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(rechazos)}">
@@ -74,8 +98,529 @@
             </div>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- MODAL: RE-ARETAR Y RECUPERAR BOVINO RECHAZADO                 -->
+        <!-- ============================================================ -->
+        <div id="modalRearetar" class="modal-overlay d-none" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 class="section-subtitle">
+                        <i class="fa-solid fa-tag text-warning"></i> Re-aretar y Recuperar Bovino
+                    </h3>
+                    <button type="button" class="btn-close" onclick="cerrarModalRearetar()">&times;</button>
+                </div>
+                <form th:action="@{/ganado/rearetar}" method="post" id="formRearetarBovino">
+                    <input type="hidden" name="areteOriginal" id="modalRearetarOriginalHidden">
+
+                    <div class="p-xs bg-light-soft border-radius-sm mb-md text-sm border">
+                        <i class="fa-solid fa-circle-info text-info"></i>
+                        Esta res fue <strong>rechazada y devuelta a la finca</strong>. Al cambiarle el arete, se registrará un 
+                        <strong>nuevo animal activo</strong> en condición <span class="badge badge-success">Apto</span> listo para ser despachado a una nueva entrega. 
+                        El arete anterior quedará como antecedente genealógico en el aparato de trazabilidad.
+                    </div>
+
+                    <div class="form-group mb-md">
+                        <label class="catalog-form-label">Arete Original a Reemplazar:</label>
+                        <input type="text" id="modalRearetarOriginalDisplay" class="form-control catalog-control input-bold text-danger" readonly>
+                    </div>
+
+                    <div class="form-group mb-md">
+                        <label class="catalog-form-label">
+                            Arete *:
+                        </label>
+                        <input type="text" name="nuevoArete" id="modalInputNuevoArete" 
+                               class="form-control catalog-control input-uppercase font-bold text-brand" 
+                               placeholder="Ej. 21455 6685"
+                               pattern="^[0-9]{5}\s[0-9]{4}$" maxlength="10"
+                               title="Debe ingresar exactamente 9 números con formato: 5 dígitos, espacio y 4 dígitos (Ej. 21455 6685)"
+                               required autocomplete="off">
+                        <small class="text-muted-xs">Formato: 5 dígitos + espacio + 4 dígitos (Ej. 21455 6685)</small>
+
+                        <!-- ALERTA ANIMADA DE ARETE DUPLICADO EN BD -->
+                        <div id="alertaAreteDuplicadoRearetar" class="animated-arete-alert d-none" style="display: none; margin-top: 8px;">
+                            <div class="alert-icon-pulse">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="alert-content">
+                                <strong id="tituloAlertaRearetar">¡Arete Ya Registrado en el Sistema!</strong>
+                                <p id="mensajeAlertaRearetar" class="mb-none">Este arete ya se encuentra en la base de datos.</p>
+                            </div>
+                            <button type="button" class="btn-close-alert" onclick="ocultarAlertaRearetar()" title="Cerrar aviso">&times;</button>
+                        </div>
+                    </div>
+
+                    <div class="grid-two-cols mb-md">
+                        <div class="form-group">
+                            <label class="catalog-form-label">
+                                <i class="fa-solid fa-scale-balanced text-brand"></i> Nuevo Peso en Báscula (kg) *:
+                            </label>
+                            <input type="number" step="0.01" min="0.01" name="nuevoPesoKg" id="modalInputNuevoPeso" 
+                                   class="form-control catalog-control font-semibold" placeholder="Ej. 395.00" required>
+                            <small class="text-muted-xs">Peso verificado al recuperarse en finca</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="catalog-form-label">
+                                <i class="fa-solid fa-boxes-stacked text-brand"></i> Lote Asociado:
+                            </label>
+                            <select name="idLote" id="modalSelectLoteRearetar" class="form-control catalog-control">
+                                <option value="">-- Conservar Lote de Origen --</option>
+                                <option th:each="l : ${lotes}" 
+                                        th:value="${l.idLote}" 
+                                        th:text="'LOTE-' + ${l.idLote} + ' (' + (${l.proveedor != null ? l.proveedor.nombre : 'Sin proveedor'}) + ')'">LOTE-1</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex-end-gap mt-md">
+                        <button type="button" class="btn btn-outline" onclick="cerrarModalRearetar()">Cancelar</button>
+                        <button type="submit" id="btnConfirmarRearetado" class="btn btn-primary">
+                            <i class="fa-solid fa-check-circle"></i> Confirmar Re-aretado y Poner Apto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: APARATO DE TRAZABILIDAD E HISTORIAL DEL BOVINO         -->
+        <!-- ============================================================ -->
+        <div id="modalHistorialBovino" class="modal-overlay d-none" style="display: none;">
+            <div class="modal-card" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header">
+                    <div>
+                        <h3 class="section-subtitle text-brand mb-xs">
+                            <i class="fa-solid fa-dna"></i> Historial y Trazabilidad del Bovino
+                        </h3>
+                        <p class="text-muted-xs mb-0">Expediente integral de compra, re-aretados y despachos a matadero</p>
+                    </div>
+                    <button type="button" class="btn-close" onclick="cerrarModalHistorial()">&times;</button>
+                </div>
+
+                <div id="contenidoModalHistorial">
+                    <!-- SPINNER DE CARGA -->
+                    <div id="spinnerHistorial" class="text-center py-xl">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x text-brand"></i>
+                        <p class="mt-sm text-muted font-semibold">Consultando historial y cadena de trazabilidad...</p>
+                    </div>
+
+                    <!-- DATOS CARGADOS -->
+                    <div id="datosHistorialBovino" class="d-none">
+                        <!-- TARJETA RESUMEN BOVINO -->
+                        <div class="card p-sm bg-light-soft border-radius-sm mb-md border">
+                            <div class="flex-between flex-wrap gap-xs">
+                                <div>
+                                    <span class="text-muted-xs font-semibold">Arete Consultado:</span>
+                                    <h2 class="text-code-brand mt-xs mb-xs" id="hAreteDisplay">01213 3778</h2>
+                                    <span class="badge badge-info" id="hCondicionBadge">Bueno</span>
+                                    <span class="badge badge-success ml-xs" id="hEstadoBadge">En Finca</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-muted-xs font-semibold d-block">Peso Actual Registrado:</span>
+                                    <strong class="text-brand font-bold" style="font-size: 1.3rem;" id="hPesoActual">0.00 kg</strong>
+                                    <small class="text-muted-xs d-block mt-xs" id="hColorPaletas">Hosco | 2 Paletas</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CADENA DE TRAZABILIDAD DE ARETES -->
+                        <div class="mb-md">
+                            <h4 class="font-bold text-sm mb-xs text-muted-xs" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-code-branch text-brand"></i> Cadena Genealógica de Aretes (Trazabilidad)
+                            </h4>
+                            <div id="contenedorCadenaAretes" class="flex-center gap-xs flex-wrap p-xs bg-white border border-radius-sm">
+                                <!-- Se llena dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- ORIGEN DE COMPRA / LOTE -->
+                        <div class="mb-md p-xs bg-white border border-radius-sm">
+                            <h4 class="font-bold text-sm mb-xs text-muted-xs" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-cart-shopping text-brand"></i> Origen de Ingreso / Compra
+                            </h4>
+                            <div class="grid-three-cols text-sm gap-xs">
+                                <div>
+                                    <span class="text-muted-xs">Lote:</span>
+                                    <strong class="d-block text-dark" id="hLoteTexto">LOTE-1</strong>
+                                </div>
+                                <div>
+                                    <span class="text-muted-xs">Proveedor:</span>
+                                    <strong class="d-block text-dark" id="hProveedorTexto">Don Chepe</strong>
+                                </div>
+                                <div>
+                                    <span class="text-muted-xs">Fecha de Compra:</span>
+                                    <strong class="d-block text-dark" id="hFechaCompraTexto">01/01/2026</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EVENTOS EN MATADEROS Y DICTÁMENES -->
+                        <div class="mb-md">
+                            <h4 class="font-bold text-sm mb-xs text-muted-xs" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-truck-ramp-box text-brand"></i> Despachos a Plantas Mataderos y Dictámenes
+                            </h4>
+                            <div id="listaEventosMatadero">
+                                <!-- Se llena dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MENSAJE DE ERROR -->
+                    <div id="errorHistorial" class="alert alert-danger d-none my-md">
+                        <i class="fa-solid fa-circle-exclamation"></i> <span id="errorHistorialTexto">No se encontró el bovino.</span>
+                    </div>
+                </div>
+
+                <div class="flex-end-gap mt-md">
+                    <button type="button" class="btn btn-outline" onclick="cerrarModalHistorial()">Cerrar Consulta</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script>
+        function abrirModalRearetarDesdeBoton(btn) {
+            if (!btn) return;
+            const button = btn.closest('button') || btn;
+            const arete = button.getAttribute('data-arete') || '';
+            const peso = button.getAttribute('data-peso') || '';
+            const lote = button.getAttribute('data-lote') || '';
+            abrirModalRearetar(arete, peso, lote);
+        }
+
+        function abrirModalRearetar(areteOriginal, pesoActual, idLote) {
+            const hiddenOriginal = document.getElementById('modalRearetarOriginalHidden');
+            if (hiddenOriginal) hiddenOriginal.value = areteOriginal || '';
+
+            const displayOriginal = document.getElementById('modalRearetarOriginalDisplay');
+            if (displayOriginal) displayOriginal.value = areteOriginal || '';
+
+            const inputPeso = document.getElementById('modalInputNuevoPeso');
+            if (inputPeso) inputPeso.value = (pesoActual && pesoActual > 0) ? pesoActual : '';
+            
+            const selLote = document.getElementById('modalSelectLoteRearetar');
+            if (selLote && idLote) {
+                selLote.value = idLote;
+            } else if (selLote) {
+                selLote.selectedIndex = 0;
+            }
+
+            const inputNuevoArete = document.getElementById('modalInputNuevoArete');
+            if (inputNuevoArete) {
+                inputNuevoArete.value = '';
+                inputNuevoArete.classList.remove('input-shake-error');
+            }
+
+            ocultarAlertaRearetar();
+
+            const modal = document.getElementById('modalRearetar');
+            if (modal) {
+                modal.classList.remove('d-none');
+                modal.style.display = 'flex';
+            }
+
+            if (inputNuevoArete) {
+                setTimeout(() => inputNuevoArete.focus(), 60);
+            }
+        }
+
+        function cerrarModalRearetar() {
+            const modal = document.getElementById('modalRearetar');
+            if (modal) {
+                modal.classList.add('d-none');
+                modal.style.display = 'none';
+            }
+            ocultarAlertaRearetar();
+        }
+
+        let areteDuplicadoRearetarDetectado = false;
+        let debounceRearetarTimer = null;
+
+        function ocultarAlertaRearetar() {
+            areteDuplicadoRearetarDetectado = false;
+            const alerta = document.getElementById('alertaAreteDuplicadoRearetar');
+            const input = document.getElementById('modalInputNuevoArete');
+            const btn = document.getElementById('btnConfirmarRearetado');
+            if (alerta) {
+                alerta.classList.add('d-none');
+                alerta.style.display = 'none';
+            }
+            if (input) {
+                input.classList.remove('input-shake-error');
+            }
+            if (btn) {
+                btn.removeAttribute('disabled');
+                btn.title = '';
+            }
+        }
+
+        function mostrarAlertaRearetar(mensaje) {
+            areteDuplicadoRearetarDetectado = true;
+            const alerta = document.getElementById('alertaAreteDuplicadoRearetar');
+            const msg = document.getElementById('mensajeAlertaRearetar');
+            const input = document.getElementById('modalInputNuevoArete');
+            const btn = document.getElementById('btnConfirmarRearetado');
+
+            if (alerta && msg) {
+                msg.textContent = mensaje;
+                alerta.classList.remove('d-none');
+                alerta.style.display = 'flex';
+            }
+            if (input) {
+                input.classList.remove('input-shake-error');
+                void input.offsetWidth; // trigger reflow
+                input.classList.add('input-shake-error');
+            }
+            if (btn) {
+                btn.setAttribute('disabled', 'disabled');
+                btn.title = 'Ingrese un arete único que no exista en la base de datos';
+            }
+        }
+
+        async function validarNuevoAreteEnSistema(valor) {
+            const areteVal = valor ? valor.trim() : '';
+            const digits = areteVal.replace(/\D/g, '');
+            if (!areteVal || digits.length < 9) {
+                ocultarAlertaRearetar();
+                return;
+            }
+
+            try {
+                const resp = await fetch('/compras/api/verificar-arete?arete=' + encodeURIComponent(areteVal));
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.existe) {
+                        mostrarAlertaRearetar(data.mensaje || '¡Atención! Este arete ya existe registrado en la base de datos del sistema.');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error al verificar nuevo arete:', err);
+            }
+            ocultarAlertaRearetar();
+        }
+
+        // Eventos sobre el input de nuevo arete en el modal de re-aretar
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputNuevoArete = document.getElementById('modalInputNuevoArete');
+            if (inputNuevoArete) {
+                inputNuevoArete.addEventListener('input', function () {
+                    // Permitir únicamente números positivos (máximo 9 dígitos)
+                    let digits = this.value.replace(/\D/g, '').slice(0, 9);
+                    if (digits.length > 5) {
+                        this.value = digits.slice(0, 5) + ' ' + digits.slice(5);
+                    } else {
+                        this.value = digits;
+                    }
+
+                    clearTimeout(debounceRearetarTimer);
+                    if (digits.length === 9) {
+                        debounceRearetarTimer = setTimeout(() => validarNuevoAreteEnSistema(this.value), 200);
+                    } else {
+                        ocultarAlertaRearetar();
+                    }
+                });
+
+                inputNuevoArete.addEventListener('blur', function () {
+                    const digits = this.value.replace(/\D/g, '');
+                    if (digits.length === 9) {
+                        validarNuevoAreteEnSistema(this.value);
+                    } else {
+                        ocultarAlertaRearetar();
+                    }
+                });
+            }
+
+            const formRearetar = document.getElementById('formRearetarBovino');
+            if (formRearetar) {
+                formRearetar.addEventListener('submit', function (e) {
+                    const input = document.getElementById('modalInputNuevoArete');
+                    if (areteDuplicadoRearetarDetectado) {
+                        e.preventDefault();
+                        if (input) {
+                            input.classList.remove('input-shake-error');
+                            void input.offsetWidth;
+                            input.classList.add('input-shake-error');
+                            input.focus();
+                        }
+                        return false;
+                    }
+
+                    const digits = input ? input.value.replace(/\D/g, '') : '';
+                    if (digits.length !== 9) {
+                        e.preventDefault();
+                        alert('El nuevo arete debe contener exactamente 9 dígitos numéricos (Formato: 5 dígitos, espacio y 4 dígitos, ej. 21455 6685).');
+                        if (input) input.focus();
+                        return false;
+                    }
+                });
+            }
+        });
+
+        function abrirHistorialBovino(arete) {
+            if (!arete) return;
+            const modal = document.getElementById('modalHistorialBovino');
+            const spinner = document.getElementById('spinnerHistorial');
+            const datos = document.getElementById('datosHistorialBovino');
+            const errorDiv = document.getElementById('errorHistorial');
+
+            if (spinner) spinner.classList.remove('d-none');
+            if (datos) datos.classList.add('d-none');
+            if (errorDiv) errorDiv.classList.add('d-none');
+            if (modal) {
+                modal.classList.remove('d-none');
+                modal.style.display = 'flex';
+            }
+
+            fetch('/ganado/api/historial/' + encodeURIComponent(arete.trim()))
+                .then(res => {
+                    if (!res.ok) throw new Error('No se encontró el bovino con arete ' + arete);
+                    return res.json();
+                })
+                .then(bovino => {
+                    if (spinner) spinner.classList.add('d-none');
+                    if (datos) datos.classList.remove('d-none');
+                    renderizarHistorialBovino(bovino);
+                })
+                .catch(err => {
+                    if (spinner) spinner.classList.add('d-none');
+                    if (errorDiv) errorDiv.classList.remove('d-none');
+                    const errTxt = document.getElementById('errorHistorialTexto');
+                    if (errTxt) errTxt.textContent = err.message;
+                });
+        }
+
+        function renderizarHistorialBovino(bovino) {
+            document.getElementById('hAreteDisplay').textContent = bovino.areteFormateado || bovino.arete;
+            document.getElementById('hCondicionBadge').textContent = bovino.condicion || 'Bueno';
+            document.getElementById('hEstadoBadge').textContent = bovino.estado || 'En Finca';
+            document.getElementById('hPesoActual').textContent = (bovino.pesoActualKg ? parseFloat(bovino.pesoActualKg).toFixed(2) : '0.00') + ' kg';
+            document.getElementById('hColorPaletas').textContent = (bovino.color || 'Sin color') + ' | ' + (bovino.paletas || 'S/D');
+
+            document.getElementById('hLoteTexto').textContent = bovino.idLote ? ('LOTE-' + bovino.idLote) : 'Sin lote';
+            document.getElementById('hProveedorTexto').textContent = bovino.proveedorNombre || 'Sin proveedor';
+            document.getElementById('hFechaCompraTexto').textContent = bovino.fechaCompra || 'Sin fecha';
+
+            const contenedorCadena = document.getElementById('contenedorCadenaAretes');
+            contenedorCadena.innerHTML = '';
+            if (bovino.cadenaTrazabilidad && bovino.cadenaTrazabilidad.length > 0) {
+                bovino.cadenaTrazabilidad.forEach((item, index) => {
+                    const pill = document.createElement('span');
+                    pill.className = 'badge ' + (item.includes('Consultado') ? 'badge-primary' : (item.includes('Original') ? 'badge-warning' : 'badge-success'));
+                    pill.innerHTML = '<i class="fa-solid fa-tag"></i> ' + item;
+                    contenedorCadena.appendChild(pill);
+
+                    if (index < bovino.cadenaTrazabilidad.length - 1) {
+                        const flecha = document.createElement('i');
+                        flecha.className = 'fa-solid fa-arrow-right text-muted mx-xs';
+                        contenedorCadena.appendChild(flecha);
+                    }
+                });
+            } else {
+                contenedorCadena.innerHTML = '<span class="text-muted text-xs">Arete original sin re-aretados previos.</span>';
+            }
+
+            const listaEventos = document.getElementById('listaEventosMatadero');
+            listaEventos.innerHTML = '';
+
+            if (bovino.entregas && bovino.entregas.length > 0) {
+                bovino.entregas.forEach(evt => {
+                    const cardEvt = document.createElement('div');
+                    cardEvt.className = 'p-sm border border-radius-sm mb-xs ' + 
+                        (evt.esDevuelto ? 'bg-danger-light border-danger' : (evt.esComprado ? 'bg-warning-light border-warning' : 'bg-light-soft'));
+
+                    let badgeDictamen = '';
+                    if (evt.esDevuelto) {
+                        badgeDictamen = '<span class="badge badge-danger"><i class="fa-solid fa-rotate-left"></i> Rechazado (Devuelto a Finca)</span>';
+                    } else if (evt.esComprado) {
+                        badgeDictamen = '<span class="badge badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> Rechazado (Comprado en Planta C$ ' + (evt.precioRechazo ? parseFloat(evt.precioRechazo).toFixed(2) : '') + '/kg)</span>';
+                    } else {
+                        badgeDictamen = '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Apto para Consumo</span>';
+                    }
+
+                    let motivoHtml = '';
+                    if (evt.motivoRechazo && evt.motivoRechazo.trim().length > 0) {
+                        motivoHtml = `
+                            <div class="mt-xs p-xs bg-white border border-radius-sm text-sm text-danger font-semibold">
+                                <i class="fa-solid fa-notes-medical"></i> <strong>Motivo del Rechazo:</strong> ${evt.motivoRechazo}
+                            </div>
+                        `;
+                    }
+
+                    let mermaHtml = '';
+                    if (evt.kilosMerma !== null && evt.kilosMerma !== undefined) {
+                        mermaHtml = `<span class="badge badge-secondary ml-xs"><i class="fa-solid fa-scale-unbalanced"></i> Merma: ${parseFloat(evt.kilosMerma).toFixed(2)} kg (${evt.porcentajeMerma || 0}%)</span>`;
+                    }
+
+                    cardEvt.innerHTML = `
+                        <div class="flex-between flex-wrap gap-xs mb-xs">
+                            <div>
+                                <strong class="text-brand">Entrega #${evt.idEntrega || 'S/N'}</strong> - 
+                                <span class="text-dark font-semibold">${evt.nombreMatadero || 'Matadero'}</span>
+                                <small class="text-muted-xs d-block">${evt.ubicacionMatadero || ''}</small>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-muted-xs font-semibold">${evt.fechaEntrega || 'Fecha no esp.'}</span>
+                                <div class="mt-xs">${badgeDictamen}</div>
+                            </div>
+                        </div>
+                        <div class="flex-between flex-wrap text-sm gap-xs mt-xs">
+                            <div>
+                                <span class="text-muted-xs">Arete despachado:</span> <strong>${evt.areteUsado}</strong> |
+                                <span class="text-muted-xs">Peso Finca:</span> <strong>${evt.pesoFincaKg ? parseFloat(evt.pesoFincaKg).toFixed(2) + ' kg' : 'N/D'}</strong> |
+                                <span class="text-muted-xs">Peso Venta:</span> <strong>${evt.pesoMataderoKg ? parseFloat(evt.pesoMataderoKg).toFixed(2) + ' kg' : 'Pendiente'}</strong>
+                                ${mermaHtml}
+                            </div>
+                        </div>
+                        ${motivoHtml}
+                    `;
+                    listaEventos.appendChild(cardEvt);
+                });
+            } else {
+                listaEventos.innerHTML = `
+                    <div class="p-sm text-center text-muted bg-white border border-radius-sm">
+                        <i class="fa-solid fa-circle-check text-success"></i> Este animal no ha registrado rechazos ni entregas a matadero (permanece en finca).
+                    </div>
+                `;
+            }
+        }
+
+        function cerrarModalHistorial() {
+            const modal = document.getElementById('modalHistorialBovino');
+            if (modal) {
+                modal.classList.add('d-none');
+                modal.style.display = 'none';
+            }
+        }
+
+        // Cerrar modales al hacer clic en el fondo oscuro exterior
+        const modalRearetarEl = document.getElementById('modalRearetar');
+        if (modalRearetarEl) {
+            modalRearetarEl.addEventListener('click', function (e) {
+                if (e.target === this) {
+                    cerrarModalRearetar();
+                }
+            });
+        }
+
+        const modalHistorialEl = document.getElementById('modalHistorialBovino');
+        if (modalHistorialEl) {
+            modalHistorialEl.addEventListener('click', function (e) {
+                if (e.target === this) {
+                    cerrarModalHistorial();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                cerrarModalRearetar();
+                cerrarModalHistorial();
+            }
+        });
+    </script>
 </body>
 </html>

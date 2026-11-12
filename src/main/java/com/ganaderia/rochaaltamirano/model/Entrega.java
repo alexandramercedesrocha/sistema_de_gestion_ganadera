@@ -149,12 +149,46 @@ public class Entrega {
                 return BigDecimal.ZERO;
             }
             return detalles.stream()
+                    .filter(d -> d.getEstadoDictamen() == null || !d.getEstadoDictamen().toLowerCase().contains("devuelto"))
                     .map(d -> d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : (d.getGanado() != null ? d.getGanado().getPesoKg() : BigDecimal.ZERO))
                     .filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
+    }
+
+    public boolean isTieneRechazos() {
+        if (detalles == null || detalles.isEmpty()) {
+            return false;
+        }
+        return detalles.stream()
+                .anyMatch(d -> d.getEstadoDictamen() != null && d.getEstadoDictamen().toLowerCase().startsWith("rechazado"));
+    }
+
+    public long getCantidadRechazos() {
+        if (detalles == null || detalles.isEmpty()) {
+            return 0;
+        }
+        return detalles.stream()
+                .filter(d -> d.getEstadoDictamen() != null && d.getEstadoDictamen().toLowerCase().startsWith("rechazado"))
+                .count();
+    }
+
+    public boolean isTieneRechazosDevueltos() {
+        if (detalles == null || detalles.isEmpty()) {
+            return false;
+        }
+        return detalles.stream()
+                .anyMatch(d -> d.getEstadoDictamen() != null && d.getEstadoDictamen().toLowerCase().contains("devuelto"));
+    }
+
+    public boolean isTieneRechazosComprados() {
+        if (detalles == null || detalles.isEmpty()) {
+            return false;
+        }
+        return detalles.stream()
+                .anyMatch(DetalleEntrega::isRechazadoComprado);
     }
 
     public BigDecimal getMontoTotalEstimado() {
@@ -164,8 +198,12 @@ public class Entrega {
             }
             BigDecimal total = BigDecimal.ZERO;
             for (DetalleEntrega d : detalles) {
+                if (d.getEstadoDictamen() != null && d.getEstadoDictamen().toLowerCase().contains("devuelto")) {
+                    // Reses devueltas vivas a finca no se cobran a la planta
+                    continue;
+                }
                 BigDecimal peso = d.getPesoMataderoKg() != null ? d.getPesoMataderoKg() : (d.getGanado() != null && d.getGanado().getPesoKg() != null ? d.getGanado().getPesoKg() : BigDecimal.ZERO);
-                if ("Rechazado".equalsIgnoreCase(d.getEstadoDictamen())) {
+                if (d.getEstadoDictamen() != null && d.getEstadoDictamen().toLowerCase().startsWith("rechazado")) {
                     BigDecimal pRech = d.getPrecioRechazo() != null ? d.getPrecioRechazo() : (precioRechazo != null ? precioRechazo : BigDecimal.ZERO);
                     total = total.add(peso.multiply(pRech));
                 } else {

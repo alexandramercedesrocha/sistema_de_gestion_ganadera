@@ -232,11 +232,12 @@
                                     <th>Condición</th>
                                     <th>Precio (C$/kg)</th>
                                     <th>Subtotal (C$)</th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(lote.animales)}">
-                                    <td colspan="8" class="empty-table-cell">
+                                    <td colspan="9" class="empty-table-cell">
                                         No has añadido animales a este lote todavía. Usa el formulario de la izquierda.
                                     </td>
                                 </tr>
@@ -266,9 +267,37 @@
                                             th:text="'C$ ' + ${#numbers.formatDecimal(a.subtotalCompra, 1, 'COMMA', 2, 'POINT')}">C$
                                             0.00</strong>
                                     </td>
+                                    <td class="text-center" style="white-space: nowrap;">
+                                        <div class="flex-center gap-xs">
+                                            <button type="button" 
+                                                    class="btn btn-xs btn-outline btn-outline-primary" 
+                                                    title="Editar este animal"
+                                                    th:data-arete="${a.arete}"
+                                                    th:data-color="${a.color}"
+                                                    th:data-paletas="${a.paletas}"
+                                                    th:data-peso="${a.pesoKg}"
+                                                    th:data-condicion="${a.condicionCompra}"
+                                                    th:data-precio="${a.condicionCompra == 'Rechazo' ? (a.precioCompra != null ? a.precioCompra : a.precioPorKilo) : ''}"
+                                                    onclick="abrirModalEditarAnimal(this)">
+                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                            </button>
+                                            <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/eliminar-animal'}" 
+                                                  method="post" 
+                                                  class="d-inline"
+                                                  th:data-arete="${a.arete}"
+                                                  onsubmit="return confirmarEliminarAnimal(this);">
+                                                <input type="hidden" name="arete" th:value="${a.arete}">
+                                                <button type="submit" 
+                                                        class="btn btn-xs btn-outline btn-outline-danger" 
+                                                        title="Eliminar este animal del lote">
+                                                    <i class="fa-solid fa-trash-can"></i> Borrar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr id="filaSinCoincidencias" class="d-none" style="display: none;">
-                                    <td colspan="8" class="empty-table-cell py-lg">
+                                    <td colspan="9" class="empty-table-cell py-lg">
                                         <i class="fa-solid fa-magnifying-glass text-muted"></i> No se encontraron reses
                                         con el arete buscado en este lote.
                                     </td>
@@ -314,6 +343,109 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- MODAL PARA EDITAR ANIMAL DEL LOTE -->
+        <div id="modalEditarAnimal" class="modal-overlay d-none" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 class="section-subtitle"><i class="fa-solid fa-pen-to-square"></i> Editar Res del Lote</h3>
+                    <button type="button" class="btn-close" onclick="cerrarModalEditarAnimal()">&times;</button>
+                </div>
+                <form th:action="@{'/compras/lote/' + ${lote.idLote} + '/actualizar-animal'}" method="post" id="formEditarAnimal">
+                    <input type="hidden" name="areteOriginal" id="editAreteOriginal">
+
+                    <!-- ARETE -->
+                    <div class="form-group mb-md">
+                        <label class="catalog-form-label">
+                            <i class="fa-solid fa-tag"></i> Arete de la Res (9 Dígitos) *:
+                        </label>
+                        <input type="text" name="arete" id="editAreteInput"
+                            class="form-control catalog-control font-bold text-brand"
+                            placeholder="Ej. 21455 6685" pattern="[0-9\s]{9,11}"
+                            maxlength="10" required autocomplete="off">
+                        <small class="text-muted-xs">Formato: 5 dígitos + espacio + 4 dígitos (Ej. 21455 6685)</small>
+                    </div>
+
+                    <!-- ALERTA DE ARETE DUPLICADO EN MODAL -->
+                    <div id="alertaDuplicadoModal" class="alert-arete-duplicado mb-md d-none" style="display: none;">
+                        <div class="alert-icon-wrap">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="alert-content-wrap">
+                            <strong class="alert-title-text">¡Arete Duplicado Detectado!</strong>
+                            <p class="alert-body-text" id="mensajeAlertaModal"></p>
+                        </div>
+                    </div>
+
+                    <!-- GRID: COLOR Y PALETAS -->
+                    <div class="grid-two-cols mb-md">
+                        <div class="form-group">
+                            <label class="catalog-form-label">Color / Pelaje *:</label>
+                            <select name="color" id="editColorSelect" class="form-control catalog-control" required>
+                                <option value="Palido">Palido</option>
+                                <option value="Sardo">Sardo</option>
+                                <option value="Ahumado">Ahumado</option>
+                                <option value="Colorado">Colorado</option>
+                                <option value="Barcino">Barcino</option>
+                                <option value="Pardo">Pardo</option>
+                                <option value="Choto">Choto</option>
+                                <option value="Negro">Negro</option>
+                                <option value="Pinto">Pinto</option>
+                                <option value="Blanco">Blanco</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="catalog-form-label">Dentición / Paletas *:</label>
+                            <select name="paletas" id="editPaletasSelect" class="form-control catalog-control" required>
+                                <option value="0 Paletas">0 Paleta</option>
+                                <option value="1 Paletas">1 Paleta</option>
+                                <option value="2 Paletas">2 Paletas</option>
+                                <option value="3 Paletas">3 Paletas</option>
+                                <option value="4 Paletas">4 Paletas</option>
+                                <option value="5 Paletas">5 Paletas</option>
+                                <option value="6 Paletas">6 Paletas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- GRID: PESO Y CONDICIÓN -->
+                    <div class="grid-two-cols mb-md">
+                        <div class="form-group">
+                            <label class="catalog-form-label">Peso Báscula (kg) *:</label>
+                            <input type="number" step="0.01" min="0.01" name="pesoKg" id="editPesoKgInput"
+                                class="form-control catalog-control font-semibold" placeholder="Ej. 395.00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="catalog-form-label">Condición *:</label>
+                            <select name="condicionCompra" id="editCondicionSelect" class="form-control catalog-control"
+                                onchange="toggleCampoPrecioRechazoModal(this.value)">
+                                <option value="Bueno">Bueno (Apto - Precio Base)</option>
+                                <option value="Rechazo">Rechazo (Definir Precio)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- PRECIO RECHAZO (SI ES RECHAZO) -->
+                    <div class="form-group mb-lg d-none" id="divPrecioRechazoModal" style="display: none;">
+                        <label class="catalog-form-label text-danger">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Precio de Rechazo de este Animal (C$/kg) *:
+                        </label>
+                        <input type="number" step="0.01" min="0.01" name="precioAnimalRechazo" id="editPrecioRechazoInput"
+                            class="form-control catalog-control input-alert" placeholder="Ej. 65.00">
+                        <small class="text-muted-xs">Precio pactado por kilo para esta res de rechazo</small>
+                    </div>
+
+                    <div class="flex-end-gap">
+                        <button type="button" class="btn btn-outline" onclick="cerrarModalEditarAnimal()">Cancelar</button>
+                        <button type="submit" id="btnGuardarEdicionAnimal" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
     </main>
@@ -590,12 +722,251 @@
         // Permitir limpiar búsqueda con la tecla Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                const modal = document.getElementById('modalEditarAnimal');
+                if (modal && modal.style.display !== 'none' && !modal.classList.contains('d-none')) {
+                    cerrarModalEditarAnimal();
+                    return;
+                }
                 const input = document.getElementById('filtroAreteLote');
                 if (input && document.activeElement === input) {
                     limpiarFiltroAretesLote();
                 }
             }
         });
+
+        // Confirmar eliminación de un animal del lote
+        function confirmarEliminarAnimal(form) {
+            const arete = (form && form.getAttribute('data-arete')) ? form.getAttribute('data-arete') : '';
+            return confirm('¿Está seguro de eliminar la res con arete [' + arete + '] de este lote? Esta acción no se puede deshacer.');
+        }
+
+        // =========================================================================
+        // MODAL DE EDICIÓN DE ANIMALES DEL LOTE Y VALIDACIÓN DE ARETE
+        // =========================================================================
+        let areteDuplicadoModalDetectado = false;
+        let debounceTimerModal = null;
+
+        function abrirModalEditarAnimal(btn) {
+            if (!btn) return;
+            const arete = btn.getAttribute('data-arete') || '';
+            const color = btn.getAttribute('data-color') || '';
+            const paletas = btn.getAttribute('data-paletas') || '';
+            const peso = btn.getAttribute('data-peso') || '';
+            const condicion = btn.getAttribute('data-condicion') || 'Bueno';
+            const precio = btn.getAttribute('data-precio') || '';
+
+            const inputAreteOrig = document.getElementById('editAreteOriginal');
+            if (inputAreteOrig) inputAreteOrig.value = arete;
+
+            const inputArete = document.getElementById('editAreteInput');
+            if (inputArete) inputArete.value = arete;
+
+            const selectColor = document.getElementById('editColorSelect');
+            if (selectColor && color) selectColor.value = color;
+
+            const selectPaletas = document.getElementById('editPaletasSelect');
+            if (selectPaletas && paletas) selectPaletas.value = paletas;
+
+            const inputPeso = document.getElementById('editPesoKgInput');
+            if (inputPeso) inputPeso.value = peso;
+
+            const selectCond = document.getElementById('editCondicionSelect');
+            selectCond.value = (condicion === 'Rechazo') ? 'Rechazo' : 'Bueno';
+            toggleCampoPrecioRechazoModal(selectCond.value);
+
+            const inputPrecioRech = document.getElementById('editPrecioRechazoInput');
+            if (condicion === 'Rechazo' && precio) {
+                inputPrecioRech.value = precio;
+            } else {
+                inputPrecioRech.value = '';
+            }
+
+            ocultarAlertaAreteModal();
+
+            const modal = document.getElementById('modalEditarAnimal');
+            if (modal) {
+                modal.classList.remove('d-none');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function cerrarModalEditarAnimal() {
+            const modal = document.getElementById('modalEditarAnimal');
+            if (modal) {
+                modal.classList.add('d-none');
+                modal.style.display = 'none';
+            }
+        }
+
+        function toggleCampoPrecioRechazoModal(condicion) {
+            const div = document.getElementById('divPrecioRechazoModal');
+            const input = document.getElementById('editPrecioRechazoInput');
+            if (!div || !input) return;
+
+            if (condicion === 'Rechazo') {
+                div.classList.remove('d-none');
+                div.style.display = 'block';
+                input.setAttribute('required', 'required');
+            } else {
+                div.classList.add('d-none');
+                div.style.display = 'none';
+                input.removeAttribute('required');
+                input.value = '';
+            }
+        }
+
+        function mostrarAlertaAreteModal(mensaje) {
+            areteDuplicadoModalDetectado = true;
+            const alerta = document.getElementById('alertaDuplicadoModal');
+            const msg = document.getElementById('mensajeAlertaModal');
+            const input = document.getElementById('editAreteInput');
+            const btn = document.getElementById('btnGuardarEdicionAnimal');
+
+            if (alerta && msg) {
+                msg.textContent = mensaje;
+                alerta.classList.remove('d-none');
+                alerta.style.display = 'flex';
+            }
+            if (input) {
+                input.classList.remove('input-shake-error');
+                void input.offsetWidth;
+                input.classList.add('input-shake-error');
+            }
+            if (btn) {
+                btn.setAttribute('disabled', 'disabled');
+                btn.title = 'Ingrese un arete único que no exista en la base de datos';
+            }
+        }
+
+        function ocultarAlertaAreteModal() {
+            areteDuplicadoModalDetectado = false;
+            const alerta = document.getElementById('alertaDuplicadoModal');
+            const input = document.getElementById('editAreteInput');
+            const btn = document.getElementById('btnGuardarEdicionAnimal');
+
+            if (alerta) {
+                alerta.classList.add('d-none');
+                alerta.style.display = 'none';
+            }
+            if (input) {
+                input.classList.remove('input-shake-error');
+            }
+            if (btn) {
+                btn.removeAttribute('disabled');
+                btn.title = '';
+            }
+        }
+
+        async function validarAreteEnModal(valor) {
+            const areteVal = valor ? valor.trim() : '';
+            const areteLimpio = areteVal.replace(/\D/g, '');
+            const areteOriginal = document.getElementById('editAreteOriginal').value.trim();
+            const areteOriginalLimpio = areteOriginal.replace(/\D/g, '');
+
+            if (!areteVal || areteLimpio.length < 9) {
+                ocultarAlertaAreteModal();
+                return;
+            }
+
+            // Si es el mismo arete original de este animal, no es duplicado
+            if (areteLimpio === areteOriginalLimpio) {
+                ocultarAlertaAreteModal();
+                return;
+            }
+
+            // 1. Verificación en el lote actual en la tabla (excluyendo a este animal)
+            const aretesLote = Array.from(document.querySelectorAll('.arete-en-tabla'))
+                .map(el => el.textContent.trim().toUpperCase())
+                .filter(a => a.replace(/\s+/g, '') !== areteOriginalLimpio);
+
+            const existeEnLoteActual = aretesLote.some(a => a.replace(/\s+/g, '') === areteLimpio);
+            if (existeEnLoteActual) {
+                mostrarAlertaAreteModal('¡Atención! El arete [' + areteVal + '] ya está registrado en este mismo lote de compra. Ingrese un arete único.');
+                return;
+            }
+
+            // 2. Verificación en la base de datos (excluyendo el arete original)
+            try {
+                const resp = await fetch('/compras/api/verificar-arete?arete=' + encodeURIComponent(areteVal) + '&areteExcluir=' + encodeURIComponent(areteOriginal));
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.existe) {
+                        mostrarAlertaAreteModal(data.mensaje || '¡Atención! Este arete ya existe registrado en la base de datos del sistema.');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error al verificar arete en modal:', err);
+            }
+
+            ocultarAlertaAreteModal();
+        }
+
+        const editAreteInput = document.getElementById('editAreteInput');
+        if (editAreteInput) {
+            editAreteInput.addEventListener('input', function() {
+                let digits = this.value.replace(/\D/g, '').slice(0, 9);
+                if (digits.length > 5) {
+                    this.value = digits.slice(0, 5) + ' ' + digits.slice(5);
+                } else {
+                    this.value = digits;
+                }
+
+                clearTimeout(debounceTimerModal);
+                if (digits.length === 9) {
+                    debounceTimerModal = setTimeout(() => validarAreteEnModal(this.value), 200);
+                } else {
+                    ocultarAlertaAreteModal();
+                }
+            });
+
+            editAreteInput.addEventListener('blur', function() {
+                const digits = this.value.replace(/\D/g, '');
+                if (digits.length === 9) {
+                    validarAreteEnModal(this.value);
+                } else {
+                    ocultarAlertaAreteModal();
+                }
+            });
+        }
+
+        const formEditar = document.getElementById('formEditarAnimal');
+        if (formEditar) {
+            formEditar.addEventListener('submit', function(e) {
+                const selectCond = document.getElementById('editCondicionSelect');
+                const inputPrecioRechazo = document.getElementById('editPrecioRechazoInput');
+
+                if (selectCond && selectCond.value === 'Rechazo') {
+                    if (!inputPrecioRechazo || !inputPrecioRechazo.value || parseFloat(inputPrecioRechazo.value) <= 0) {
+                        e.preventDefault();
+                        alert('Debe ingresar el precio por kilo pactado para este animal con condición de rechazo.');
+                        if (inputPrecioRechazo) inputPrecioRechazo.focus();
+                        return false;
+                    }
+                }
+
+                if (areteDuplicadoModalDetectado) {
+                    e.preventDefault();
+                    if (editAreteInput) {
+                        editAreteInput.classList.remove('input-shake-error');
+                        void editAreteInput.offsetWidth;
+                        editAreteInput.classList.add('input-shake-error');
+                        editAreteInput.focus();
+                    }
+                    return false;
+                }
+            });
+        }
+
+        // Cerrar modal al hacer clic en el fondo gris exterior
+        const modalEditarAnimalEl = document.getElementById('modalEditarAnimal');
+        if (modalEditarAnimalEl) {
+            modalEditarAnimalEl.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    cerrarModalEditarAnimal();
+                }
+            });
+        }
     </script>
 
 </body>

@@ -38,6 +38,9 @@ public class Ganado {
     @JoinColumn(name = "arete_anterior")
     private Ganado areteAnterior;
 
+    @OneToMany(mappedBy = "areteAnterior", fetch = FetchType.LAZY)
+    private java.util.List<Ganado> rearetados = new java.util.ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_lote")
     private Lote lote;
@@ -166,6 +169,22 @@ public class Ganado {
 
     public void setAreteAnterior(Ganado areteAnterior) {
         this.areteAnterior = areteAnterior;
+    }
+
+    public java.util.List<Ganado> getRearetados() {
+        return rearetados;
+    }
+
+    public void setRearetados(java.util.List<Ganado> rearetados) {
+        this.rearetados = rearetados;
+    }
+
+    public boolean isFueRearetado() {
+        return rearetados != null && !rearetados.isEmpty();
+    }
+
+    public Ganado getRearetadoHijo() {
+        return (rearetados != null && !rearetados.isEmpty()) ? rearetados.get(0) : null;
     }
 
     public Lote getLote() {

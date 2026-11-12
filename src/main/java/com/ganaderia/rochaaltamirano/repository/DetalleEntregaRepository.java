@@ -15,5 +15,23 @@ public interface DetalleEntregaRepository extends JpaRepository<DetalleEntrega, 
     List<DetalleEntrega> findByEntregaIdEntrega(@Param("idEntrega") Integer idEntrega);
 
     List<DetalleEntrega> findByEstadoDictamen(String estadoDictamen);
+
+    boolean existsByGanadoArete(String arete);
+
+    @Query("SELECT d FROM DetalleEntrega d " +
+           "JOIN FETCH d.entrega e " +
+           "LEFT JOIN FETCH e.matadero m " +
+           "LEFT JOIN FETCH d.rechazos r " +
+           "WHERE d.ganado.arete = :arete OR REPLACE(d.ganado.arete, ' ', '') = REPLACE(:arete, ' ', '') " +
+           "ORDER BY e.fechaEntrega DESC, d.idDetalleEntrega DESC")
+    List<DetalleEntrega> findHistorialPorArete(@Param("arete") String arete);
+
+    @Query("SELECT d FROM DetalleEntrega d " +
+           "JOIN FETCH d.entrega e " +
+           "LEFT JOIN FETCH e.matadero m " +
+           "LEFT JOIN FETCH d.rechazos r " +
+           "WHERE d.ganado.arete IN :aretes " +
+           "ORDER BY e.fechaEntrega DESC, d.idDetalleEntrega DESC")
+    List<DetalleEntrega> findHistorialPorAretes(@Param("aretes") List<String> aretes);
 }
 

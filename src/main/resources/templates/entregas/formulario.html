@@ -188,12 +188,11 @@
                                     <th>Paletas</th>
                                     <th>Peso Compra</th>
                                     <th>Peso Despacho (kg) <small class="text-muted d-block">(Ajuste por engorde)</small></th>
-                                    <th>Precio Rechazo (C$/kg)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:if="${#lists.isEmpty(ganadosDisponibles)}">
-                                    <td colspan="9" class="empty-table-cell">
+                                    <td colspan="8" class="empty-table-cell">
                                         No hay ganado activo en finca en este momento. Puede registrar compras en el módulo de Lotes.
                                     </td>
                                 </tr>
@@ -222,16 +221,9 @@
                                                style="max-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.88rem; font-weight: 600;"
                                                placeholder="Ej. 410.00" title="Ajuste el peso si la res ganó kilos en finca antes de salir">
                                     </td>
-                                    <td>
-                                        <input type="number" step="0.01" min="0" 
-                                               th:name="'precioRechazo_' + ${#strings.replace(g.arete, ' ', '_')}" 
-                                               class="form-control form-input-control" 
-                                               style="max-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.88rem;"
-                                               placeholder="Opcional C$/kg">
-                                    </td>
                                 </tr>
                                 <tr id="filaSinResesCoincidentes" class="d-none" style="display: none;">
-                                    <td colspan="9" class="empty-table-cell py-lg">
+                                    <td colspan="8" class="empty-table-cell py-lg">
                                         <i class="fa-solid fa-magnifying-glass text-muted"></i> No se encontraron reses con el arete buscado.
                                     </td>
                                 </tr>

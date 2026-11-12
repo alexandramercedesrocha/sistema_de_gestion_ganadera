@@ -242,10 +242,13 @@ public class EntregaService {
             Optional<Ganado> optGanado = ganadoRepository.findById(arete.trim().toUpperCase());
             if (optGanado.isPresent()) {
                 ganado = optGanado.get();
-                // Actualizar estado del animal
-                if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+                // Actualizar estado del animal según el tipo de dictamen
+                if (estadoDictamen != null && estadoDictamen.toLowerCase().contains("devuelto")) {
                     ganado.setCategoria("Rechazo");
-                    ganado.setEstado("En Finca"); // Retorna a finca como rechazo
+                    ganado.setEstado("En Finca"); // Retorna a finca vivo para recuperación
+                } else if (estadoDictamen != null && estadoDictamen.toLowerCase().startsWith("rechazado")) {
+                    ganado.setCategoria("Rechazo Comprado");
+                    ganado.setEstado("Entregado a Matadero"); // Se queda en planta
                 } else {
                     ganado.setCategoria("Apto");
                     ganado.setEstado("Entregado a Matadero");
@@ -262,12 +265,12 @@ public class EntregaService {
 
         DetalleEntrega guardado = detalleEntregaRepository.save(detalle);
 
-        // Si es dictamen Rechazado, se registra en ganado_rechazado
-        if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+        // Si es dictamen Rechazado (comprado o devuelto), se registra en ganado_rechazado
+        if (estadoDictamen != null && estadoDictamen.toLowerCase().startsWith("rechazado")) {
             GanadoRechazado rechazo = new GanadoRechazado();
             rechazo.setDetalleEntrega(guardado);
             rechazo.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
-                    ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
+                    ? motivoRechazo : (estadoDictamen.toLowerCase().contains("devuelto") ? "Devuelto vivo a finca por dictamen veterinario/físico" : "Dictamen desfavorable en báscula de matadero"));
             ganadoRechazadoRepository.save(rechazo);
         }
 
@@ -364,17 +367,31 @@ public class EntregaService {
     }
 
     @Transactional
+    public Entrega guardarEntrega(Entrega entrega) {
+        return entregaRepository.save(entrega);
+    }
+
+    @Transactional
     public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, String estadoDictamen, String motivoRechazo) {
-        actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, null, estadoDictamen, motivoRechazo);
+        actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, null, estadoDictamen, motivoRechazo, null);
     }
 
     @Transactional
     public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, BigDecimal pesoFincaKg, String estadoDictamen, String motivoRechazo) {
+        actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, pesoFincaKg, estadoDictamen, motivoRechazo, null);
+    }
+
+    @Transactional
+    public void actualizarPesajeYDictamen(Integer idDetalle, BigDecimal pesoMataderoKg, BigDecimal pesoFincaKg, 
+                                          String estadoDictamen, String motivoRechazo, BigDecimal precioRechazo) {
         if (pesoFincaKg != null && pesoFincaKg.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El peso en finca debe ser mayor a cero");
         }
         if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El peso en matadero debe ser mayor a cero");
+        }
+        if (precioRechazo != null && precioRechazo.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio de rechazo no puede ser negativo");
         }
         DetalleEntrega detalle = detalleEntregaRepository.findById(idDetalle)
                 .orElseThrow(() -> new IllegalArgumentException("Detalle no encontrado: " + idDetalle));
@@ -391,9 +408,12 @@ public class EntregaService {
             detalle.setEstadoDictamen(estadoDictamen);
             Ganado ganado = detalle.getGanado();
             if (ganado != null) {
-                if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+                if (estadoDictamen.toLowerCase().contains("devuelto")) {
                     ganado.setCategoria("Rechazo");
-                    ganado.setEstado("En Finca");
+                    ganado.setEstado("En Finca"); // Retorna a finca vivo para recuperación y re-aretado
+                } else if (estadoDictamen.toLowerCase().startsWith("rechazado")) {
+                    ganado.setCategoria("Rechazo Comprado");
+                    ganado.setEstado("Entregado a Matadero"); // Se queda en planta
                 } else {
                     ganado.setCategoria("Apto");
                     ganado.setEstado("Entregado a Matadero");
@@ -401,12 +421,35 @@ public class EntregaService {
                 ganadoRepository.save(ganado);
             }
 
-            if ("Rechazado".equalsIgnoreCase(estadoDictamen)) {
+            boolean esRechazo = estadoDictamen.toLowerCase().startsWith("rechazado");
+            boolean esDevuelto = estadoDictamen.toLowerCase().contains("devuelto");
+
+            if (esRechazo) {
+                if (esDevuelto) {
+                    detalle.setPrecioRechazo(null); // No se cobra a la planta si fue devuelto vivo
+                } else {
+                    // Asignar precio de rechazo individual o heredar de la entrega
+                    if (precioRechazo != null && precioRechazo.compareTo(BigDecimal.ZERO) > 0) {
+                        detalle.setPrecioRechazo(precioRechazo);
+                        // Si la entrega no tenía precio de rechazo general asignado, asignarlo también
+                        if (detalle.getEntrega() != null && (detalle.getEntrega().getPrecioRechazo() == null || detalle.getEntrega().getPrecioRechazo().compareTo(BigDecimal.ZERO) <= 0)) {
+                            detalle.getEntrega().setPrecioRechazo(precioRechazo);
+                            entregaRepository.save(detalle.getEntrega());
+                        }
+                    } else if (detalle.getPrecioRechazo() == null && detalle.getEntrega() != null && detalle.getEntrega().getPrecioRechazo() != null) {
+                        detalle.setPrecioRechazo(detalle.getEntrega().getPrecioRechazo());
+                    }
+                }
+
+                String motivoDefecto = esDevuelto 
+                        ? "Devuelto vivo a finca por dictamen sanitario/físico en planta" 
+                        : "Dictamen desfavorable en báscula de matadero (comprado con penalización)";
+
                 if (detalle.getRechazos() == null || detalle.getRechazos().isEmpty()) {
                     GanadoRechazado rechazo = new GanadoRechazado();
                     rechazo.setDetalleEntrega(detalle);
                     rechazo.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
-                            ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
+                            ? motivoRechazo : motivoDefecto);
                     GanadoRechazado guardado = ganadoRechazadoRepository.save(rechazo);
                     if (detalle.getRechazos() != null) {
                         detalle.getRechazos().add(guardado);
@@ -415,11 +458,12 @@ public class EntregaService {
                     GanadoRechazado existente = detalle.getRechazos().get(0);
                     if (existente != null) {
                         existente.setMotivoRechazo(motivoRechazo != null && !motivoRechazo.isBlank() 
-                                ? motivoRechazo : "Dictamen desfavorable en báscula de matadero");
+                                ? motivoRechazo : motivoDefecto);
                         ganadoRechazadoRepository.save(existente);
                     }
                 }
             } else if ("Apto".equalsIgnoreCase(estadoDictamen)) {
+                detalle.setPrecioRechazo(null);
                 if (detalle.getRechazos() != null && !detalle.getRechazos().isEmpty()) {
                     ganadoRechazadoRepository.deleteAll(detalle.getRechazos());
                     detalle.getRechazos().clear();

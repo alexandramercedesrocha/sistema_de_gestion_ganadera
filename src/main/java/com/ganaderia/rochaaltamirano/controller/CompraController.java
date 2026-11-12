@@ -143,7 +143,8 @@ public class CompraController {
 
     @GetMapping("/api/verificar-arete")
     @ResponseBody
-    public java.util.Map<String, Object> verificarAreteEnBaseDatos(@RequestParam("arete") String arete) {
+    public java.util.Map<String, Object> verificarAreteEnBaseDatos(@RequestParam("arete") String arete,
+                                                                   @RequestParam(name = "areteExcluir", required = false) String areteExcluir) {
         java.util.Map<String, Object> respuesta = new java.util.HashMap<>();
         if (arete == null || arete.trim().replaceAll("\\s+", "").length() < 9) {
             respuesta.put("existe", false);
@@ -153,6 +154,14 @@ public class CompraController {
         List<Ganado> encontrados = loteService.buscarGanadoPorAreteFlexible(arete);
         if (!encontrados.isEmpty()) {
             Ganado g = encontrados.get(0);
+            if (areteExcluir != null && !areteExcluir.isBlank()) {
+                String areteExcluirLimpio = areteExcluir.trim().replaceAll("\\s+", "");
+                String gAreteLimpio = g.getArete().trim().replaceAll("\\s+", "");
+                if (areteExcluirLimpio.equalsIgnoreCase(gAreteLimpio)) {
+                    respuesta.put("existe", false);
+                    return respuesta;
+                }
+            }
             respuesta.put("existe", true);
             String info = "El arete [" + arete.trim() + "] ya existe en la base de datos";
             if (g.getLote() != null) {
@@ -172,6 +181,70 @@ public class CompraController {
 
         respuesta.put("existe", false);
         return respuesta;
+    }
+
+    @PostMapping("/lote/{id}/actualizar-animal")
+    public String actualizarAnimalDeLote(@PathVariable("id") Integer id,
+                                         @RequestParam("areteOriginal") String areteOriginal,
+                                         @RequestParam("arete") String nuevoArete,
+                                         @RequestParam(name = "color", required = false) String color,
+                                         @RequestParam(name = "paletas", required = false) String paletas,
+                                         @RequestParam("pesoKg") BigDecimal pesoKg,
+                                         @RequestParam("condicionCompra") String condicionCompra,
+                                         @RequestParam(name = "precioAnimalRechazo", required = false) BigDecimal precioAnimalRechazo,
+                                         RedirectAttributes redirectAttributes) {
+        String arete = nuevoArete != null ? nuevoArete.trim() : "";
+        if (arete.isBlank()) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El número de arete es obligatorio.");
+            return "redirect:/compras/lote/" + id;
+        }
+
+        if (pesoKg == null || pesoKg.compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El peso de la báscula debe ser mayor que cero.");
+            return "redirect:/compras/lote/" + id;
+        }
+
+        try {
+            Ganado datosNuevos = new Ganado();
+            datosNuevos.setArete(arete);
+            datosNuevos.setColor(color);
+            datosNuevos.setPaletas(paletas);
+            datosNuevos.setPesoKg(pesoKg);
+            datosNuevos.setCondicionCompra(condicionCompra);
+
+            loteService.actualizarAnimalEnLote(id, areteOriginal, datosNuevos, precioAnimalRechazo);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Animal [" + arete + "] actualizado correctamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al actualizar animal: " + e.getMessage());
+        }
+
+        return "redirect:/compras/lote/" + id;
+    }
+
+    @PostMapping("/lote/{id}/eliminar-animal")
+    public String eliminarAnimalDeLotePost(@PathVariable("id") Integer id,
+                                           @RequestParam("arete") String arete,
+                                           RedirectAttributes redirectAttributes) {
+        try {
+            loteService.eliminarAnimalDeLote(id, arete);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Res con arete [" + arete + "] eliminada del lote #" + id + " exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "No se pudo eliminar el animal: " + e.getMessage());
+        }
+        return "redirect:/compras/lote/" + id;
+    }
+
+    @PostMapping("/lote/{id}/animal/{arete}/eliminar")
+    public String eliminarAnimalDeLote(@PathVariable("id") Integer id,
+                                       @PathVariable("arete") String arete,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            loteService.eliminarAnimalDeLote(id, arete);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Res con arete [" + arete + "] eliminada del lote #" + id + " exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "No se pudo eliminar el animal: " + e.getMessage());
+        }
+        return "redirect:/compras/lote/" + id;
     }
 
     @PostMapping("/lote/{id}/actualizar-precio-rechazo")

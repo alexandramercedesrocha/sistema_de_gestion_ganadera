@@ -113,25 +113,10 @@ public class EntregaController {
         String txtViajes = totalViajes == 1 ? "1 viaje logístico asignado" : totalViajes + " viajes logísticos asignados";
 
         if (aretesSeleccionados != null && !aretesSeleccionados.isEmpty()) {
-            java.util.Map<String, BigDecimal> preciosRechazoPorArete = new java.util.HashMap<>();
             java.util.Map<String, BigDecimal> pesosSalidaPorArete = new java.util.HashMap<>();
             for (String arete : aretesSeleccionados) {
                 if (arete == null || arete.isBlank()) continue;
                 String areteLimpio = arete.trim().toUpperCase();
-                String keyDirect = "precioRechazo_" + arete;
-                String keyUnderscore = "precioRechazo_" + arete.replace(" ", "_");
-                String val = allParams.get(keyDirect);
-                if (val == null || val.isBlank()) {
-                    val = allParams.get(keyUnderscore);
-                }
-                if (val != null && !val.isBlank()) {
-                    try {
-                        BigDecimal pRech = new BigDecimal(val.trim());
-                        if (pRech.compareTo(BigDecimal.ZERO) >= 0) {
-                            preciosRechazoPorArete.put(areteLimpio, pRech);
-                        }
-                    } catch (NumberFormatException ignored) {}
-                }
 
                 // Lectura de nuevo peso de salida por incremento de engorde antes de entregarse
                 String keyPesoDirect = "pesoSalida_" + arete;
@@ -150,7 +135,7 @@ public class EntregaController {
                 }
             }
 
-            entregaService.asociarGanadoAEntrega(guardada.getIdEntrega(), aretesSeleccionados, preciosRechazoPorArete, pesosSalidaPorArete);
+            entregaService.asociarGanadoAEntrega(guardada.getIdEntrega(), aretesSeleccionados, null, pesosSalidaPorArete);
             redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con " + aretesSeleccionados.size() + " reses cargadas al despacho y " + txtViajes + ".");
         } else {
             redirectAttributes.addFlashAttribute("mensajeExito", "Entrega #" + guardada.getIdEntrega() + " creada con " + txtViajes + " exitosamente.");
@@ -202,6 +187,7 @@ public class EntregaController {
                                       @RequestParam(name = "pesoFincaKg", required = false) BigDecimal pesoFincaKg,
                                       @RequestParam(name = "estadoDictamen", defaultValue = "Apto") String estadoDictamen,
                                       @RequestParam(name = "motivoRechazo", required = false) String motivoRechazo,
+                                      @RequestParam(name = "precioRechazo", required = false) BigDecimal precioRechazo,
                                       RedirectAttributes redirectAttributes) {
         if (pesoMataderoKg != null && pesoMataderoKg.compareTo(BigDecimal.ZERO) <= 0) {
             redirectAttributes.addFlashAttribute("mensajeError", "El peso de venta debe ser un número positivo mayor que cero.");
@@ -211,8 +197,36 @@ public class EntregaController {
             redirectAttributes.addFlashAttribute("mensajeError", "El peso en finca debe ser un número positivo mayor que cero.");
             return "redirect:/entregas/" + id;
         }
-        entregaService.actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, pesoFincaKg, estadoDictamen, motivoRechazo);
+        if (precioRechazo != null && precioRechazo.compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El precio de rechazo debe ser un número positivo mayor que cero.");
+            return "redirect:/entregas/" + id;
+        }
+        entregaService.actualizarPesajeYDictamen(idDetalle, pesoMataderoKg, pesoFincaKg, estadoDictamen, motivoRechazo, precioRechazo);
         redirectAttributes.addFlashAttribute("mensajeExito", "Pesajes (finca y matadero) y dictamen oficial actualizados.");
+        return "redirect:/entregas/" + id;
+    }
+
+    @PostMapping("/{id}/actualizar-precio-rechazo")
+    public String actualizarPrecioRechazoEntrega(@PathVariable("id") Integer id,
+                                                 @RequestParam("precioRechazo") BigDecimal precioRechazo,
+                                                 RedirectAttributes redirectAttributes) {
+        if (precioRechazo == null || precioRechazo.compareTo(BigDecimal.ZERO) <= 0) {
+            redirectAttributes.addFlashAttribute("mensajeError", "El precio de rechazo debe ser mayor a cero.");
+            return "redirect:/entregas/" + id;
+        }
+        Entrega entrega = entregaService.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Entrega no encontrada: " + id));
+        entrega.setPrecioRechazo(precioRechazo);
+
+        if (entrega.getDetalles() != null) {
+            for (DetalleEntrega det : entrega.getDetalles()) {
+                if (det.isRechazadoComprado() || "Rechazado".equalsIgnoreCase(det.getEstadoDictamen())) {
+                    det.setPrecioRechazo(precioRechazo);
+                }
+            }
+        }
+        entregaService.guardarEntrega(entrega);
+        redirectAttributes.addFlashAttribute("mensajeExito", "Precio de rechazo de la Entrega #" + id + " establecido en C$ " + precioRechazo + " /kg exitosamente.");
         return "redirect:/entregas/" + id;
     }
 

@@ -60,7 +60,10 @@ public class GanadoController {
         List<Ganado> rechazos = ganadoService.listarGanadoRechazosMatadero();
 
         for (Ganado g : inventario) {
-            if (vendidos.contains(g)) {
+            if (ganadoService.fueRearetado(g)) {
+                g.setEstado("Re-aretado (Histórico)");
+                g.setCategoria("Re-aretado");
+            } else if (vendidos.contains(g)) {
                 g.setEstado("Entregado a Matadero");
                 g.setCategoria("Apto / Canal Aceptada");
             } else if (rechazos.contains(g)) {
@@ -91,6 +94,7 @@ public class GanadoController {
         model.addAttribute("vistaSeleccionada", vista);
         model.addAttribute("ganados", inventario);
         model.addAttribute("proveedores", catalogoService.listarProveedores());
+        model.addAttribute("lotes", loteService.listarLotes());
         model.addAttribute("totalCabezas", inventario.size());
         model.addAttribute("totalEnFinca", ganadoService.contarCabezasEnFinca());
         model.addAttribute("totalRechazos", ganadoService.contarRechazos());
@@ -127,6 +131,7 @@ public class GanadoController {
         List<GanadoRechazo> rechazos = ganadoService.listarRechazos();
         model.addAttribute("rechazos", rechazos);
         model.addAttribute("totalRechazos", rechazos.size());
+        model.addAttribute("lotes", loteService.listarLotes());
         return "ganado/detalle-rechazo";
     }
 
@@ -156,5 +161,59 @@ public class GanadoController {
         ganadoService.eliminarGanado(arete);
         redirectAttributes.addFlashAttribute("mensajeExito", "Arete " + arete + " retirado del inventario.");
         return "redirect:/ganado";
+    }
+
+    @PostMapping("/rearetar")
+    public String rearetarGanado(@RequestParam("areteOriginal") String areteOriginal,
+                                 @RequestParam("nuevoArete") String nuevoArete,
+                                 @RequestParam("nuevoPesoKg") BigDecimal nuevoPesoKg,
+                                 @RequestParam(name = "idLote", required = false) Integer idLote,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            if (nuevoPesoKg == null || nuevoPesoKg.compareTo(BigDecimal.ZERO) <= 0) {
+                redirectAttributes.addFlashAttribute("mensajeError", "El peso recuperado debe ser un número positivo mayor que cero.");
+                return "redirect:/ganado";
+            }
+            Ganado nuevo = ganadoService.rearetarGanado(areteOriginal, nuevoArete, nuevoPesoKg, idLote);
+            redirectAttributes.addFlashAttribute("mensajeExito",
+                    "¡Bovino re-aretado y recuperado exitosamente! Arete anterior " + areteOriginal + 
+                    " vinculado al nuevo arete oficial " + nuevo.getAreteFormateado() + 
+                    " con condición Apto (" + nuevoPesoKg + " kg) listo para ser despachado.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensajeError", "Error al re-aretar: " + e.getMessage());
+        }
+        return "redirect:/ganado";
+    }
+
+    @GetMapping("/api/historial/{arete}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> obtenerHistorialApi(@PathVariable("arete") String arete) {
+        try {
+            com.ganaderia.rochaaltamirano.dto.HistorialBovinoDTO dto = ganadoService.obtenerHistorialBovino(arete);
+            return org.springframework.http.ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/api/validar-arete")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> validarAreteApi(@RequestParam("arete") String arete) {
+        String soloDigitos = arete != null ? arete.replaceAll("\\D", "") : "";
+        if (soloDigitos.length() < 9) {
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                    "completo", false,
+                    "disponible", true,
+                    "existe", false,
+                    "mensaje", "Ingrese los 9 dígitos numéricos (XXXXX XXXX)"
+            ));
+        }
+        boolean disponible = ganadoService.validarDisponibilidadArete(arete);
+        return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                "completo", true,
+                "disponible", disponible,
+                "existe", !disponible,
+                "mensaje", disponible ? "¡Arete disponible para registro!" : "¡Atención! Este arete ya existe registrado en la base de datos del sistema"
+        ));
     }
 }
